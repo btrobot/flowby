@@ -39,6 +39,7 @@ class DSLError(Exception):
         column: 错误发生的列号
         error_type: 错误类型描述
         message: 错误消息
+        file_path: 错误发生的文件路径（可选）
         source_lines: 源代码行列表
         expected: 期望的内容
         actual: 实际的内容
@@ -51,6 +52,7 @@ class DSLError(Exception):
         column: int,
         error_type: str,
         message: str,
+        file_path: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
         expected: Optional[str] = None,
         actual: Optional[str] = None,
@@ -60,6 +62,7 @@ class DSLError(Exception):
         self.column = column
         self.error_type = error_type
         self.msg = message  # 使用 msg 避免与 Exception.message 冲突
+        self.file_path = file_path  # v6.0.1: 文件路径（用于模块导入错误定位）
         self.source_lines = source_lines or []
         self.expected = expected
         self.actual = actual
@@ -73,6 +76,13 @@ class DSLError(Exception):
 
         # 错误标题
         title = f"{Fore.RED}[{self.error_type}]{Style.RESET_ALL} "
+
+        # v6.0.1: 如果有文件路径，显示文件名
+        if self.file_path:
+            from pathlib import Path
+            file_name = Path(self.file_path).name
+            title += f"文件 {Fore.CYAN}{file_name}{Style.RESET_ALL}, "
+
         title += f"第 {Fore.YELLOW}{self.line}{Style.RESET_ALL} 行"
         if self.column > 0:
             title += f"，第 {Fore.YELLOW}{self.column}{Style.RESET_ALL} 列"
@@ -139,6 +149,7 @@ class LexerError(DSLError):
         line: 错误发生的行号（从 1 开始）
         column: 错误发生的列号（从 1 开始）
         message: 错误消息
+        file_path: 错误发生的文件路径（可选，v6.0.1）
         source_line: 错误所在的源代码行（用于单行显示，向后兼容）
         source_lines: 完整源代码行列表（用于上下文显示）
         suggestion: 修复建议
@@ -149,6 +160,7 @@ class LexerError(DSLError):
         line: int,
         column: int,
         message: str,
+        file_path: Optional[str] = None,
         source_line: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
         suggestion: Optional[str] = None
@@ -162,6 +174,7 @@ class LexerError(DSLError):
             column=column,
             error_type="词法错误",
             message=message,
+            file_path=file_path,  # v6.0.1
             source_lines=source_lines,
             suggestion=suggestion
         )
@@ -182,6 +195,7 @@ class ParserError(DSLError):
         token_type: 当前 Token 的类型
         token_value: 当前 Token 的值
         message: 错误消息
+        file_path: 错误发生的文件路径（可选，v6.0.1）
         expected: 期望的 Token 类型（可选）
         source_lines: 完整源代码行列表
         suggestion: 修复建议
@@ -194,6 +208,7 @@ class ParserError(DSLError):
         token_type: str,
         token_value: str,
         message: str,
+        file_path: Optional[str] = None,
         expected: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
         suggestion: Optional[str] = None
@@ -211,6 +226,7 @@ class ParserError(DSLError):
             column=column,
             error_type="语法错误",
             message=message,
+            file_path=file_path,  # v6.0.1
             source_lines=source_lines,
             expected=expected,
             actual=actual,
@@ -229,6 +245,7 @@ class ExecutionError(DSLError):
         statement: 错误发生时的语句描述
         error_type: 错误类型（ELEMENT_NOT_FOUND, TIMEOUT, etc.）
         message: 错误消息
+        file_path: 错误发生的文件路径（可选，v6.0.1）
         screenshot_path: 错误时的截图路径（可选）
         source_lines: 完整源代码行列表
         suggestion: 修复建议
@@ -252,6 +269,7 @@ class ExecutionError(DSLError):
         statement: str,
         error_type: str,
         message: str,
+        file_path: Optional[str] = None,
         screenshot_path: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
         suggestion: Optional[str] = None
@@ -269,6 +287,7 @@ class ExecutionError(DSLError):
             column=0,  # 执行错误通常不需要列号
             error_type=error_type,
             message=full_message,
+            file_path=file_path,  # v6.0.1
             source_lines=source_lines,
             suggestion=suggestion
         )

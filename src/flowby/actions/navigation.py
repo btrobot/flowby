@@ -66,6 +66,7 @@ def execute_navigate_to(url: str, context: 'ExecutionContext', line: int = 0):
             statement=f"navigate to {resolved_url}",
             error_type=ExecutionError.NAVIGATION_FAILED,
             message=f"导航失败: {error_msg}",
+            file_path=context.script_path,  # v6.0.1: 添加文件路径
             screenshot_path=screenshot_path
         )
 
@@ -100,7 +101,8 @@ def execute_go_back(context: 'ExecutionContext', line: int = 0):
             line=line,
             statement="go back",
             error_type=ExecutionError.NAVIGATION_FAILED,
-            message=f"返回上一页失败: {e}"
+            message=f"返回上一页失败: {e}",
+            file_path=context.script_path
         )
 
 
@@ -134,7 +136,8 @@ def execute_go_forward(context: 'ExecutionContext', line: int = 0):
             line=line,
             statement="go forward",
             error_type=ExecutionError.NAVIGATION_FAILED,
-            message=f"前进到下一页失败: {e}"
+            message=f"前进到下一页失败: {e}",
+            file_path=context.script_path
         )
 
 
@@ -168,5 +171,6 @@ def execute_reload(context: 'ExecutionContext', line: int = 0):
             line=line,
             statement="reload",
             error_type=ExecutionError.NAVIGATION_FAILED,
-            message=f"刷新页面失败: {e}"
+            message=f"刷新页面失败: {e}",
+            file_path=context.script_path
         )

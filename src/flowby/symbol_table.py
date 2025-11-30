@@ -86,7 +86,7 @@ class Symbol:
 @dataclass
 class FunctionSymbol(Symbol):
     """
-    函数符号表项 (v5.1 - 支持闭包)
+    函数符号表项 (v5.1 - 支持闭包, v6.0.1 - 添加源文件路径)
 
     扩展 Symbol 类，用于存储函数定义的元信息
 
@@ -98,10 +98,12 @@ class FunctionSymbol(Symbol):
         params: 参数名列表
         body: 函数体 AST 节点列表
         closure_scope: 定义时的符号表引用（闭包作用域）v5.1 新增
+        source_file: 函数定义所在的文件路径（v6.0.1 新增，用于错误定位）
     """
     params: list = None  # 参数名列表
     body: list = None    # 函数体 AST 节点列表
     closure_scope: Optional['SymbolTable'] = None  # v5.1: 闭包作用域
+    source_file: Optional[str] = None  # v6.0.1: 函数定义所在的文件路径
 
     def __post_init__(self):
         """初始化后处理：确保 params 和 body 不为 None"""

@@ -62,6 +62,15 @@ class PlaywrightWrapper:
 
         return self.page
 
+    def get_page(self) -> Optional[Page]:
+        """
+        获取当前页面对象
+
+        Returns:
+            当前的 Page 对象，如果未初始化则返回 None
+        """
+        return self.page
+
     def close(self):
         """Close the browser and cleanup resources"""
         if self.page:

@@ -1538,7 +1538,7 @@ class Interpreter:
                 message=f"函数 '{func_name}' 已定义"
             )
 
-        # 创建函数符号（v5.1: 保存定义时的符号表作为闭包作用域）
+        # 创建函数符号（v5.1: 保存定义时的符号表作为闭包作用域, v6.0.1: 保存源文件路径）
         func_symbol = FunctionSymbol(
             name=func_name,
             value=None,  # 函数符号不存储值
@@ -1546,7 +1546,8 @@ class Interpreter:
             line_number=statement.line,
             params=params,
             body=body,
-            closure_scope=self.symbol_table.current_scope()  # v5.1: 闭包作用域
+            closure_scope=self.symbol_table.current_scope(),  # v5.1: 闭包作用域
+            source_file=self.context.script_path  # v6.0.1: 保存函数定义所在的文件路径
         )
 
         # 注册到符号表
@@ -1726,23 +1727,33 @@ class Interpreter:
                     f"行 {line})"
                 )
 
-                # 7. 执行函数体
-                self._return_value = None
-                self._return_flag = False
+                # v6.0.1: 临时设置 script_path 为函数定义所在的文件（用于准确的错误定位）
+                original_script_path = self.context.script_path
+                if func_symbol.source_file:
+                    self.context.script_path = func_symbol.source_file
 
-                for stmt in func_symbol.body:
-                    if self._stopped or self._return_flag:
-                        break
-                    self._execute_statement(stmt)
+                try:
+                    # 7. 执行函数体
+                    self._return_value = None
+                    self._return_flag = False
 
-                # 8. 返回值（如果没有 return 语句，返回 None）
-                return_value = self._return_value
+                    for stmt in func_symbol.body:
+                        if self._stopped or self._return_flag:
+                            break
+                        self._execute_statement(stmt)
 
-                self.context.logger.debug(
-                    f"函数 '{func_name}' 返回: {return_value}"
-                )
+                    # 8. 返回值（如果没有 return 语句，返回 None）
+                    return_value = self._return_value
 
-                return return_value
+                    self.context.logger.debug(
+                        f"函数 '{func_name}' 返回: {return_value}"
+                    )
+
+                    return return_value
+
+                finally:
+                    # v6.0.1: 恢复原始 script_path
+                    self.context.script_path = original_script_path
 
             except ReturnException as e:
                 # 捕获 return 语句抛出的异常

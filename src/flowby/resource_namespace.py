@@ -354,6 +354,37 @@ class ResourceNamespace:
             else:
                 data = response.text
 
+            # 8.5. 检测错误响应（v6.0.1）
+            # 某些 API 在错误时返回纯文本字符串而不是 HTTP 错误码
+            # 例如：5sim API 返回 "no free phones" 字符串
+            if isinstance(data, str) and response.status_code == 200:
+                # 检测常见的错误模式
+                error_indicators = [
+                    'error', 'fail', 'invalid', 'not found',
+                    'no free', 'unavailable', 'forbidden'
+                ]
+                data_lower = data.lower()
+
+                if any(indicator in data_lower for indicator in error_indicators):
+                    # 将错误字符串包装为统一的错误对象
+                    error_msg = f"API 返回错误: {operation_id}\n"
+                    error_msg += f"URL: {url}\n"
+                    error_msg += f"错误信息: {data}"
+
+                    if self.context:
+                        self.context.logger.error(
+                            f"[API ERROR STRING] {operation['method']} {url} "
+                            f"- {data} "
+                            f"(resource: {self.name}, operation: {operation_id})"
+                        )
+
+                    raise ExecutionError(
+                        line=0,
+                        statement=f"{self.name}.{operation_id}()",
+                        error_type="API_ERROR",
+                        message=error_msg
+                    )
+
             # 9. 响应数据验证和映射（Phase 3）
             if isinstance(data, (dict, list)):
                 try:

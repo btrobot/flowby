@@ -684,9 +684,7 @@ class Lexer:
                     self._advance()
                 # 跳过 newline
                 if self._peek() == '\n':
-                    self._advance()
-                    self.line += 1
-                    self.column = 1
+                    self._advance()  # _advance() 内部会更新行号，不需要手动设置
                     # 继续处理下一行
                     continue
                 else:
@@ -715,9 +713,7 @@ class Lexer:
                 self._skip_line_comment()
                 # 跳过 newline（注释行不产生任何 token）
                 if self._peek() == '\n':
-                    self._advance()
-                    self.line += 1
-                    self.column = 1
+                    self._advance()  # _advance() 内部会更新行号，不需要手动设置
                 # 继续处理下一行
                 continue
 
@@ -730,9 +726,7 @@ class Lexer:
                     self._advance()
                 # 如果三引号后是 newline，跳过它
                 if self._peek() == '\n':
-                    self._advance()
-                    self.line += 1
-                    self.column = 1
+                    self._advance()  # _advance() 内部会更新行号，不需要手动设置
                 # 继续处理下一行
                 continue
 

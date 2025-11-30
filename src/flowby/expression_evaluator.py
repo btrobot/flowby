@@ -62,6 +62,19 @@ class ExpressionEvaluator:
         self.system_variables = system_variables
         self.interpreter = None  # v4.3: 延迟绑定,由 Interpreter 设置
 
+    def _get_current_file(self) -> Optional[str]:
+        """
+        获取当前执行的文件路径（v6.0.1）
+
+        用于错误报告时显示准确的文件名
+
+        Returns:
+            当前执行的脚本文件路径，如果无法获取则返回 None
+        """
+        if hasattr(self.system_variables, 'context') and self.system_variables.context:
+            return self.system_variables.context.script_path
+        return None
+
     def evaluate(self, expr: Expression) -> Any:
         """
         对表达式进行求值
@@ -153,7 +166,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"变量引用: {expr.name}",
                 error_type=ExecutionError.VARIABLE_NOT_FOUND,
-                message=f"变量 '{expr.name}' 未定义"
+                message=f"变量 '{expr.name}' 未定义",
+                file_path=self._get_current_file()
             )
 
     def _eval_system_variable(self, expr: SystemVariable) -> Any:
@@ -169,7 +183,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"成员访问: .{expr.property}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"无法访问 null 对象的属性 '{expr.property}'"
+                message=f"无法访问 null 对象的属性 '{expr.property}'",
+                file_path=self._get_current_file()
             )
 
         if isinstance(obj, dict):
@@ -178,7 +193,8 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"成员访问: .{expr.property}",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"对象没有属性 '{expr.property}'"
+                    message=f"对象没有属性 '{expr.property}'",
+                    file_path=self._get_current_file()
                 )
             return obj[expr.property]
 
@@ -190,7 +206,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"成员访问: .{expr.property}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"对象 {type(obj).__name__} 没有属性 '{expr.property}'"
+                message=f"对象 {type(obj).__name__} 没有属性 '{expr.property}'",
+                file_path=self._get_current_file()
             )
 
     def _eval_array_access(self, expr: ArrayAccess) -> Any:
@@ -203,7 +220,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="无法对 null 值进行数组访问"
+                message="无法对 null 值进行数组访问",
+                file_path=self._get_current_file()
             )
 
         # 索引必须是整数
@@ -214,7 +232,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"数组索引必须是整数，不能是 {type(index).__name__}"
+                message=f"数组索引必须是整数，不能是 {type(index).__name__}",
+                file_path=self._get_current_file()
             )
 
         # 检查索引范围
@@ -223,7 +242,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"只能对数组/字符串进行索引访问，不能对 {type(array).__name__}"
+                message=f"只能对数组/字符串进行索引访问，不能对 {type(array).__name__}",
+                file_path=self._get_current_file()
             )
 
         if index_int < 0 or index_int >= len(array):
@@ -231,7 +251,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"数组索引越界: {index_int} (数组长度: {len(array)})"
+                message=f"数组索引越界: {index_int} (数组长度: {len(array)})",
+                file_path=self._get_current_file()
             )
 
         return array[index_int]
@@ -403,7 +424,8 @@ class ExpressionEvaluator:
             line=expr.line,
             statement=f"方法调用 {expr.method_name}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"对象类型 {obj_type} 没有方法 '{expr.method_name}'"
+            message=f"对象类型 {obj_type} 没有方法 '{expr.method_name}'",
+            file_path=self._get_current_file()
         )
 
     def _eval_function_call(self, expr: FunctionCall) -> Any:
@@ -678,7 +700,8 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"除法运算",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message="除数不能为零"
+                    message="除数不能为零",
+                    file_path=self._get_current_file()
                 )
             return to_number(left, expr.line) / right_num
 
@@ -690,7 +713,8 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"整除运算",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message="整除运算的除数不能为零"
+                    message="整除运算的除数不能为零",
+                    file_path=self._get_current_file()
                 )
             return int(to_number(left, expr.line) // right_num)
 
@@ -738,7 +762,8 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"正则匹配",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"正则表达式错误: {e}"
+                    message=f"正则表达式错误: {e}",
+                    file_path=self._get_current_file()
                 )
 
         else:
@@ -746,7 +771,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"二元运算",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"未知的二元运算符: {operator}"
+                message=f"未知的二元运算符: {operator}",
+                file_path=self._get_current_file()
             )
 
     # ============================================================
@@ -780,7 +806,8 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"一元运算",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"未知的一元运算符: {operator}"
+                message=f"未知的一元运算符: {operator}",
+                file_path=self._get_current_file()
             )
 
     # ============================================================
