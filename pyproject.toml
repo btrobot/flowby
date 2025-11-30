@@ -94,6 +94,18 @@ addopts = [
     # "--cov-report=term-missing",
     # "--cov-report=html",
 ]
+markers = [
+    "builtin: Tests for built-in functions and namespaces",
+    "error: Tests for error handling and edge cases",
+    "execution: Tests for execution flow and interpreter",
+    "expressions: Tests for expression evaluation",
+    "feature: Tests for specific DSL features",
+    "integration: Integration tests",
+    "priority: High-priority tests",
+    "v3_specific: Tests specific to v3.0 syntax",
+    "v31: Tests for v3.1 features",
+    "v40: Tests for v4.0 features",
+]
 
 [tool.coverage.run]
 source = ["src/flowby"]
