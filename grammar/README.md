@@ -160,7 +160,32 @@
 
 ---
 
-### 9. [QUICKSTART.md](./QUICKSTART.md) - 快速开始
+### 9. [V5-EXAMPLES.flow](./V5-EXAMPLES.flow) - V5 语法示例集 ⭐
+
+**用途**: V5.0+ 新特性完整示例
+
+**包含内容**:
+- Module System (v5.0) 完整用法
+  - Library declaration, Export, Import
+  - From-import 和 Member access
+- Input Expression (v5.1) 所有特性
+  - 基本输入、默认值、类型转换
+  - Password 输入、参数组合
+- 与现有特性的集成示例
+  - User-Defined Functions + Modules
+  - Input + Control Flow
+- 最佳实践和推荐项目结构
+- 12个完整示例，覆盖所有 v5 特性
+
+**何时查看**:
+- 学习 v5.0/v5.1 新特性
+- 了解模块系统最佳实践
+- 掌握交互式输入用法
+- 构建模块化的 Flowby 项目
+
+---
+
+### 10. [QUICKSTART.md](./QUICKSTART.md) - 快速开始
 
 **用途**: 5分钟快速上手 Flowby
 
@@ -247,12 +272,12 @@ cat grammar/DSL-SYNTAX-CHEATSHEET.md
 
 **快速入门（5分钟）**:
 1. 阅读 [QUICKSTART.md](./QUICKSTART.md)
-2. 查看 [V3-EXAMPLES.flow](./V3-EXAMPLES.flow)
+2. 查看 [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) 或 [V5-EXAMPLES.flow](./V5-EXAMPLES.flow)
 
 **深入学习（30分钟）**:
 1. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 10分钟
 2. [MASTER.md](./MASTER.md) - 浏览特性 - 15分钟
-3. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 实战示例 - 5分钟
+3. [V5-EXAMPLES.flow](./V5-EXAMPLES.flow) - v5 新特性示例 - 5分钟
 
 **完整掌握（1小时）**:
 1. QUICKSTART.md
@@ -260,6 +285,7 @@ cat grammar/DSL-SYNTAX-CHEATSHEET.md
 3. DSL-GRAMMAR-QUICK-REFERENCE.md
 4. MASTER.md
 5. V3-EXAMPLES.flow
+6. V5-EXAMPLES.flow
 
 ### 场景 3: 我想提出新特性
 
@@ -305,7 +331,7 @@ git log --oneline -- grammar/MASTER.md
 1. [QUICKSTART.md](./QUICKSTART.md) - 5分钟
 2. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 15分钟
 3. [MASTER.md](./MASTER.md) - 浏览特性列表 - 20分钟
-4. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 实战示例 - 20分钟
+4. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) + [V5-EXAMPLES.flow](./V5-EXAMPLES.flow) - 实战示例 - 20分钟
 
 ### 路径 C: 语法贡献者（2小时）
 
@@ -332,8 +358,8 @@ git log --oneline -- grammar/MASTER.md
 ### 特性统计
 
 ```
-语句类型:         14 个模块
-总特性数:         49+
+语句类型:         16 个模块
+总特性数:         54
 用户函数:         ✅ 支持
 模块系统:         ✅ 支持
 OpenAPI 集成:     ✅ 支持 (5 phases)
@@ -366,7 +392,8 @@ A:
 
 **Q: 哪里可以找到语法示例？**
 A:
-- [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 完整示例集
+- [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - V3 语法完整示例
+- [V5-EXAMPLES.flow](./V5-EXAMPLES.flow) - V5 新特性完整示例 ⭐
 - `examples/` 目录 - 实战脚本
 - [MASTER.md](./MASTER.md) - 每个特性都有示例
 

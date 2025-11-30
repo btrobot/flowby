@@ -1,0 +1,390 @@
+# ============================================================================
+# Flowby v5.1 语法示例集
+# ============================================================================
+# Version: 5.1
+# Last Updated: 2025-11-30
+# Description: Comprehensive examples showcasing v5.0 and v5.1 features
+# ============================================================================
+
+"""
+This file demonstrates all major features introduced in Flowby v5.0 and v5.1:
+
+v5.0 Features:
+- Module System (library, export, import, from-import)
+- Enhanced module member access
+
+v5.1 Features:
+- Input Expression with default values and type conversion
+- Interactive CI/CD-friendly configuration
+
+v4.0-v4.3 Features (for reference):
+- User-defined functions
+- OpenAPI resource integration
+- Multi-variable for loops
+- Exit statements
+"""
+
+# ============================================================================
+# Example 1: Input Expression - Basic Usage (v5.1)
+# ============================================================================
+
+step "Input Expression Basics":
+    # Basic input
+    let name = input("Enter your name: ")
+    log "Hello, {name}!"
+
+    # Input with default value (CI/CD friendly)
+    let email = input("Email address: ", default="test@example.com")
+    log "Email: {email}"
+
+    # Type conversion - integer
+    let age = input("Your age: ", type=integer)
+    log "Age (integer): {age}"
+
+    # Type conversion - float
+    let price = input("Product price: ", type=float)
+    log "Price (float): ${price}"
+
+# ============================================================================
+# Example 2: Input Expression - Advanced Features (v5.1)
+# ============================================================================
+
+step "Input Expression Advanced":
+    # Password input (no echo)
+    let password = input("Enter password: ", type=password)
+    log "Password length: {len(password)}"
+
+    # Combined parameters: default + type
+    let retry_count = input("Max retries: ", default="3", type=integer)
+    log "Will retry {retry_count} times"
+
+    # Float with default
+    let timeout = input("Timeout (seconds): ", default="30.5", type=float)
+    log "Timeout: {timeout}s"
+
+# ============================================================================
+# Example 3: Input in Conditional Logic (v5.1)
+# ============================================================================
+
+step "Interactive Configuration":
+    let environment = input("Environment [dev/staging/prod]: ", default="dev")
+
+    when environment:
+        "dev":
+            const API_URL = "https://dev-api.example.com"
+            const LOG_LEVEL = "DEBUG"
+        "staging":
+            const API_URL = "https://staging-api.example.com"
+            const LOG_LEVEL = "INFO"
+        "prod":
+            const API_URL = "https://api.example.com"
+            const LOG_LEVEL = "WARNING"
+        otherwise:
+            const API_URL = "https://dev-api.example.com"
+            const LOG_LEVEL = "DEBUG"
+
+    log "Using API: {API_URL}"
+    log "Log level: {LOG_LEVEL}"
+
+# ============================================================================
+# Example 4: Input in Loops (v5.1)
+# ============================================================================
+
+step "Collect Multiple Inputs":
+    let item_count = input("How many items to add? ", type=integer, default="3")
+
+    let items = []
+    for i in range(1, item_count + 1):
+        let item_name = input("Item {i} name: ", default="Item {i}")
+        items.append(item_name)
+
+    log "Collected items: {items}"
+
+# ============================================================================
+# Example 5: Module System - Creating a Library (v5.0)
+# ============================================================================
+
+"""
+File Structure:
+libs/
+├── validators.flow    # Validation library
+├── helpers.flow       # Helper functions
+└── config.flow        # Configuration constants
+
+main.flow              # Main script using the libraries
+"""
+
+# This would be in libs/validators.flow:
+"""
+library validators
+
+export const EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+export const MIN_PASSWORD_LENGTH = 8
+
+export function validate_email(email):
+    if not (email contains "@" and email contains "."):
+        return false
+
+    # Additional validation logic
+    let parts = email.split("@")
+    if len(parts) != 2:
+        return false
+
+    return true
+
+export function validate_password(password):
+    if len(password) < MIN_PASSWORD_LENGTH:
+        return false
+
+    # Check for at least one digit
+    let has_digit = false
+    for char in password:
+        if char in "0123456789":
+            has_digit = true
+            break
+
+    return has_digit
+
+export function validate_age(age):
+    return age >= 18 and age <= 120
+"""
+
+# ============================================================================
+# Example 6: Module System - Importing Libraries (v5.0)
+# ============================================================================
+
+# Import with alias
+# import validators from "libs/validators.flow"
+
+# Usage:
+"""
+let email = input("Email: ", default="user@example.com")
+if validators.validate_email(email):
+    log "✅ Valid email"
+else:
+    log "❌ Invalid email"
+
+let password = input("Password: ", type=password)
+if validators.validate_password(password):
+    log "✅ Strong password"
+else:
+    log "❌ Password must be at least {validators.MIN_PASSWORD_LENGTH} chars with digits"
+"""
+
+# ============================================================================
+# Example 7: Module System - From-Import (v5.0)
+# ============================================================================
+
+# From-import (specific members)
+# from "libs/validators.flow" import validate_email, validate_age, EMAIL_PATTERN
+
+# Usage:
+"""
+log "Email pattern: {EMAIL_PATTERN}"
+
+let email = input("Email: ")
+if validate_email(email):
+    log "✅ Email is valid"
+
+let age = input("Age: ", type=integer)
+if validate_age(age):
+    log "✅ Age is valid"
+else:
+    log "❌ Must be 18-120 years old"
+"""
+
+# ============================================================================
+# Example 8: Module System + Input - Complete Example (v5.0 + v5.1)
+# ============================================================================
+
+step "User Registration with Validation":
+    # Interactive user input
+    let first_name = input("First name: ", default="John")
+    let last_name = input("Last name: ", default="Doe")
+    let email = input("Email: ", default="john.doe@example.com")
+    let age = input("Age: ", type=integer, default="25")
+    let password = input("Password: ", type=password)
+
+    # Validate using imported functions (example only)
+    # In real usage, uncomment import statements above
+    """
+    if not validate_email(email):
+        log "❌ Invalid email address"
+        exit
+
+    if not validate_age(age):
+        log "❌ Invalid age (must be 18-120)"
+        exit
+
+    if not validate_password(password):
+        log "❌ Weak password"
+        exit
+    """
+
+    # All validations passed
+    log "✅ Registration successful!"
+    log "Name: {first_name} {last_name}"
+    log "Email: {email}"
+    log "Age: {age}"
+
+# ============================================================================
+# Example 9: User-Defined Functions + Module System (v4.3 + v5.0)
+# ============================================================================
+
+# Helper functions (could be exported in a library)
+function format_user_data(first, last, email):
+    return "{first} {last} <{email}>"
+
+function calculate_discount(age, total):
+    if age >= 65:
+        # Senior discount: 20%
+        return total * 0.20
+    else if age <= 25:
+        # Student discount: 10%
+        return total * 0.10
+    else:
+        # Standard discount: 5%
+        return total * 0.05
+
+step "Process User Order":
+    # Collect user information
+    let first = input("First name: ", default="Alice")
+    let last = input("Last name: ", default="Smith")
+    let email = input("Email: ", default="alice@example.com")
+    let age = input("Age: ", type=integer, default="30")
+    let order_total = input("Order total: ", type=float, default="100.00")
+
+    # Format and display
+    let user_info = format_user_data(first, last, email)
+    log "User: {user_info}"
+
+    # Calculate discount
+    let discount = calculate_discount(age, order_total)
+    let final_total = order_total - discount
+
+    log "Order total: ${order_total}"
+    log "Discount: ${discount}"
+    log "Final total: ${final_total}"
+
+# ============================================================================
+# Example 10: Integration with Existing Features
+# ============================================================================
+
+step "Complete Workflow Example":
+    # Configuration via input
+    let base_url = input("Base URL: ", default="https://example.com")
+    let test_user_email = input("Test user email: ", default="test@example.com")
+    let max_retries = input("Max retries: ", type=integer, default="3")
+
+    # Navigate to login page
+    navigate to base_url + "/login"
+    wait for element "#login-form"
+
+    # Input credentials
+    select "#email"
+    type test_user_email
+
+    # Use input for password in automated tests
+    let test_password = input("Test password: ", type=password, default="testpass123")
+    select "#password"
+    type test_password
+
+    # Submit with retry logic
+    for attempt in range(1, max_retries + 1):
+        log "Login attempt {attempt}/{max_retries}"
+
+        click "#submit-button"
+        wait 2s
+
+        # Check if login succeeded
+        if url contains "/dashboard":
+            log "✅ Login successful!"
+            break
+        else:
+            log "❌ Login failed, retrying..."
+            if attempt == max_retries:
+                log "❌ Max retries exceeded"
+                exit
+
+# ============================================================================
+# Example 11: Advanced Module Pattern
+# ============================================================================
+
+"""
+Recommended Project Structure:
+
+project/
+├── main.flow                    # Main script
+├── config/
+│   └── settings.flow            # Exported constants
+├── libs/
+│   ├── validators.flow          # Validation functions
+│   ├── formatters.flow          # String formatting
+│   └── http_helpers.flow        # HTTP utilities
+└── tests/
+    └── test_validators.flow     # Test scripts
+
+Each library file structure:
+
+# File: libs/validators.flow
+library validators
+
+# Constants (configuration)
+export const MIN_USERNAME_LENGTH = 3
+export const MAX_USERNAME_LENGTH = 30
+
+# Private helpers (not exported)
+function is_alphanumeric(text):
+    # ...implementation...
+    return true
+
+# Public API (exported)
+export function validate_username(username):
+    if len(username) < MIN_USERNAME_LENGTH:
+        return false
+    if len(username) > MAX_USERNAME_LENGTH:
+        return false
+    return is_alphanumeric(username)
+
+export function validate_email(email):
+    # ...implementation...
+    return email contains "@"
+"""
+
+# ============================================================================
+# Example 12: Best Practices Summary
+# ============================================================================
+
+step "Best Practices Demonstration":
+    # 1. Always provide defaults for CI/CD compatibility
+    let api_key = input("API Key: ", default=$env.API_KEY)
+
+    # 2. Use type conversion for numeric inputs
+    let port = input("Server port: ", type=integer, default="8080")
+
+    # 3. Combine with conditional logic
+    let debug_mode = input("Enable debug? [yes/no]: ", default="no")
+    if debug_mode == "yes":
+        const LOG_LEVEL = "DEBUG"
+    else:
+        const LOG_LEVEL = "INFO"
+
+    # 4. Use password type for sensitive data
+    let secret = input("Secret token: ", type=password, default="default-secret")
+
+    # 5. Validate inputs
+    if port < 1024 or port > 65535:
+        log "❌ Invalid port number"
+        exit
+
+    log "✅ Configuration validated"
+    log "API Key: {'*' * len(api_key)}"
+    log "Port: {port}"
+    log "Log Level: {LOG_LEVEL}"
+    log "Debug: {debug_mode}"
+
+# ============================================================================
+# End of V5 Examples
+# ============================================================================
+
+log "🌸 All v5.0 and v5.1 feature examples completed!"
