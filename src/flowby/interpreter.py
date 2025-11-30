@@ -6,6 +6,7 @@ DSL 解释器
 
 from typing import TYPE_CHECKING, Optional, Any, Dict
 from pathlib import Path
+import warnings
 
 if TYPE_CHECKING:
     from .context import ExecutionContext

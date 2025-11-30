@@ -1124,7 +1124,15 @@ class Lexer:
             )
 
         # 其他关键字不区分大小写
-        token_type = self.KEYWORDS.get(value.lower(), TokenType.IDENTIFIER)
+        # v6.0: 首字母大写的标识符（如 Resource）不视为关键字，作为标识符处理
+        # 这允许使用 Resource() 作为内置函数，同时保留 resource 关键字
+        if value[0].isupper():
+            # 首字母大写，视为标识符（类名、构造函数等）
+            token_type = TokenType.IDENTIFIER
+        else:
+            # 首字母小写，检查是否为关键字
+            token_type = self.KEYWORDS.get(value.lower(), TokenType.IDENTIFIER)
+
         self.tokens.append(Token(token_type, value, start_line, start_column))
 
     def _peek(self, offset: int = 0) -> str:

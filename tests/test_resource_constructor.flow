@@ -1,0 +1,27 @@
+# Resource() 构造函数测试脚本
+
+log "=== Resource() Constructor Test ==="
+
+# 测试 1: 基本用法（仅 spec_file）
+log "\n测试 1: 基本用法"
+let api = Resource("tests/test_resource_constructor_simple_api.yml")
+log f"✓ Resource 对象创建成功: {api}"
+
+# 测试 2: 带 base_url 参数
+log "\n测试 2: 带 base_url 参数"
+let api2 = Resource(
+    "tests/test_resource_constructor_simple_api.yml",
+    base_url = "https://api.example.com"
+)
+log f"✓ Resource 对象创建成功（带 base_url）: {api2}"
+
+# 测试 3: 带多个配置参数
+log "\n测试 3: 带多个配置参数"
+let api3 = Resource(
+    "tests/test_resource_constructor_simple_api.yml",
+    base_url = "https://api.example.com",
+    timeout = 60
+)
+log f"✓ Resource 对象创建成功（带多个参数）: {api3}"
+
+log "\n=== 所有测试通过 ✓ ==="

@@ -753,6 +753,114 @@ def find(text: str, sub: str, start: int = 0) -> int:
     return text.find(sub, start_idx)
 
 
+# ==================== Resource 构造函数 (v6.0+) ====================
+def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'ResourceNamespace':
+    """
+    创建基于 OpenAPI 规范的 API 客户端 (v6.0+)
+
+    这是 resource 语句的替代方案，支持运行时动态配置。
+
+    Args:
+        spec_file: OpenAPI 规范文件路径（YAML 或 JSON）
+        context: 执行上下文（由 ExpressionEvaluator 自动注入）
+        **kwargs: 配置选项
+            - base_url (str): API 基础 URL（覆盖 OpenAPI 定义）
+            - auth (dict): 认证配置
+                - type: "bearer" | "basic" | "apikey"
+                - token/username/password/key: 认证凭据
+            - timeout (int): 请求超时时间（秒），默认 30
+            - headers (dict): 默认 HTTP headers
+            - response_mapping (dict): 响应数据映射配置
+            - validate_response (bool): 是否验证响应，默认 True
+            - resilience (dict): 弹性处理配置（重试+断路器）
+            - mock (dict): Mock 模式配置
+
+    Returns:
+        ResourceNamespace: API 客户端对象，支持调用 OpenAPI 定义的操作
+
+    Raises:
+        ExecutionError: spec_file 不存在、格式错误、或配置无效
+
+    Examples:
+        # 基本用法
+        let api = Resource("openapi/user-service.yml")
+        let user = api.getUser(userId=123)
+
+        # 带配置
+        let api = Resource("api.yml",
+            base_url = "https://api.example.com/v1",
+            auth = {type: "bearer", token: env.API_TOKEN},
+            timeout = 60
+        )
+
+        # 动态配置
+        step "动态初始化":
+            let token = login_response.access_token
+            let api = Resource("api.yml",
+                auth = {type: "bearer", token: token}
+            )
+
+    Note:
+        - 此函数需要 context 参数，由 ExpressionEvaluator 自动注入
+        - context 参数不应由 DSL 代码显式传递
+        - 这是 v6.0 引入的新特性，替代 resource 语句
+    """
+    from .openapi_loader import OpenAPISpec
+    from .resource_namespace import ResourceNamespace
+    from .errors import ExecutionError
+
+    # 验证 context
+    if context is None:
+        raise ExecutionError(
+            line=0,
+            statement="Resource()",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message="Resource() 函数需要执行上下文，但未提供。这通常是内部错误。"
+        )
+
+    # 验证 spec_file
+    if not spec_file or not isinstance(spec_file, str):
+        raise ExecutionError(
+            line=0,
+            statement=f"Resource({spec_file!r})",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message=f"spec_file 必须是非空字符串，得到 {type(spec_file).__name__}"
+        )
+
+    try:
+        # 加载 OpenAPI 规范
+        spec = OpenAPISpec(spec_file, script_path=context.script_path)
+
+        # 创建并返回 ResourceNamespace
+        return ResourceNamespace(
+            name=f"Resource({spec_file})",
+            spec=spec,
+            base_url=kwargs.get('base_url'),
+            auth=kwargs.get('auth'),
+            timeout=kwargs.get('timeout'),
+            headers=kwargs.get('headers'),
+            response_mapping=kwargs.get('response_mapping'),
+            validate_response=kwargs.get('validate_response', True),
+            resilience=kwargs.get('resilience'),
+            mock=kwargs.get('mock'),
+            context=context
+        )
+    except FileNotFoundError as e:
+        raise ExecutionError(
+            line=0,
+            statement=f"Resource({spec_file!r})",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message=f"OpenAPI 规范文件未找到: {e}"
+        )
+    except Exception as e:
+        raise ExecutionError(
+            line=0,
+            statement=f"Resource({spec_file!r})",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message=f"创建 Resource 失败: {e}"
+        )
+
+
 # 导出全局函数
 BUILTIN_FUNCTIONS = {
     'Number': Number,
@@ -780,4 +888,6 @@ BUILTIN_FUNCTIONS = {
     'startswith': startswith,
     'endswith': endswith,
     'find': find,
+    # v6.0: Resource 构造函数（替代 resource 语句）
+    'Resource': Resource,
 }

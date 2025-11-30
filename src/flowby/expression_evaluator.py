@@ -260,7 +260,15 @@ class ExpressionEvaluator:
                 # v3.2: 求值命名参数
                 kwargs = {key: self.evaluate(value) for key, value in expr.kwargs.items()}
                 try:
-                    return func(*args, **kwargs)
+                    # v6.0: 特殊处理 Resource() 函数，需要注入 context
+                    if expr.method_name == 'Resource':
+                        # Resource(spec_file, **kwargs) 需要 context 参数
+                        # 从 system_variables 获取 context 并注入
+                        context = self.system_variables.context
+                        return func(*args, context=context, **kwargs)
+                    else:
+                        # 普通内置函数
+                        return func(*args, **kwargs)
                 except Exception as e:
                     raise ExecutionError(
                         line=expr.line,
@@ -420,7 +428,15 @@ class ExpressionEvaluator:
             func = BUILTIN_FUNCTIONS[func_name]
             args = [self.evaluate(arg) for arg in expr.arguments]
             try:
-                return func(*args)
+                # v6.0: 特殊处理 Resource() 函数，需要注入 context
+                if func_name == 'Resource':
+                    # Resource(spec_file, **kwargs) 需要 context 参数
+                    # 从 system_variables 获取 context 并作为关键字参数传递
+                    context = self.system_variables.context
+                    return func(*args, context=context)
+                else:
+                    # 普通内置函数
+                    return func(*args)
             except Exception as e:
                 raise ExecutionError(
                     line=expr.line,
