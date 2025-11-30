@@ -1,0 +1,12 @@
+# Simple test script for Flowby CLI
+
+step "Hello Flowby":
+    let message = "Hello, Flowby!"
+    log message
+
+    let numbers = [1, 2, 3, 4, 5]
+    log f"Numbers: {numbers}"
+
+    assert len(numbers) == 5
+    log "All tests passed!"
+

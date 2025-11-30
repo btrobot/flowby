@@ -11,10 +11,13 @@ import time
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 
-from registration_system.dsl import Lexer, Parser, Interpreter, ExecutionContext
-from registration_system.dsl.errors import DSLError, LexerError, ParserError, ExecutionError
-from registration_system.dsl.config.loader import ConfigLoader
-from registration_system.dsl.config.errors import ConfigError
+from .lexer import Lexer
+from .parser import Parser
+from .interpreter import Interpreter
+from .context import ExecutionContext
+from .errors import DSLError, LexerError, ParserError, ExecutionError
+from .config.loader import ConfigLoader
+from .config.errors import ConfigError
 
 
 
@@ -223,7 +226,7 @@ class DSLRunner:
     def _init_playwright_browser(self):
         """初始化 Playwright 浏览器"""
         try:
-            from ..browser.playwright_wrapper import PlaywrightWrapper
+            from .browser.playwright_wrapper import PlaywrightWrapper
 
             print(f"[{self.task_id}] 启动 Playwright 浏览器: {self.browser_type}")
 

@@ -20,7 +20,7 @@ from enum import Enum
 
 from playwright.sync_api import Page, Locator
 
-from ..config.settings import Settings
+from .settings import Settings
 from .errors import ExecutionError
 from .diagnosis import DiagnosisManager, DiagnosisConfig, DEFAULT_DIAGNOSIS_CONFIG
 from .diagnosis.listeners import DiagnosisListeners
