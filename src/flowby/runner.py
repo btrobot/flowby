@@ -31,7 +31,8 @@ class DSLRunner:
         headless: bool = False,
         browser_id: Optional[str] = None,
         browser_type: str = "adspower",
-        services_config_path: Optional[str] = None
+        services_config_path: Optional[str] = None,
+        dry_run: bool = False
     ):
         """
         初始化运行器
@@ -43,6 +44,7 @@ class DSLRunner:
             browser_id: ADSPower 浏览器 ID (when browser_type=adspower)
             browser_type: 浏览器类型 (adspower, playwright, chromium, firefox, webkit)
             services_config_path: 服务配置文件路径（可选，默认在脚本目录查找 services.yaml）
+            dry_run: 是否为 Dry-Run 模式（只检查不执行）
         """
         self.task_id = task_id
         self.variables = variables or {}
@@ -51,6 +53,7 @@ class DSLRunner:
         self.browser_type = browser_type
         self.services_config_path = services_config_path
         self.services_config = None
+        self.dry_run = dry_run
 
         # 组件
         self.lexer = Lexer()
@@ -169,6 +172,12 @@ class DSLRunner:
             # 保存自省数据
             self._introspection_data['symbol_table'] = self.parser.get_symbol_table_dict()
             self._introspection_data['violations'] = violations
+
+            # === DRY-RUN 模式：在这里停止，不执行 ===
+            if self.dry_run:
+                elapsed = time.time() - start_time
+                self._print_dry_run_summary(program, violations, elapsed)
+                return len(violations) == 0  # 有违规则返回 False
 
             # 初始化浏览器
             if self.browser_type in ("playwright", "chromium", "firefox", "webkit"):
@@ -336,6 +345,94 @@ class DSLRunner:
             for t, count in sorted(type_counts.items()):
                 print(f"  - {t}: {count}")
 
+    def _print_dry_run_summary(self, program, violations, elapsed):
+        """打印 Dry-Run 摘要"""
+        print(f"\n{'='*60}")
+        print(f"DRY-RUN MODE - Validation Complete")
+        print(f"{'='*60}")
+        
+        # 阶段检查结果
+        print(f"\n[PASS] Lexical Analysis")
+        print(f"[PASS] Syntax Analysis")
+        
+        # VR 违规检查
+        if violations:
+            print(f"[FAIL] Semantic Check ({len(violations)} errors)")
+            for v in violations:
+                print(f"    [{v['rule_id']}] Line {v['line_number']}: {v['message']}")
+        else:
+            print(f"[PASS] Semantic Check")
+        
+        # 统计信息
+        print(f"\nScript Statistics:")
+        print(f"  - Total Statements: {len(program.statements)}")
+        
+        # 分析语句类型
+        statement_types = {}
+        function_count = 0
+        for stmt in program.statements:
+            stmt_type = type(stmt).__name__
+            statement_types[stmt_type] = statement_types.get(stmt_type, 0) + 1
+            if stmt_type == 'FunctionDefNode':
+                function_count += 1
+        
+        if statement_types:
+            print(f"  - Statement Types:")
+            for stmt_type, count in sorted(statement_types.items(), key=lambda x: x[1], reverse=True):
+                print(f"      * {stmt_type}: {count}")
+        
+        # 符号表统计
+        symbol_table = self.parser.get_symbol_table_dict()
+        if symbol_table:
+            self._print_symbol_table_summary(symbol_table)
+        
+        # 总结
+        print(f"\nValidation Time: {elapsed:.2f}s")
+        
+        if violations:
+            print(f"\n[ERROR] Script has {len(violations)} error(s), please fix before execution")
+        else:
+            print(f"\n[SUCCESS] Script validation passed, safe to execute")
+            print(f"          Tip: Remove --dry-run flag to run the script")
+        
+        print(f"{'='*60}\n")
+
+    def _print_symbol_table_summary(self, symbol_table_dict):
+        """打印符号表摘要"""
+        print(f"\nSymbol Table Summary:")
+        
+        # 统计全局作用域的符号
+        if 'scopes' in symbol_table_dict and symbol_table_dict['scopes']:
+            global_scope = symbol_table_dict['scopes'][0]
+            symbols = global_scope.get('symbols', {})
+            
+            # 分类统计
+            variables = []
+            constants = []
+            functions = []
+            
+            for name, symbol in symbols.items():
+                symbol_type = symbol.get('type', '')
+                if symbol_type == 'variable':
+                    variables.append(name)
+                elif symbol_type == 'constant':
+                    constants.append(name)
+                elif symbol_type == 'function':
+                    params = symbol.get('params', [])
+                    functions.append(f"{name}({', '.join(params)})")
+            
+            if constants:
+                print(f"  - Constants ({len(constants)}): {', '.join(constants)}")
+            if variables:
+                print(f"  - Variables ({len(variables)}): {', '.join(variables)}")
+            if functions:
+                print(f"  - Functions ({len(functions)}):")
+                for func in functions:
+                    print(f"      * {func}")
+            
+            if not (constants or variables or functions):
+                print(f"  - (No global symbols)")
+
     # ============================================================
     # 自省接口（用于测试框架）
     # ============================================================
@@ -456,6 +553,12 @@ def main():
         help="设置单个变量 (格式: key=value)"
     )
 
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Dry-Run 模式：只检查脚本语法和语义，不执行操作"
+    )
+
     args = parser.parse_args()
 
     # 生成任务 ID
@@ -508,7 +611,8 @@ def main():
         variables=variables,
         headless=args.headless,
         browser_id=browser_id,
-        browser_type=browser_type
+        browser_type=browser_type,
+        dry_run=args.dry_run
     )
 
     # 执行脚本
