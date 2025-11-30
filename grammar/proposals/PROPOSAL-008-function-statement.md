@@ -2,7 +2,7 @@
 
 > **提案编号**: #008
 > **提出日期**: 2025-11-29
-> **提出人**: Registration System Core Team
+> **提出人**: Flowby Core Team
 > **状态**: ✅ Approved (直接实施)
 > **目标版本**: 4.3.0
 > **影响级别**: MINOR
@@ -807,4 +807,4 @@ step "Validate":
 
 **提案状态**: ✅ Approved
 **最后更新**: 2025-11-29
-**维护者**: Registration System Core Team
+**维护者**: Flowby Core Team

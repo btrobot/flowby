@@ -1,7 +1,7 @@
 (* ============================================================================= *)
-(* Registration System DSL - EBNF Grammar Specification                        *)
-(* Version: 4.3                                                                *)
-(* Generated: 2025-11-29                                                       *)
+(* Flowby DSL - EBNF Grammar Specification                                    *)
+(* Version: 5.1                                                                *)
+(* Generated: 2025-11-30                                                       *)
 (* Branch: fix/http-enhanced-tests                                            *)
 (* ============================================================================= *)
 

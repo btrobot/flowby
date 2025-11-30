@@ -1,15 +1,15 @@
 # DSL Grammar Master Control Document
 
-> **Version**: 4.3 ⭐ **User-Defined Functions Support**
+> **Version**: 5.1 ⭐ **Input Expression & Module System Support**
 > **Status**: Active
-> **Last Updated**: 2025-11-29
+> **Last Updated**: 2025-11-30
 > **Purpose**: Single Source of Truth for DSL Grammar
 
 ---
 
 ## 🎯 Purpose
 
-This document serves as the **authoritative grammar control** for the Registration System DSL. All implementation must conform to this specification.
+This document serves as the **authoritative grammar control** for the Flowby DSL. All implementation must conform to this specification.
 
 **Key Principle**:
 - ✅ **This document defines what IS implemented**
@@ -3148,7 +3148,7 @@ pytest tests/grammar_alignment/ --durations=10
 
 ---
 
-**Maintained by**: Registration System Core Team
+**Maintained by**: Flowby Core Team
 **Last Review**: 2025-11-26
 **Next Review**: After v3.0 release stabilization
 

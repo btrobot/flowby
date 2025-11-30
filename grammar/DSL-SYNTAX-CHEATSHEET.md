@@ -1,6 +1,6 @@
 # DSL Syntax Cheatsheet
 
-> **Version**: 4.3 | **Generated**: 2025-11-29
+> **Version**: 5.1 | **Generated**: 2025-11-30
 
 快速查找 DSL 语法的参考表。
 
@@ -673,5 +673,3 @@ end for
 **完整文档**:
 - [完整 EBNF 语法](./DSL-GRAMMAR.ebnf)
 - [快速参考](./DSL-GRAMMAR-QUICK-REFERENCE.md)
-
-**版本**: 2.0 | **更新**: 2025-11-25

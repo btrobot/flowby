@@ -2862,6 +2862,6 @@ python scripts/check_grammar_version.py your_script.flow
 
 ---
 
-**维护者**: Registration System Core Team
+**维护者**: Flowby Core Team
 **最后更新**: 2025-11-28
 **语法版本**: 3.1.0

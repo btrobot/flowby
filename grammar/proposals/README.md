@@ -249,6 +249,6 @@ _待添加成功提案的案例研究_
 
 ---
 
-**维护者**: Registration System Core Team
+**维护者**: Flowby Core Team
 **创建日期**: 2025-11-25
 **最后更新**: 2025-11-25

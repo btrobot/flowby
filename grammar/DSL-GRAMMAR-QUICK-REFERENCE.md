@@ -1,7 +1,7 @@
 # DSL Grammar Reference - Quick Guide
 
-> **Version**: 4.3
-> **Generated**: 2025-11-29
+> **Version**: 5.1
+> **Generated**: 2025-11-30
 > **Complete EBNF**: See [DSL-GRAMMAR.ebnf](./DSL-GRAMMAR.ebnf)
 
 ---

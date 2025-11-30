@@ -131,7 +131,7 @@ python scripts/check_grammar_sync.py
 
 ### 检查同步状态
 ```bash
-cd E:\cf\ads\registration-system
+cd E:\cf\ads\flowby
 python scripts/check_grammar_sync.py
 ```
 
@@ -322,6 +322,6 @@ regflow your_script.flow
 
 ---
 
-**维护者**: Registration System Core Team
+**维护者**: Flowby Core Team
 **更新日期**: 2025-11-25
 **状态**: ✅ Active
