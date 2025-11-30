@@ -774,7 +774,206 @@ isFinite(value)         # 检查是否有限数
 
 ---
 
-## 14. 用户自定义函数 (v4.3)
+## 11. REST API Integration (v4.2)
+
+### OpenAPI Resource Statement
+
+```bnf
+resource_statement ::= "resource" IDENTIFIER "from" STRING
+                     | "resource" IDENTIFIER ":" resource_config
+
+resource_config ::= ("spec" ":" STRING)?
+                    ("base_url" ":" STRING)?
+                    ("auth" ":" object)?
+                    ("timeout" ":" NUMBER)?
+                    ("headers" ":" object)?
+                    ("response_mapping" ":" object)?
+                    ("validate_response" ":" BOOLEAN)?
+                    ("resilience" ":" object)?
+                    ("mock" ":" object)?
+```
+
+### 基本用法
+
+**简单形式：**
+```flow
+# 定义资源
+resource user_api from "openapi/user-service.yml"
+
+# 调用 API 操作
+let user = user_api.getUser(userId=123)
+log "User: {user.name}, Email: {user.email}"
+
+# POST 请求
+let new_user = user_api.createUser(data={name: "Alice", email: "alice@example.com"})
+```
+
+**完整配置：**
+```flow
+resource user_api:
+    spec: "openapi/user-service.yml"
+    base_url: "https://api.example.com/v1"
+    auth: {type: "bearer", token: $env.API_TOKEN}
+    timeout: 30
+    headers: {"X-Client-ID": "flowby"}
+
+    # Response mapping (Phase 3)
+    response_mapping: {
+        field_mapping: {userId: "user_id"},
+        exclude_fields: ["internal"]
+    }
+    validate_response: true
+
+    # Resilience (Phase 4)
+    resilience: {
+        retry: {
+            max_retries: 3,
+            strategy: "exponential",
+            base_delay: 1.0,
+            jitter: true
+        },
+        circuit_breaker: {
+            failure_threshold: 5,
+            recovery_timeout: 60
+        }
+    }
+
+    # Mock mode (Phase 5)
+    mock: {
+        enabled: false,
+        responses: {
+            getUser: {data: {id: 1, name: "Mock User"}}
+        }
+    }
+```
+
+### 认证支持 (Phase 2)
+
+```flow
+# Bearer token
+resource api:
+    spec: "openapi.yml"
+    auth: {type: "bearer", token: $env.TOKEN}
+
+# API Key
+resource api:
+    spec: "openapi.yml"
+    auth: {type: "apiKey", key: $env.API_KEY, in: "header", name: "X-API-Key"}
+
+# Basic auth
+resource api:
+    spec: "openapi.yml"
+    auth: {type: "basic", username: "user", password: "pass"}
+```
+
+### 响应映射 (Phase 3)
+
+```flow
+resource api:
+    spec: "openapi.yml"
+    response_mapping: {
+        field_mapping: {
+            userId: "user_id",
+            fullName: "full_name"
+        },
+        exclude_fields: ["internal_id", "metadata"],
+        include_only: ["id", "name", "email"]
+    }
+    validate_response: true  # Validate against OpenAPI schema
+```
+
+### 弹性处理 (Phase 4)
+
+```flow
+resource api:
+    spec: "openapi.yml"
+    resilience: {
+        # Retry configuration
+        retry: {
+            max_retries: 3,
+            strategy: "exponential",  # or "fixed", "linear"
+            base_delay: 1.0,
+            max_delay: 60.0,
+            jitter: true,
+            retry_on: [500, 502, 503, 504]
+        },
+
+        # Circuit breaker
+        circuit_breaker: {
+            failure_threshold: 5,
+            recovery_timeout: 60,
+            half_open_max_calls: 3
+        }
+    }
+```
+
+### Mock 模式 (Phase 5)
+
+```flow
+resource api:
+    spec: "openapi.yml"
+    mock: {
+        enabled: true,  # Enable mock mode
+        responses: {
+            getUser: {
+                data: {id: 1, name: "Mock User"},
+                status: 200
+            },
+            listUsers: {
+                data: [{id: 1}, {id: 2}],
+                delay: 0.5  # Simulate network delay
+            }
+        },
+        record_calls: true  # Record all API calls for testing
+    }
+```
+
+### 完整示例
+
+```flow
+# 定义 API 资源
+resource github_api:
+    spec: "https://api.github.com/openapi.json"
+    base_url: "https://api.github.com"
+    auth: {type: "bearer", token: $env.GITHUB_TOKEN}
+    timeout: 30
+    resilience: {
+        retry: {max_retries: 3, strategy: "exponential"}
+    }
+
+# 获取用户信息
+step "Get GitHub User":
+    let user = github_api.getUser(username="octocat")
+
+    if user.status == 200:
+        log "Name: {user.data.name}"
+        log "Repos: {user.data.public_repos}"
+        log "Followers: {user.data.followers}"
+    else:
+        log "Error: {user.status}"
+        exit
+
+# 列出仓库
+step "List Repositories":
+    let repos = github_api.listUserRepos(username="octocat", per_page=10)
+
+    for repo in repos.data:
+        log "Repository: {repo.name} ⭐ {repo.stargazers_count}"
+```
+
+### 实施阶段
+
+| Phase | 特性 | 状态 |
+|-------|------|------|
+| Phase 1 | 基本 OpenAPI 集成、自动生成方法 | ✅ 完成 |
+| Phase 2 | 认证支持 (Bearer, API Key, Basic) | ✅ 完成 |
+| Phase 3 | 响应映射、字段转换、模式验证 | ✅ 完成 |
+| Phase 4 | 弹性处理 (重试、断路器) | ✅ 完成 |
+| Phase 5 | Mock 模式 (测试支持) | ✅ 完成 |
+
+---
+
+## 12. 用户自定义函数 (v4.3)
 
 ### 函数定义
 
@@ -925,7 +1124,7 @@ else:
 
 ---
 
-## 15. 模块系统 (v5.0)
+## 13. 模块系统 (v5.0)
 
 ### Library Declaration
 
@@ -1031,7 +1230,7 @@ else:
 
 ---
 
-## 16. Input Expression (v5.1)
+## 14. Input Expression (v5.1)
 
 ### 基本语法
 
@@ -1117,7 +1316,7 @@ for attempt in range(1, max_retries + 1):
 
 ---
 
-## 17. 注释
+## 15. 注释
 
 ```flow
 # 单行注释
@@ -1130,7 +1329,7 @@ for attempt in range(1, max_retries + 1):
 
 ---
 
-## 18. 完整示例
+## 16. 完整示例
 
 ```flow
 # 配置
@@ -1188,7 +1387,7 @@ end step
 
 ---
 
-## 19. 语法图例说明
+## 17. 语法图例说明
 
 ```
 ::=     定义为

@@ -490,6 +490,131 @@ log "Base: {$config.base_url}"
 
 ---
 
+## REST API Integration
+
+> **版本**: v4.2 | **状态**: ✅ Stable (Phase 1-5 完成)
+
+### OpenAPI Resource 定义
+
+| 语法 | 说明 | 示例 |
+|------|------|------|
+| `resource NAME from "spec"` | 简单形式 | `resource api from "openapi.yml"` |
+| `resource NAME:` | 完整配置 | 见下方完整示例 |
+
+### 配置选项
+
+| 选项 | 类型 | 说明 | 示例 |
+|------|------|------|------|
+| `spec` | String | OpenAPI 规范路径/URL | `spec: "openapi/api.yml"` |
+| `base_url` | String | API 基础 URL | `base_url: "https://api.example.com"` |
+| `auth` | Object | 认证配置 (Phase 2) | `auth: {type: "bearer", token: $env.TOKEN}` |
+| `timeout` | Number | 超时时间（秒） | `timeout: 30` |
+| `headers` | Object | 自定义头部 | `headers: {"X-Client": "flowby"}` |
+| `response_mapping` | Object | 响应映射 (Phase 3) | 字段转换、过滤、验证 |
+| `resilience` | Object | 弹性处理 (Phase 4) | 重试、断路器 |
+| `mock` | Object | Mock 模式 (Phase 5) | 测试数据、延迟模拟 |
+
+### 认证类型 (Phase 2)
+
+| Type | 配置 | 示例 |
+|------|------|------|
+| Bearer | `{type: "bearer", token: TOKEN}` | API Token 认证 |
+| API Key | `{type: "apiKey", key: KEY, in: "header", name: "X-API-Key"}` | API Key 认证 |
+| Basic | `{type: "basic", username: USER, password: PASS}` | 基本认证 |
+
+### API 调用
+
+| 操作 | 语法 | 说明 |
+|------|------|------|
+| GET | `api.getUser(userId=123)` | 获取资源 |
+| POST | `api.createUser(data={...})` | 创建资源 |
+| PUT | `api.updateUser(userId=123, data={...})` | 更新资源 |
+| DELETE | `api.deleteUser(userId=123)` | 删除资源 |
+
+### 响应处理
+
+| 字段 | 说明 | 示例 |
+|------|------|------|
+| `.data` | 响应数据 | `user.data.name` |
+| `.status` | HTTP 状态码 | `if response.status == 200:` |
+| `.headers` | 响应头 | `response.headers["Content-Type"]` |
+
+### 完整示例
+
+```flow
+# 定义 GitHub API 资源
+resource github:
+    spec: "https://api.github.com/openapi.json"
+    base_url: "https://api.github.com"
+    auth: {type: "bearer", token: $env.GITHUB_TOKEN}
+    timeout: 30
+
+    # Response mapping (Phase 3)
+    response_mapping: {
+        field_mapping: {userId: "user_id"},
+        exclude_fields: ["internal"]
+    }
+    validate_response: true
+
+    # Resilience (Phase 4)
+    resilience: {
+        retry: {
+            max_retries: 3,
+            strategy: "exponential",
+            base_delay: 1.0,
+            jitter: true
+        },
+        circuit_breaker: {
+            failure_threshold: 5,
+            recovery_timeout: 60
+        }
+    }
+
+    # Mock mode (Phase 5) for testing
+    mock: {
+        enabled: false,
+        responses: {
+            getUser: {data: {id: 1, name: "Mock"}}
+        }
+    }
+
+# 使用 API
+step "Get User Info":
+    let user = github.getUser(username="octocat")
+
+    if user.status == 200:
+        log "Name: {user.data.name}"
+        log "Repos: {user.data.public_repos}"
+        log "Followers: {user.data.followers}"
+    else:
+        log "Error: {user.status}"
+
+# 列出仓库
+step "List Repos":
+    let repos = github.listUserRepos(
+        username="octocat",
+        per_page=10,
+        sort="updated"
+    )
+
+    for repo in repos.data:
+        log "{repo.name}: ⭐ {repo.stargazers_count}"
+```
+
+### 实施阶段总结
+
+| Phase | 特性 | 状态 |
+|-------|------|------|
+| **Phase 1** | 基本 OpenAPI 集成、方法生成 | ✅ 完成 |
+| **Phase 2** | 认证支持 (Bearer/API Key/Basic) | ✅ 完成 |
+| **Phase 3** | 响应映射、字段转换、模式验证 | ✅ 完成 |
+| **Phase 4** | 弹性处理 (重试策略、断路器) | ✅ 完成 |
+| **Phase 5** | Mock 模式 (测试支持、调用记录) | ✅ 完成 |
+
+**测试覆盖**: 136 个测试全部通过 ✅
+
+---
+
 ## 用户自定义函数
 
 > **版本**: v4.3 | **状态**: ✅ Stable
