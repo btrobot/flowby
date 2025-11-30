@@ -1,0 +1,36 @@
+# Hello World - Flowby Introduction
+
+step "Welcome to Flowby":
+    log info "=== Hello, Flowby! 🌸 ==="
+    log ""
+    log "Welcome to Flowby, the elegant web automation DSL."
+    log ""
+    log success "Your first Flowby script is running!"
+    log ""
+
+step "Demonstrate Variables":
+    let name = "Developer"
+    let year = 2025
+
+    log "Current user: {name}"
+    log "Year: {year}"
+
+step "Demonstrate Control Flow":
+    let count = 0
+
+    while count < 3:
+        log "Iteration {count + 1}"
+        count = count + 1
+
+    log success "Loop completed!"
+
+step "Final Message":
+    log ""
+    log info "🎉 Congratulations!"
+    log "You've successfully run your first Flowby script."
+    log ""
+    log "Next steps:"
+    log "  • Check out examples/web_automation/ for browser automation"
+    log "  • Read docs/getting-started.md for more tutorials"
+    log "  • Visit https://flowby.dev for full documentation"
+    log ""
