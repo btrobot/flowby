@@ -1,0 +1,1500 @@
+(* ============================================================================= *)
+(* Flowby DSL - EBNF Grammar Specification                                      *)
+(* ============================================================================= *)
+(* Version: 5.1                                                                  *)
+(* Generated from: lexer.py (1175 lines), parser.py (3287 lines)                *)
+(* Date: 2025-11-30                                                              *)
+(*                                                                               *)
+(* This grammar is derived from actual implementation analysis of the Flowby    *)
+(* DSL interpreter. It accurately reflects all supported syntax constructs.     *)
+(* ============================================================================= *)
+
+(* ============================================================================= *)
+(* IMPORTANT: Python-Style Indentation (v3.0+)                                  *)
+(* ============================================================================= *)
+(* Flowby uses Python-style indentation instead of explicit "end" keywords.     *)
+(* The lexer generates INDENT/DEDENT tokens to mark block boundaries.           *)
+(*                                                                               *)
+(* Rules:                                                                        *)
+(*   - Each indentation level must be exactly 4 spaces or 1 tab                 *)
+(*   - Mixing spaces and tabs in the same file is forbidden                     *)
+(*   - INDENT token is generated when indentation increases by 4 spaces         *)
+(*   - DEDENT token(s) are generated when indentation decreases                 *)
+(*   - EOF generates remaining DEDENT tokens to close all open blocks           *)
+(*                                                                               *)
+(* In this EBNF, block structures are shown as:                                 *)
+(*   ":" NEWLINE INDENT statements DEDENT                                       *)
+(* ============================================================================= *)
+
+
+(* ============================================================================= *)
+(* 1. PROGRAM STRUCTURE                                                         *)
+(* ============================================================================= *)
+
+program = { statement } EOF ;
+
+statement = variable_declaration
+          | control_flow_statement
+          | function_definition
+          | return_statement
+          | module_statement
+          | navigation_statement
+          | wait_statement
+          | selection_statement
+          | action_statement
+          | assertion_statement
+          | exit_statement
+          | resource_statement
+          | extraction_statement
+          | log_statement
+          | screenshot_statement
+          | expression_statement
+          ;
+
+
+(* ============================================================================= *)
+(* 2. VARIABLE DECLARATIONS                                                     *)
+(* ============================================================================= *)
+
+variable_declaration = let_statement
+                     | const_statement
+                     | assignment
+                     ;
+
+(* Variable declaration with 'let' - mutable *)
+let_statement = "let" identifier "=" expression ;
+
+(* Constant declaration with 'const' - immutable *)
+const_statement = "const" identifier "=" expression ;
+
+(* Assignment to existing variable *)
+assignment = identifier "=" expression ;
+
+(* Identifier: starts with letter or underscore, followed by alphanumerics *)
+identifier = IDENTIFIER_TOKEN ;
+
+(* Note: Some keywords can be used as identifiers in certain contexts:
+   value, text, type, url - allowed as variable names and object keys *)
+
+
+(* ============================================================================= *)
+(* 3. CONTROL FLOW STATEMENTS                                                   *)
+(* ============================================================================= *)
+
+control_flow_statement = step_block
+                       | if_block
+                       | when_block
+                       | for_loop
+                       | while_loop
+                       | break_statement
+                       | continue_statement
+                       ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.1 Step Block - Named execution unit with optional diagnosis                *)
+(* ----------------------------------------------------------------------------- *)
+
+step_block = "step" STRING [ "with" "diagnosis" diagnosis_level ] ":"
+             NEWLINE INDENT
+             { statement }
+             DEDENT ;
+
+diagnosis_level = "none" | "minimal" | "basic" | "standard" | "detailed" | "full" ;
+
+(* Example:
+   step "User Login" with diagnosis detailed:
+       navigate to "https://example.com/login"
+       type "user@test.com" into "#email"
+       click "#submit"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.2 If Block - Conditional execution with elif and else support              *)
+(* ----------------------------------------------------------------------------- *)
+
+if_block = "if" expression ":" NEWLINE INDENT
+           { statement }
+           DEDENT
+           { elif_clause }
+           [ else_clause ] ;
+
+elif_clause = "else" "if" expression ":" NEWLINE INDENT
+              { statement }
+              DEDENT ;
+
+else_clause = "else" ":" NEWLINE INDENT
+              { statement }
+              DEDENT ;
+
+(* Example:
+   if status == 200:
+       log success "Request succeeded"
+   else if status == 404:
+       log warning "Not found"
+   else:
+       log error "Unknown status"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.3 When Block - Pattern matching (switch/case)                              *)
+(* ----------------------------------------------------------------------------- *)
+
+when_block = "when" expression ":" NEWLINE INDENT
+             { when_clause }
+             [ otherwise_clause ]
+             DEDENT ;
+
+when_clause = case_pattern ":" NEWLINE INDENT
+              { statement }
+              DEDENT ;
+
+(* v3.1: OR pattern support with | separator *)
+case_pattern = expression { "|" expression } ;
+
+otherwise_clause = "otherwise" ":" NEWLINE INDENT
+                   { statement }
+                   DEDENT ;
+
+(* Example:
+   when status:
+       200 | 201 | 204:
+           log success "Success"
+       400 | 401:
+           log error "Client error"
+       otherwise:
+           log warning "Unknown"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.4 For Loop - Iteration with tuple unpacking support (v4.0)                 *)
+(* ----------------------------------------------------------------------------- *)
+
+for_loop = "for" loop_variables "in" expression ":" NEWLINE INDENT
+           { statement }
+           DEDENT ;
+
+(* v4.0: Multiple variable unpacking *)
+loop_variables = identifier { "," identifier } ;
+
+(* Example:
+   for item in items:
+       log item.name
+
+   for index, value in enumerate(data):
+       log f"{index}: {value}"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.5 While Loop (v3.0)                                                        *)
+(* ----------------------------------------------------------------------------- *)
+
+while_loop = "while" expression ":" NEWLINE INDENT
+             { statement }
+             DEDENT ;
+
+(* Example:
+   while count < 5:
+       log f"Count: {count}"
+       count = count + 1
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 3.6 Break and Continue (v3.0)                                                *)
+(* ----------------------------------------------------------------------------- *)
+
+break_statement = "break" ;
+
+continue_statement = "continue" ;
+
+(* Note: break/continue can only be used inside for or while loops *)
+
+
+(* ============================================================================= *)
+(* 4. FUNCTION SYSTEM (v4.3)                                                    *)
+(* ============================================================================= *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 4.1 Function Definition                                                      *)
+(* ----------------------------------------------------------------------------- *)
+
+function_definition = "function" identifier "(" [ parameter_list ] ")" ":"
+                      NEWLINE INDENT
+                      { statement }
+                      DEDENT ;
+
+parameter_list = identifier { "," identifier } ;
+
+(* Semantics:
+   - Functions have isolated local scope
+   - Parameters are pass-by-value
+   - Can access global constants (read-only)
+   - Recursion is NOT supported (detected at runtime)
+   - Closures are NOT supported
+*)
+
+(* Example:
+   function validate_email(email):
+       return email contains "@" and email contains "."
+
+   function calculate_total(items):
+       let total = 0
+       for item in items:
+           total = total + item.price
+       return total
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 4.2 Return Statement                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+return_statement = "return" [ expression ] ;
+
+(* Note: Returns None if no expression provided *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 4.3 Expression Statement (Function Calls)                                    *)
+(* ----------------------------------------------------------------------------- *)
+
+expression_statement = function_call
+                     | method_call
+                     ;
+
+function_call = identifier "(" [ argument_list ] ")" ;
+
+method_call = expression "." identifier "(" [ argument_list ] ")" ;
+
+(* v3.2: Supports positional and named arguments *)
+argument_list = argument { "," argument } ;
+
+argument = expression                           (* positional *)
+         | identifier "=" expression            (* named: key=value *)
+         | identifier ":" expression            (* named: key: value *)
+         ;
+
+(* Example:
+   greet()
+   add(10, 20)
+   http.get(url="https://api.example.com", headers=headers)
+*)
+
+
+(* ============================================================================= *)
+(* 5. MODULE SYSTEM (v5.0)                                                      *)
+(* ============================================================================= *)
+
+module_statement = library_declaration
+                 | export_statement
+                 | import_statement
+                 ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 5.1 Library Declaration                                                      *)
+(* ----------------------------------------------------------------------------- *)
+
+library_declaration = "library" identifier ;
+
+(* Must be first statement in file. Creates a namespace for exports. *)
+
+(* Example:
+   library validators
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 5.2 Export Statement                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+export_statement = "export" ( const_statement | function_definition ) ;
+
+(* Can only export const or function. Only valid in library files. *)
+
+(* Example:
+   export const VERSION = "1.0.0"
+   export function validate_email(email):
+       return email contains "@"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 5.3 Import Statement                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+import_statement = import_alias | from_import ;
+
+(* Import entire module with alias *)
+import_alias = "import" identifier "from" STRING ;
+
+(* Import specific members *)
+from_import = "from" STRING "import" identifier { "," identifier } ;
+
+(* Semantics:
+   - Paths are relative to the importing file
+   - Modules are cached (loaded once per execution)
+   - Circular imports are detected and prevented
+*)
+
+(* Example:
+   import validators from "libs/validators.flow"
+   from "libs/utils.flow" import log_info, format_date
+
+   # Usage
+   validators.validate_email(email)
+   log_info("Starting...")
+*)
+
+
+(* ============================================================================= *)
+(* 6. NAVIGATION STATEMENTS                                                     *)
+(* ============================================================================= *)
+
+navigation_statement = navigate_statement
+                     | go_statement
+                     | reload_statement
+                     ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 6.1 Navigate To                                                              *)
+(* ----------------------------------------------------------------------------- *)
+
+navigate_statement = "navigate" "to" expression ;
+
+(* Expression can be string literal, variable, or f-string *)
+
+(* Example:
+   navigate to "https://example.com"
+   navigate to base_url + "/login"
+   navigate to f"https://api.example.com/users/{user_id}"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 6.2 Go Back/Forward                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+go_statement = "go" ( "back" | "forward" ) ;
+
+(* Example:
+   go back
+   go forward
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 6.3 Reload                                                                   *)
+(* ----------------------------------------------------------------------------- *)
+
+reload_statement = "reload" ;
+
+
+(* ============================================================================= *)
+(* 7. WAIT STATEMENTS                                                           *)
+(* ============================================================================= *)
+
+wait_statement = wait_duration
+               | wait_for_element
+               | wait_for_navigation
+               | wait_for_state
+               | wait_until
+               ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 7.1 Wait Duration                                                            *)
+(* ----------------------------------------------------------------------------- *)
+
+wait_duration = "wait" [ "for" ] time_value ;
+
+time_value = NUMBER [ time_unit ]
+           | INTEGER [ time_unit ]
+           ;
+
+time_unit = "s" | "sec" | "second" | "seconds"
+          | "ms" | "milliseconds"
+          ;
+
+(* Example:
+   wait 2s
+   wait for 500ms
+   wait 1.5 seconds
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 7.2 Wait For Element                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+wait_for_element = "wait" "for" "element" expression
+                   [ "to" "be" element_state ]
+                   [ "timeout" time_value ] ;
+
+element_state = "visible" | "hidden" | "attached" | "detached" ;
+
+(* Example:
+   wait for element "#content"
+   wait for element ".modal" to be visible
+   wait for element "#loader" to be hidden timeout 10s
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 7.3 Wait For Navigation                                                      *)
+(* ----------------------------------------------------------------------------- *)
+
+wait_for_navigation = "wait" "for" "navigation"
+                      [ "to" expression ]
+                      [ "wait" "for" page_state ]
+                      [ "timeout" time_value ] ;
+
+page_state = "networkidle" | "domcontentloaded" | "load" ;
+
+(* Example:
+   wait for navigation
+   wait for navigation to "/dashboard"
+   wait for navigation wait for networkidle
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 7.4 Wait For Page State                                                      *)
+(* ----------------------------------------------------------------------------- *)
+
+wait_for_state = "wait" "for" page_state ;
+
+(* Example:
+   wait for networkidle
+   wait for domcontentloaded
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 7.5 Wait Until Condition                                                     *)
+(* ----------------------------------------------------------------------------- *)
+
+wait_until = "wait" "until" expression ;
+
+(* Example:
+   wait until page.url contains "dashboard"
+   wait until element_count > 0
+*)
+
+
+(* ============================================================================= *)
+(* 8. SELECTION STATEMENTS                                                      *)
+(* ============================================================================= *)
+
+selection_statement = select_element | select_option ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 8.1 Select Element                                                           *)
+(* ----------------------------------------------------------------------------- *)
+
+select_element = "select" element_type [ "where" where_clause ] ;
+
+element_type = "input" | "button" | "link" | "textarea"
+             | "div" | "span" | "element"
+             | STRING  (* CSS selector as string *)
+             ;
+
+where_clause = where_condition { "and" where_condition } ;
+
+where_condition = attribute_name where_operator expression ;
+
+attribute_name = "text" | "value" | "type" | IDENTIFIER ;
+
+where_operator = "=" | "contains" | "equals" | "matches" ;
+
+(* Example:
+   select input where type = "email"
+   select button where text contains "Submit"
+   select link where href matches ".*login.*"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 8.2 Select Option (Dropdown)                                                 *)
+(* ----------------------------------------------------------------------------- *)
+
+select_option = "select" "option" expression "from" expression ;
+
+(* Example:
+   select option "United States" from "#country"
+   select option country_value from country_selector
+*)
+
+
+(* ============================================================================= *)
+(* 9. ACTION STATEMENTS                                                         *)
+(* ============================================================================= *)
+
+action_statement = type_action
+                 | click_action
+                 | hover_action
+                 | clear_action
+                 | press_action
+                 | scroll_action
+                 | check_action
+                 | upload_action
+                 ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.1 Type Action                                                              *)
+(* ----------------------------------------------------------------------------- *)
+
+type_action = "type" expression [ "into" expression ] [ typing_modifier ] ;
+
+typing_modifier = "slowly" | "fast" ;
+
+(* Example:
+   type "user@example.com"
+   type password into "#password-field"
+   type "Hello" slowly
+   type f"User: {username}" into "#username"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.2 Click Action                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+click_action = click_type [ expression ] [ "and" "wait" time_value ] ;
+
+click_type = "click"
+           | "double_click" | "double" "click"
+           | "right_click" | "right" "click"
+           ;
+
+(* Example:
+   click "#submit"
+   click button_selector
+   double click ".item"
+   right click "#context-menu"
+   click "#next" and wait 2s
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.3 Hover Action                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+hover_action = "hover" [ "over" ] expression ;
+
+(* Example:
+   hover "#menu"
+   hover over ".dropdown-trigger"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.4 Clear Action                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+clear_action = "clear" [ expression ] ;
+
+(* Example:
+   clear
+   clear "#input-field"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.5 Press Action                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+press_action = "press" IDENTIFIER ;
+
+(* Key names: Enter, Tab, Escape, ArrowUp, ArrowDown, etc. *)
+
+(* Example:
+   press Enter
+   press Tab
+   press Escape
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.6 Scroll Action                                                            *)
+(* ----------------------------------------------------------------------------- *)
+
+scroll_action = "scroll" "to" scroll_target ;
+
+scroll_target = "top"
+              | "bottom"
+              | "element" expression
+              | expression   (* selector or position *)
+              ;
+
+(* Example:
+   scroll to top
+   scroll to bottom
+   scroll to element "#footer"
+   scroll to "#section-3"
+   scroll to 500
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.7 Check/Uncheck Action                                                     *)
+(* ----------------------------------------------------------------------------- *)
+
+check_action = ( "check" | "uncheck" ) expression ;
+
+(* Example:
+   check "#agree-checkbox"
+   uncheck "#newsletter"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 9.8 Upload Action                                                            *)
+(* ----------------------------------------------------------------------------- *)
+
+upload_action = "upload" "file" expression "to" expression ;
+
+(* Example:
+   upload file "/path/to/document.pdf" to "#file-input"
+   upload file file_path to upload_selector
+*)
+
+
+(* ============================================================================= *)
+(* 10. ASSERTION STATEMENTS                                                     *)
+(* ============================================================================= *)
+
+assertion_statement = "assert" expression [ "," expression ] ;
+
+(* First expression: condition to assert
+   Second expression (optional): error message (v4.3: can be any expression) *)
+
+(* Example:
+   assert status == 200
+   assert user.age >= 18, "User must be an adult"
+   assert items.length() > 0, error_message
+   assert url contains "dashboard"
+   assert element_visible OR element_count > 0
+*)
+
+
+(* ============================================================================= *)
+(* 11. EXIT STATEMENT (v4.1)                                                    *)
+(* ============================================================================= *)
+
+exit_statement = "exit" [ exit_code ] [ "," STRING ] ;
+
+exit_code = INTEGER ;
+
+(* Semantics:
+   - exit           -> code=0 (success), no message
+   - exit 0         -> code=0 (success), no message
+   - exit 1         -> code=1 (failure), no message
+   - exit "msg"     -> code=1 (failure), message="msg"
+   - exit 0, "msg"  -> code=0 (success), message="msg"
+   - exit 1, "msg"  -> code=1 (failure), message="msg"
+*)
+
+(* Example:
+   exit
+   exit 0
+   exit 1, "Validation failed"
+   exit "Critical error occurred"
+*)
+
+
+(* ============================================================================= *)
+(* 12. RESOURCE STATEMENT (v4.2 - OpenAPI Integration)                          *)
+(* ============================================================================= *)
+
+resource_statement = resource_simple | resource_block ;
+
+(* Simple form: single line *)
+resource_simple = "resource" identifier "from" STRING ;
+
+(* Block form: with configuration *)
+resource_block = "resource" identifier ":" NEWLINE INDENT
+                 { resource_config }
+                 DEDENT ;
+
+resource_config = "spec" ":" STRING NEWLINE
+                | "base_url" ":" expression NEWLINE
+                | "auth" ":" expression NEWLINE
+                | "timeout" ":" INTEGER NEWLINE
+                | "headers" ":" expression NEWLINE
+                ;
+
+(* Example:
+   resource user_api from "openapi/user-service.yml"
+
+   resource api:
+       spec: "openapi/api.yml"
+       base_url: "https://api.example.com"
+       auth: bearer(token)
+       timeout: 60
+*)
+
+
+(* ============================================================================= *)
+(* 13. EXTRACTION STATEMENTS                                                    *)
+(* ============================================================================= *)
+
+extraction_statement = "extract" extraction_target "from" expression
+                       [ "pattern" STRING ]
+                       "into" identifier ;
+
+extraction_target = "text"
+                  | "value"
+                  | "attr" STRING
+                  | "pattern" STRING
+                  ;
+
+(* Example:
+   extract text from ".username" into username
+   extract value from "#email-input" into email
+   extract attr "href" from ".profile-link" into profile_url
+   extract text from ".price" pattern "\\$([0-9.]+)" into price
+   extract pattern "ID: (\\d+)" from ".user-info" into user_id
+*)
+
+
+(* ============================================================================= *)
+(* 14. LOG STATEMENTS                                                           *)
+(* ============================================================================= *)
+
+log_statement = "log" [ log_level ] expression ;
+
+log_level = "debug" | "info" | "success" | "warning" | "error" ;
+
+(* Default level is "info" if not specified *)
+
+(* Example:
+   log "Hello, World!"
+   log info "Processing..."
+   log debug "Variable x = {x}"
+   log success "Task completed!"
+   log warning "Low memory"
+   log error "Connection failed"
+   log success f"User {name} registered"
+*)
+
+
+(* ============================================================================= *)
+(* 15. SCREENSHOT STATEMENTS                                                    *)
+(* ============================================================================= *)
+
+screenshot_statement = "screenshot" [ screenshot_options ] ;
+
+screenshot_options = { screenshot_option } ;
+
+screenshot_option = "fullpage"
+                  | "as" expression
+                  | "of" expression
+                  ;
+
+(* Options can appear in any order *)
+
+(* Example:
+   screenshot
+   screenshot as "homepage"
+   screenshot fullpage as "full-page"
+   screenshot of "#modal" as "modal-view"
+   screenshot of ".content" fullpage
+*)
+
+
+(* ============================================================================= *)
+(* 16. EXPRESSIONS                                                              *)
+(* ============================================================================= *)
+
+expression = logical_or_expression ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.1 Logical OR (lowest precedence)                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+logical_or_expression = logical_and_expression
+                        { "or" logical_and_expression } ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.2 Logical AND                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+logical_and_expression = logical_not_expression
+                         { "and" logical_not_expression } ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.3 Logical NOT                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+logical_not_expression = [ "not" ] comparison_expression ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.4 Comparison                                                              *)
+(* ----------------------------------------------------------------------------- *)
+
+comparison_expression = additive_expression
+                        [ comparison_operator additive_expression ] ;
+
+comparison_operator = "==" | "!=" | ">" | "<" | ">=" | "<="
+                    | "contains" | "matches" | "equals"
+                    ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.5 Additive                                                                *)
+(* ----------------------------------------------------------------------------- *)
+
+additive_expression = multiplicative_expression
+                      { ( "+" | "-" ) multiplicative_expression } ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.6 Multiplicative                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+multiplicative_expression = power_expression
+                            { ( "*" | "/" | "//" | "%" ) power_expression } ;
+
+(* Note: "//" is floor division (integer result) *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.6.5 Power (v4.0)                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+power_expression = unary_expression [ "**" power_expression ] ;
+
+(* Note: "**" is right-associative: 2 ** 3 ** 2 = 2 ** (3 ** 2) = 512 *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.7 Unary                                                                   *)
+(* ----------------------------------------------------------------------------- *)
+
+unary_expression = [ "+" | "-" ] postfix_expression ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.8 Postfix (member access, array access, method call)                      *)
+(* ----------------------------------------------------------------------------- *)
+
+postfix_expression = primary_expression { postfix_operator } ;
+
+postfix_operator = "." identifier [ "(" [ argument_list ] ")" ]   (* member/method *)
+                 | "[" expression "]"                              (* array access *)
+                 | "(" [ argument_list ] ")"                       (* function call *)
+                 ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 16.9 Primary (highest precedence)                                            *)
+(* ----------------------------------------------------------------------------- *)
+
+primary_expression = literal
+                   | identifier
+                   | input_expression
+                   | array_literal
+                   | object_literal
+                   | "(" expression ")"
+                   ;
+
+
+(* ============================================================================= *)
+(* 17. LITERALS                                                                 *)
+(* ============================================================================= *)
+
+literal = string_literal
+        | fstring_literal
+        | number_literal
+        | boolean_literal
+        | none_literal
+        ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.1 String Literals                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+(* Plain string - supports interpolation with {expr} *)
+string_literal = STRING ;
+
+(* v3.0: Explicit f-string with f prefix *)
+fstring_literal = FSTRING ;
+
+(* STRING: "text" or 'text' - interpolation {expr} is auto-parsed
+   FSTRING: f"text {expr}" or f'text {expr}' - explicit interpolation
+
+   Escape sequences: \n \t \\ \" \' \{
+*)
+
+(* Example:
+   "Hello, World!"
+   'Single quoted'
+   "User: {username}"
+   f"Count: {count + 1}"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.2 Number Literals                                                         *)
+(* ----------------------------------------------------------------------------- *)
+
+number_literal = INTEGER | NUMBER ;
+
+(* INTEGER: 0, 42, 123
+   NUMBER: 3.14, 0.5, 2.5s (with time unit)
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.3 Boolean Literals (Python-style, v3.0)                                   *)
+(* ----------------------------------------------------------------------------- *)
+
+boolean_literal = "True" | "False" ;
+
+(* Note: Must use Python-style capitalization. 
+   'true', 'false' will cause lexer error. *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.4 None Literal (Python-style, v3.0)                                       *)
+(* ----------------------------------------------------------------------------- *)
+
+none_literal = "None" ;
+
+(* Note: Must use Python-style. 'null' will cause lexer error. *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.5 Array Literal                                                           *)
+(* ----------------------------------------------------------------------------- *)
+
+array_literal = "[" [ array_elements ] "]" ;
+
+array_elements = expression { "," expression } [ "," ] ;  (* trailing comma allowed *)
+
+(* Example:
+   []
+   [1, 2, 3]
+   ["a", "b", "c"]
+   [x + 1, y * 2]
+   [[1, 2], [3, 4]]
+   [
+       "item1",
+       "item2",
+   ]
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 17.6 Object Literal                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+object_literal = "{" [ object_pairs ] "}" ;
+
+object_pairs = object_pair { "," object_pair } [ "," ] ;  (* trailing comma allowed *)
+
+object_pair = object_key ":" expression ;
+
+object_key = identifier | STRING ;
+
+(* Example:
+   {}
+   {name: "Alice", age: 25}
+   {"first-name": "Bob"}
+   {
+       url: base_url + "/api",
+       headers: {"Authorization": token},
+   }
+*)
+
+
+(* ============================================================================= *)
+(* 18. BUILT-IN FUNCTIONS AND NAMESPACES                                        *)
+(* ============================================================================= *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.1 Global Functions                                                        *)
+(* ----------------------------------------------------------------------------- *)
+
+(* Type conversion *)
+global_function = "len" "(" expression ")"                      (* Length of string/array/object *)
+                | "range" "(" expression [ "," expression [ "," expression ] ] ")"  (* Generate list *)
+                | "enumerate" "(" expression [ "," "start" "=" expression ] ")"     (* Index-value pairs, v4.0 *)
+                | "int" "(" expression ")"                      (* Convert to integer *)
+                | "float" "(" expression ")"                    (* Convert to float *)
+                | "Number" "(" expression ")"                   (* Convert to number *)
+                | "String" "(" expression ")"                   (* Convert to string *)
+                | "Boolean" "(" expression ")"                  (* Convert to boolean *)
+                | "isNaN" "(" expression ")"                    (* Check if NaN *)
+                | "isFinite" "(" expression ")"                 (* Check if finite *)
+                ;
+
+(* Example:
+   len("hello")                  # 5
+   len([1, 2, 3])               # 3
+   range(5)                      # [0, 1, 2, 3, 4]
+   range(1, 6)                   # [1, 2, 3, 4, 5]
+   range(0, 10, 2)               # [0, 2, 4, 6, 8]
+   enumerate(items)              # [(0, item1), (1, item2), ...]
+   enumerate(items, start=1)     # [(1, item1), (2, item2), ...]
+   int("42")                     # 42
+   float("3.14")                 # 3.14
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.2 Math Namespace                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+math_function = "Math" "." math_method ;
+
+math_method = "abs" "(" expression ")"                         (* Absolute value *)
+            | "round" "(" expression ")"                       (* Round to nearest *)
+            | "ceil" "(" expression ")"                        (* Round up *)
+            | "floor" "(" expression ")"                       (* Round down *)
+            | "max" "(" expression { "," expression } ")"      (* Maximum value *)
+            | "min" "(" expression { "," expression } ")"      (* Minimum value *)
+            | "random" "(" ")"                                 (* Random 0.0-1.0 *)
+            | "pow" "(" expression "," expression ")"          (* Power *)
+            | "sqrt" "(" expression ")"                        (* Square root *)
+            ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.3 Date Namespace                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+date_function = "Date" "." date_method ;
+
+date_method = "now" "(" ")"                                    (* Current timestamp *)
+            | "format" "(" expression ")"                      (* Format date string *)
+            | "from_timestamp" "(" expression ")"              (* Parse timestamp *)
+            ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.4 JSON Namespace                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+json_function = "JSON" "." json_method ;
+
+json_method = "stringify" "(" expression ")"                   (* Object to JSON string *)
+            | "parse" "(" expression ")"                       (* JSON string to object *)
+            ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.5 random Service Namespace                                                *)
+(* ----------------------------------------------------------------------------- *)
+
+random_service = "random" "." random_method ;
+
+random_method = "email" "(" ")"                                (* Random email *)
+              | "password" "(" [ expression [ "," expression ] ] ")"  (* Random password *)
+              | "username" "(" ")"                             (* Random username *)
+              | "phone" "(" [ expression ] ")"                 (* Random phone *)
+              | "number" "(" [ expression "," expression ] ")" (* Random number *)
+              | "uuid" "(" ")"                                 (* Random UUID *)
+              ;
+
+(* Example:
+   random.email()                # "abc123@example.com"
+   random.password(16, True)     # "Abc123!@#$"
+   random.phone("zh_CN")         # "138xxxxxxxx"
+   random.uuid()                 # "550e8400-e29b-41d4-a716-446655440000"
+*)
+
+(* ----------------------------------------------------------------------------- *)
+(* 18.6 http Service Namespace                                                  *)
+(* ----------------------------------------------------------------------------- *)
+
+http_service = "http" "." http_method ;
+
+http_method = "get" "(" argument_list ")"                      (* HTTP GET *)
+            | "post" "(" argument_list ")"                     (* HTTP POST *)
+            | "put" "(" argument_list ")"                      (* HTTP PUT *)
+            | "delete" "(" argument_list ")"                   (* HTTP DELETE *)
+            | "patch" "(" argument_list ")"                    (* HTTP PATCH *)
+            ;
+
+(* Example:
+   http.get(url="https://api.example.com/users")
+   http.post("https://api.example.com/users", body={name: "Alice"})
+   http.put(url, json=data, headers={"Authorization": token})
+*)
+
+
+(* ============================================================================= *)
+(* 19. INPUT EXPRESSION (v5.1)                                                  *)
+(* ============================================================================= *)
+
+input_expression = "input" "(" expression [ "," input_params ] ")" ;
+
+input_params = input_param { "," input_param } ;
+
+input_param = "default" ( "=" | ":" ) expression
+            | "type" ( "=" | ":" ) input_type
+            ;
+
+input_type = "text" | "password" | "integer" | "float" ;
+
+(* Semantics:
+   - First argument is the prompt message (required)
+   - default= provides fallback value (CI/CD friendly)
+   - type= specifies input type and auto-converts:
+     - text: returns string (default)
+     - password: no echo, returns string
+     - integer: converts to int
+     - float: converts to float
+   - In non-interactive mode, uses default value if provided
+*)
+
+(* Example:
+   input("Enter name: ")
+   input("Email: ", default="test@example.com")
+   input("Age: ", type=integer)
+   input("Password: ", type=password)
+   input("Retry count: ", default="3", type=integer)
+*)
+
+
+(* ============================================================================= *)
+(* 19. LEXICAL TOKENS                                                           *)
+(* ============================================================================= *)
+
+(* ----------------------------------------------------------------------------- *)
+(* 19.1 Identifiers                                                             *)
+(* ----------------------------------------------------------------------------- *)
+
+IDENTIFIER_TOKEN = letter { letter | digit | "_" } ;
+
+letter = "a"-"z" | "A"-"Z" ;
+digit = "0"-"9" ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 19.2 String Tokens                                                           *)
+(* ----------------------------------------------------------------------------- *)
+
+STRING = '"' { string_char } '"'
+       | "'" { string_char } "'"
+       ;
+
+FSTRING = "f" '"' { string_char } '"'
+        | "f" "'" { string_char } "'"
+        ;
+
+string_char = ? any character except quote and backslash ?
+            | "\\" escape_char
+            ;
+
+escape_char = "n" | "t" | "\\" | '"' | "'" | "{" ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 19.3 Number Tokens                                                           *)
+(* ----------------------------------------------------------------------------- *)
+
+INTEGER = digit { digit } ;
+
+NUMBER = digit { digit } "." digit { digit } [ time_suffix ]
+       | digit { digit } time_suffix
+       ;
+
+time_suffix = "s" | "sec" | "second" | "seconds" | "ms" | "milliseconds" ;
+
+(* ----------------------------------------------------------------------------- *)
+(* 19.4 Special Tokens                                                          *)
+(* ----------------------------------------------------------------------------- *)
+
+NEWLINE = "\n" ;
+INDENT = ? lexer-generated when indentation increases by 4 spaces ? ;
+DEDENT = ? lexer-generated when indentation decreases ? ;
+EOF = ? end of file ? ;
+
+
+(* ============================================================================= *)
+(* 20. KEYWORDS (Reserved Words)                                                *)
+(* ============================================================================= *)
+
+(* Keywords are case-insensitive EXCEPT for True, False, None which must
+   be exactly as shown (Python-style capitalization). *)
+
+keywords = 
+    (* Variable Declaration *)
+    "let" | "const" |
+
+    (* Control Flow *)
+    "step" | "if" | "else" | "when" | "otherwise" |
+    "for" | "in" | "while" | "break" | "continue" |
+
+    (* Functions *)
+    "function" | "return" |
+
+    (* Module System *)
+    "library" | "export" | "import" | "from" |
+
+    (* Navigation *)
+    "navigate" | "to" | "go" | "back" | "forward" | "reload" |
+
+    (* Wait *)
+    "wait" | "for" | "until" | "element" | "navigation" |
+
+    (* Selection *)
+    "select" | "where" | "and" | "or" | "not" | "option" |
+
+    (* Actions *)
+    "type" | "click" | "double" | "right" | "hover" | "over" | "of" |
+    "clear" | "press" | "scroll" | "check" | "uncheck" |
+    "upload" | "file" | "into" |
+
+    (* Assertion *)
+    "assert" | "exit" |
+
+    (* Resource *)
+    "resource" |
+
+    (* Extraction *)
+    "extract" | "attr" | "pattern" |
+
+    (* Log *)
+    "log" | "debug" | "info" | "success" | "warning" | "error" |
+
+    (* Screenshot *)
+    "screenshot" | "as" | "fullpage" |
+
+    (* Input *)
+    "input" | "default" |
+
+    (* Diagnosis *)
+    "with" | "diagnosis" | "none" | "minimal" | "basic" | 
+    "standard" | "detailed" | "full" |
+
+    (* Element Types *)
+    "button" | "link" | "textarea" | "div" | "span" |
+
+    (* Modifiers *)
+    "slowly" | "fast" |
+
+    (* Page State *)
+    "networkidle" | "domcontentloaded" | "load" |
+
+    (* Element State *)
+    "visible" | "hidden" | "attached" | "detached" | "exists" |
+
+    (* Scroll Target *)
+    "top" | "bottom" |
+
+    (* Comparison *)
+    "contains" | "equals" | "matches" |
+
+    (* Literals - CASE SENSITIVE *)
+    "True" | "False" | "None" |
+
+    (* Other *)
+    "text" | "value" | "url" | "timeout" | "be" | "has"
+    ;
+
+
+(* ============================================================================= *)
+(* 21. OPERATORS                                                                *)
+(* ============================================================================= *)
+
+(* Assignment *)
+"=" ;
+
+(* Arithmetic *)
+"+" | "-" | "*" | "/" | "//" | "%" | "**" ;
+
+(* Note:
+   "//" = floor division (integer result)
+   "**" = power/exponentiation (right-associative)
+*)
+
+(* Comparison *)
+"==" | "!=" | ">" | "<" | ">=" | "<=" ;
+
+(* Logical *)
+"and" | "or" | "not" ;
+
+(* Member Access *)
+"." ;
+
+(* Array/Object Access *)
+"[" | "]" ;
+
+(* Grouping / Function Call *)
+"(" | ")" ;
+
+(* Object Literal *)
+"{" | "}" ;
+
+(* Separator *)
+"," | ":" ;
+
+(* Pattern OR (in when block) *)
+"|" ;
+
+
+(* ============================================================================= *)
+(* 22. COMMENTS                                                                 *)
+(* ============================================================================= *)
+
+(* Line comment: # to end of line *)
+line_comment = "#" { ? any character except newline ? } NEWLINE ;
+
+(* Block comment: triple quotes (Python-style, v3.0) *)
+block_comment = '"""' { ? any character ? } '"""' ;
+
+(* Note: Comments are ignored by the lexer and do not produce tokens.
+   Comments do not affect indentation processing. *)
+
+
+(* ============================================================================= *)
+(* 23. OPERATOR PRECEDENCE (from lowest to highest)                            *)
+(* ============================================================================= *)
+
+(*
+Level 1 (Lowest):  or
+Level 2:           and
+Level 3:           not
+Level 4:           == != > < >= <= contains matches equals
+Level 5:           + -
+Level 6:           * / // %
+Level 6.5:         ** (power, right-associative)
+Level 7:           unary + unary -
+Level 8:           . [] ()  (postfix operators)
+Level 9 (Highest): literals, identifiers, (), arrays, objects
+*)
+
+(* v4.0 Type Promotion Rules:
+   - int OP int = int (except division)
+   - int OP float = float
+   - float OP int = float
+   - int / int = float (always)
+   - int // int = int (floor division)
+   - int ** positive_int = int
+   - int ** negative_int = float
+*)
+
+
+(* ============================================================================= *)
+(* 24. COMPLETE EXAMPLES                                                        *)
+(* ============================================================================= *)
+
+(*
+Example 1: Web Automation Script
+================================
+
+step "User Login":
+    navigate to "https://example.com/login"
+    
+    wait for element "#email"
+    type "user@example.com" into "#email"
+    type "password123" into "#password"
+    
+    click "#submit"
+    
+    wait for navigation
+    assert url contains "dashboard"
+    log success "Login successful!"
+*)
+
+(*
+Example 2: API Integration with Resource
+========================================
+
+resource api from "openapi/user-service.yml"
+
+step "Create and Verify User":
+    let user_data = {
+        name: "Alice",
+        email: "alice@example.com",
+        age: 25
+    }
+    
+    let response = api.createUser(data=user_data)
+    
+    if response.status == 201:
+        log success f"User created with ID: {response.data.id}"
+    else:
+        log error f"Failed: {response.error}"
+        exit 1, "User creation failed"
+*)
+
+(*
+Example 3: Module System Usage
+==============================
+
+# File: libs/validation.flow
+library validation
+
+export const EMAIL_REGEX = "^[\\w.-]+@[\\w.-]+\\.\\w+$"
+
+export function validate_email(email):
+    return email matches EMAIL_REGEX
+
+export function validate_age(age):
+    return age >= 0 and age <= 150
+
+
+# File: main.flow
+import validation from "libs/validation.flow"
+
+step "Validate User Input":
+    let email = input("Enter email: ", default="test@example.com")
+    let age = input("Enter age: ", type=integer, default="25")
+    
+    if not validation.validate_email(email):
+        log error "Invalid email format"
+        exit 1
+    
+    if not validation.validate_age(age):
+        log error "Invalid age"
+        exit 1
+    
+    log success "Input validated!"
+*)
+
+(*
+Example 4: Loop with Data Processing
+====================================
+
+step "Process Items":
+    let items = [
+        {name: "Item A", price: 10.99},
+        {name: "Item B", price: 25.50},
+        {name: "Item C", price: 5.00}
+    ]
+    
+    let total = 0
+    let count = 0
+    
+    for item in items:
+        log f"Processing: {item.name} - ${item.price}"
+        total = total + item.price
+        count = count + 1
+    
+    log success f"Total: ${total} for {count} items"
+*)
+
+(*
+Example 5: While Loop with Retry Logic
+======================================
+
+step "Poll for Status":
+    let attempts = 0
+    let max_attempts = 10
+    let success = False
+    
+    while attempts < max_attempts and not success:
+        let response = http.get(url="https://api.example.com/status")
+        
+        if response.data.ready == True:
+            success = True
+            log success "System is ready!"
+        else:
+            log info f"Attempt {attempts + 1}: Not ready yet..."
+            wait 2s
+            attempts = attempts + 1
+    
+    if not success:
+        log error "Timeout waiting for system"
+        exit 1
+*)
+
+(*
+Example 6: Pattern Matching with When
+=====================================
+
+step "Handle Response":
+    let status = response.status_code
+    
+    when status:
+        200 | 201 | 204:
+            log success "Request succeeded"
+            
+        400 | 401 | 403:
+            log warning "Client error"
+            when status:
+                401:
+                    log info "Authentication required"
+                403:
+                    log info "Access forbidden"
+                otherwise:
+                    log info "Bad request"
+            
+        500 | 502 | 503:
+            log error "Server error"
+            
+        otherwise:
+            log warning f"Unexpected status: {status}"
+*)
+
+
+(* ============================================================================= *)
+(* END OF GRAMMAR SPECIFICATION                                                 *)
+(* ============================================================================= *)
