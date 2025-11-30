@@ -5,54 +5,53 @@
 # 步骤 1: 个人信息填写
 # ============================================================
 
-step "个人信息填写"
-  # 导航到注册页面
-  navigate to "https://auth.factory.ai/sign-up?state=https%3A%2F%2Fapp.factory.ai%2F%2Fsettings%2Fbilling&redirect_uri=https%3A%2F%2Fapp.factory.ai%2Fapi%2Fauth%2Flogin&authorization_session_id=01K9P7H6KJGBCZNH0G2JN7ZQPH"
+step "个人信息填写":
+    # 导航到注册页面
+    navigate to "https://auth.factory.ai/sign-up?state=https%3A%2F%2Fapp.factory.ai%2F%2Fsettings%2Fbilling&redirect_uri=https%3A%2F%2Fapp.factory.ai%2Fapi%2Fauth%2Flogin&authorization_session_id=01K9P7H6KJGBCZNH0G2JN7ZQPH"
 
-  # 等待页面加载完成
-  wait for networkidle
+    # 等待页面加载完成
+    wait for networkidle
 
-  # 额外等待动态内容
-  wait 2s
+    # 额外等待动态内容
+    wait 2s
 
-  # 截图：填写前
-  screenshot as "step1_before_fill"
+    # 截图：填写前
+    screenshot as "step1_before_fill"
 
-  # 填写名字（First Name）
-  select input where name="first_name"
-  type slowly {user.first_name}
+    # 填写名字（First Name）
+    select input where name="first_name"
+    type slowly {user.first_name}
 
-  # 填写姓氏（Last Name）
-  select input where name="last_name"
-  type slowly {user.last_name}
+    # 填写姓氏（Last Name）
+    select input where name="last_name"
+    type slowly {user.last_name}
 
-  # 填写邮箱
-  select input where type="email"
-  type slowly {user.email}
+    # 填写邮箱
+    select input where type="email"
+    type slowly {user.email}
 
-  # 截图：填写后
-  screenshot as "step1_after_fill"
+    # 截图：填写后
+    screenshot as "step1_after_fill"
 
-  # 提交表单
-  select button where type="submit"
-  click and wait 3s
+    # 提交表单
+    select button where type="submit"
+    click and wait 3s
 
-  # 截图：提交后
-  screenshot as "step1_after_submit"
-end step
+    # 截图：提交后
+    screenshot as "step1_after_submit"
 
 # ============================================================
 # 步骤 2: 断言注册结果（可选）
 # ============================================================
 
-step "断言注册成功" if url contains "verify" or url contains "welcome"
-  # 等待页面稳定
-  wait 2s
+step "断言注册成功":
+    if url contains "verify" or url contains "welcome":
+        # 等待页面稳定
+        wait 2s
 
-  # 截图：最终页面
-  screenshot fullpage as "registration_complete"
+        # 截图：最终页面
+        screenshot fullpage as "registration_complete"
 
-  # 断言成功标识（可选）
-  # assert element exists ".success-message"
-  # assert url contains "welcome"
-end step
+        # 断言成功标识（可选）
+        # assert element exists ".success-message"
+        # assert url contains "welcome"
