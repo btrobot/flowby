@@ -40,7 +40,7 @@ step "Greet the world":
 
 Run it:
 ```bash
-flowby run hello.flow
+flowby hello.flow
 ```
 
 ### Web Automation Example

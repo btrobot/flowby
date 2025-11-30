@@ -67,6 +67,8 @@ dmypy.json
 *.pyc
 .flowby_cache/
 debug_output/
+flowby-output/
+test_hello.flow
 
 # OS
 .DS_Store
