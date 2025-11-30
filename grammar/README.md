@@ -1,252 +1,321 @@
-# DSL Grammar Governance System
+# Flowby Grammar Documentation
 
-> **语法治理系统** - Registration System DSL 的语法宪法和变更管理中心
+> **Flowby 语法文档中心** - Elegant Web Automation DSL
 >
-> **Version**: 2.0.0
-> **Date**: 2025-11-25
-> **Status**: ✅ Production Ready
+> **Version**: v5.1
+> **Last Updated**: 2025-11-30
+> **Status**: ✅ Stable
 
 ---
 
-## 🎯 什么是语法治理系统？
+## 🎯 文档概览
 
-这是一个完整的 DSL 语法版本管理和变更控制系统，确保语法的可持续演进和向后兼容性。
+这里包含 Flowby DSL 的完整语法规范、变更历史和语言提案。
 
 **核心目标**:
-- ✅ 提供语法的单一真理源
+- ✅ 提供语法的权威参考
+- ✅ 记录语法演进历史
 - ✅ 规范化语法变更流程
-- ✅ 追踪版本历史和兼容性
-- ✅ 自动化验证文档-代码同步
-- ✅ 控制语法复杂度增长
+- ✅ 支持快速学习和查询
 
 ---
 
-## 📚 核心文档（必读）
+## 📚 核心文档
 
 ### 1. [MASTER.md](./MASTER.md) - 语法主控文档 ⭐
 
 **用途**: 单一真理源，定义所有支持的语法特性
 
 **包含内容**:
-- 49个语法特性完整定义
-- 25个语句类型（变量、控制流、导航、等待、选择、动作、断言、服务调用、提取、工具）
-- 9级表达式优先级
-- 7种数据类型
-- 5个系统变量命名空间
-- 19个内置函数
-- 每个特性包含：ID | 名称 | 语法 | 状态 | 版本 | 方法 | 测试 | 说明
+- 14个语法模块完整定义
+  - 变量与赋值 (3 features)
+  - 控制流 (7 features)
+  - 导航 (3 features)
+  - 等待 (3 features)
+  - 选择 (2 features)
+  - 动作 (10 features)
+  - 断言与控制 (5 features)
+  - 服务调用 (1 feature)
+  - 数据提取 (1 feature)
+  - 工具函数 (2 features)
+  - OpenAPI 资源 (1 feature)
+  - 用户函数 (3 features)
+  - 模块系统 (4 features)
+  - Input 表达式 (1 feature)
+- 每个特性包含：语法 | 状态 | 版本 | 方法 | 测试 | 示例
 
 **何时查看**:
 - 查询某个语法是否支持
-- 查看特性的实现状态
 - 了解特性的添加版本
-- 查找 parser 方法名
+- 查看完整的语法特性列表
 
-### 2. [GOVERNANCE.md](./GOVERNANCE.md) - 治理流程规范
+---
 
-**用途**: 定义如何添加、修改、删除语法
-
-**包含内容**:
-- 6步添加新语法流程
-- 修改现有语法流程（废弃 → 过渡 → 移除）
-- 5种状态定义（✅⚠️🚧❌🗑️）
-- 语法设计4大原则
-- 复杂度控制规则（语句≤30, 表达式≤10, 关键字≤100）
-- 版本控制策略
-- DO/DON'T 最佳实践
-
-**何时查看**:
-- 想要添加新语法特性
-- 想要修改现有语法
-- 需要废弃某个特性
-- 了解语法设计原则
-
-### 3. [CHANGELOG.md](./CHANGELOG.md) - 变更历史
+### 2. [CHANGELOG.md](./CHANGELOG.md) - 变更历史
 
 **用途**: 记录所有版本的语法变更
 
 **包含内容**:
-- 语义化版本规范（MAJOR.MINOR.PATCH）
-- v2.0.0 完整变更日志（Added/Changed/Fixed/Deprecated/Removed）
-- v1.0.0 基线版本
-- v1.0 → v2.0 迁移指南（带代码示例）
-- 兼容性矩阵
-- 未来版本计划（v2.1.0）
-- 支持策略
+- v5.1: Input 表达式支持
+- v5.0: 模块系统（library/import/export）
+- v4.3: 用户自定义函数
+- v4.2: OpenAPI 资源集成
+- v4.0: For 循环多变量解包
+- v3.2: 动作语句表达式支持
+- v3.1: When OR 模式、For 循环优化
+- v3.0: Python 风格缩进块
 
 **何时查看**:
-- 升级语法版本
-- 查看历史变更
-- 了解兼容性
-- 编写迁移指南
-
-### 4. [CHANGE-MANAGEMENT.md](./CHANGE-MANAGEMENT.md) - 完整管理指南
-
-**用途**: 深入理解整个语法治理系统
-
-**包含内容**:
-- 系统概述（6大核心组件）
-- 文档体系详解
-- 完整的变更管理流程图
-- 版本控制系统详解
-- 变更分类和处理（MINOR/MAJOR/PATCH）
-- 自动化工具使用指南
-- 6个实际使用场景
-- 版本演进示例
-- 最佳实践汇总
-
-**何时查看**:
-- 全面了解治理系统
-- 查找详细的使用场景
-- 了解工具使用方法
-- 学习最佳实践
-
-### 5. [QUICKSTART.md](./QUICKSTART.md) - 快速入门（5分钟）
-
-**用途**: 快速上手语法治理系统
-
-**包含内容**:
-- 3步快速开始
-- 4个日常使用场景
-- 常用命令参考
-- 当前系统状态
-- 最佳实践速查
-- FAQ
-
-**何时查看**:
-- 首次使用系统
-- 需要快速查命令
-- 查看系统当前状态
-
-### 6. [SUMMARY.md](./SUMMARY.md) - 系统总结
-
-**用途**: 整个治理系统的总结和统计
-
-**包含内容**:
-- 完成的工作总览
-- 系统能力说明
-- 解决的问题列表
-- 成功指标
-- 使用指南
-
-**何时查看**:
-- 了解系统能力
-- 查看统计数据
-- 向他人介绍系统
+- 了解语法演进历史
+- 查看版本间的变化
+- 迁移到新版本
 
 ---
 
-## 🔧 自动化工具
+### 3. [MIGRATION-GUIDE-v3.1.md](./MIGRATION-GUIDE-v3.1.md) - 迁移指南
 
-### [tools/check_sync.py](./tools/check_sync.py)
+**用途**: v3.0 到 v3.1 的迁移指南
 
-**功能**: 自动检查文档和代码的同步状态
+**包含内容**:
+- When 语句 OR 模式支持
+- For 循环 `each` 关键字移除
+- Service Call Python 风格语法
+- 代码示例和最佳实践
 
-**用法**:
-```bash
-# 基本检查
-python grammar/tools/check_sync.py
+**何时查看**:
+- 从旧版本升级代码
+- 了解语法变更影响
 
-# 详细输出
-python grammar/tools/check_sync.py --verbose
+---
 
-# 获取修复建议
-python grammar/tools/check_sync.py --fix-status
-```
+## 📖 语法参考文档
 
-**检查项目**:
-- ✅ MASTER.md 中的特性是否有对应的 parser 方法
-- ✅ parser.py 中的方法是否在文档中记录
-- ✅ 特性的测试覆盖情况
-- ✅ 特性状态统计
+### 4. [DSL-GRAMMAR.ebnf](./DSL-GRAMMAR.ebnf) - EBNF 完整规范
 
-**当前结果**:
-```
-[OK] Status: SYNCED
-     49 个特性已文档化
-     50 个 parser 方法
-     0 个未文档化方法
-```
+**用途**: 形式化语法定义（Extended Backus-Naur Form）
 
-### [tools/check_version.py](./tools/check_version.py)
+**包含内容**:
+- 完整的 EBNF 语法定义
+- 所有语句和表达式的形式化规则
+- 词法规则和优先级定义
 
-**功能**: 检查 DSL 脚本与语法版本的兼容性
+**何时查看**:
+- 需要精确的语法定义
+- 开发解析器或工具
+- 理解语法结构
 
-**用法**:
-```bash
-# 检查单个脚本
-python grammar/tools/check_version.py script.flow
+---
 
-# 显示使用的特性
-python grammar/tools/check_version.py script.flow --show-features
+### 5. [DSL-GRAMMAR-QUICK-REFERENCE.md](./DSL-GRAMMAR-QUICK-REFERENCE.md) - BNF 快速参考
 
-# 生成迁移报告
-python grammar/tools/check_version.py script.flow --migration-report
+**用途**: 简洁的 BNF 样式语法参考
 
-# 检查对特定版本的兼容性
-python grammar/tools/check_version.py script.flow --target-version 1.0.0
-```
+**包含内容**:
+- 所有语句类型的 BNF 定义
+- 表达式优先级
+- 常用模式快速查询
 
-**检查项目**:
-- ✅ 特性是否在目标版本中可用
-- ✅ 是否使用了废弃特性
-- ✅ 是否使用了已移除的特性
-- ✅ 生成迁移建议
+**何时查看**:
+- 快速查询语法规则
+- 编写代码时参考
+- 学习语法结构
+
+---
+
+### 6. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 语法速查表
+
+**用途**: 表格式语法速查
+
+**包含内容**:
+- 所有语法特性的表格总览
+- 语法示例和说明
+- 按类别组织的速查表
+
+**何时查看**:
+- 快速查找语法示例
+- 学习新特性
+- 作为参考手册
+
+---
+
+### 7. [V3-EBNF.md](./V3-EBNF.md) - V3 语法 EBNF
+
+**用途**: V3.0 版本的详细 EBNF 规范
+
+**包含内容**:
+- Python 风格缩进块的形式化定义
+- V3.0 特性完整规范
+- 与 V2.0 的对比
+
+---
+
+### 8. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - V3 语法示例集
+
+**用途**: V3.0+ 语法的实战示例
+
+**包含内容**:
+- 所有语法特性的实际代码示例
+- 最佳实践演示
+- 完整的工作流示例
+
+---
+
+### 9. [QUICKSTART.md](./QUICKSTART.md) - 快速开始
+
+**用途**: 5分钟快速上手 Flowby
+
+**包含内容**:
+- 基本语法介绍
+- Hello World 示例
+- 常用模式速览
+
+**何时查看**:
+- 初次学习 Flowby
+- 快速入门教程
+- 基础概念学习
 
 ---
 
 ## 📝 提案系统
 
-所有语法变更必须通过标准化的提案流程。
+所有语法变更都通过标准化的提案流程。
 
 ### 目录结构
 
 ```
 proposals/
-├── README.md                    # 提案流程说明
-├── TEMPLATE.md                  # 标准提案模板
-├── EXAMPLE-001-try-catch.md     # 完整示例
-└── archived/                    # 已完成的提案
+├── README.md                              # 提案流程说明
+├── TEMPLATE.md                            # 标准提案模板
+├── EXAMPLE-001-try-catch.md              # 完整示例
+├── PROPOSAL-002-while-loop.md             # While 循环
+├── PROPOSAL-003-unified-selector.md       # 统一选择器
+├── PROPOSAL-007-openapi-resource.md       # ⭐ OpenAPI 集成
+├── PROPOSAL-008-function-statement.md     # ⭐ 用户函数
+├── PROPOSAL-009-library-system.md         # ⭐ 模块系统
+├── PROPOSAL-010-input-statement.md        # Input 表达式
+└── ...                                    # 更多提案
 ```
-
-### 提案流程（7步）
-
-1. **创建提案** - 使用 TEMPLATE.md
-2. **提交讨论** - PR + Issue
-3. **社区讨论** - 标签：grammar-proposal
-4. **核心团队评审** - 决定是否批准
-5. **实施** - 按照 GOVERNANCE.md 的 6 步流程
-6. **验收** - 测试通过、文档完整
-7. **发布** - 更新 CHANGELOG、归档提案
 
 ### 提案状态
 
-- 💭 **Under Discussion** - 讨论中
-- ✅ **Approved** - 已批准，等待实施
+- ✅ **Completed** - 已完成并发布
 - 🚧 **In Progress** - 实施中
-- ✨ **Completed** - 已完成并发布
+- 💭 **Under Discussion** - 讨论中
 - ❌ **Rejected** - 已拒绝
-- ⏸️ **Deferred** - 推迟到未来版本
+- ⏸️ **Deferred** - 推迟
 
 ### 如何创建提案
 
 ```bash
 # 1. 复制模板
 cp grammar/proposals/TEMPLATE.md \
-   grammar/proposals/PROPOSAL-002-my-feature.md
+   grammar/proposals/PROPOSAL-XXX-feature-name.md
 
-# 2. 编辑提案，填写完整信息
-vim grammar/proposals/PROPOSAL-002-my-feature.md
+# 2. 编辑提案
+# 填写完整信息（动机、设计、示例、影响）
 
 # 3. 提交 PR
-git checkout -b proposal/002-my-feature
-git add grammar/proposals/PROPOSAL-002-*.md
-git commit -m "proposal: add my-feature grammar proposal"
-git push origin proposal/002-my-feature
+git checkout -b proposal/XXX-feature-name
+git add grammar/proposals/PROPOSAL-XXX-*.md
+git commit -m "proposal: add feature-name proposal"
+git push origin proposal/XXX-feature-name
 
-# 4. 创建 Issue 并关联 PR
+# 4. 创建 GitHub Issue
 # 添加标签：grammar-proposal
 ```
+
+详见 [proposals/README.md](./proposals/README.md)
+
+---
+
+## 🚀 快速使用指南
+
+### 场景 1: 我想查看支持哪些语法
+
+```bash
+# 查看主控文档
+cat grammar/MASTER.md
+
+# 查找特定语法
+grep -i "navigate" grammar/MASTER.md
+
+# 查看语法速查表
+cat grammar/DSL-SYNTAX-CHEATSHEET.md
+```
+
+### 场景 2: 我想学习语法
+
+**快速入门（5分钟）**:
+1. 阅读 [QUICKSTART.md](./QUICKSTART.md)
+2. 查看 [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl)
+
+**深入学习（30分钟）**:
+1. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 10分钟
+2. [MASTER.md](./MASTER.md) - 浏览特性 - 15分钟
+3. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 实战示例 - 5分钟
+
+**完整掌握（1小时）**:
+1. QUICKSTART.md
+2. DSL-SYNTAX-CHEATSHEET.md
+3. DSL-GRAMMAR-QUICK-REFERENCE.md
+4. MASTER.md
+5. V3-EXAMPLES.dsl
+
+### 场景 3: 我想提出新特性
+
+```bash
+# 步骤1: 阅读提案流程
+cat grammar/proposals/README.md
+
+# 步骤2: 参考示例提案
+cat grammar/proposals/EXAMPLE-001-try-catch.md
+
+# 步骤3: 创建提案
+cp grammar/proposals/TEMPLATE.md \
+   grammar/proposals/PROPOSAL-XXX-my-feature.md
+
+# 步骤4: 提交 PR
+# (详见上文"如何创建提案")
+```
+
+### 场景 4: 我想查看某个版本的变化
+
+```bash
+# 查看变更历史
+cat grammar/CHANGELOG.md
+
+# 查看 v3.1 迁移指南
+cat grammar/MIGRATION-GUIDE-v3.1.md
+
+# 查看完整语法演进
+git log --oneline -- grammar/MASTER.md
+```
+
+---
+
+## 📖 推荐学习路径
+
+### 路径 A: 快速入门（15分钟）
+
+1. [QUICKSTART.md](./QUICKSTART.md) - 5分钟
+2. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 10分钟
+
+### 路径 B: 语法使用者（1小时）
+
+1. [QUICKSTART.md](./QUICKSTART.md) - 5分钟
+2. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 15分钟
+3. [MASTER.md](./MASTER.md) - 浏览特性列表 - 20分钟
+4. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 实战示例 - 20分钟
+
+### 路径 C: 语法贡献者（2小时）
+
+1. QUICKSTART.md - 5分钟
+2. MASTER.md - 20分钟
+3. CHANGELOG.md - 15分钟
+4. DSL-GRAMMAR.ebnf - 30分钟
+5. proposals/README.md - 10分钟
+6. proposals/EXAMPLE-001-try-catch.md - 20分钟
+7. 实践创建提案 - 20分钟
 
 ---
 
@@ -255,184 +324,65 @@ git push origin proposal/002-my-feature
 ### 语法版本
 
 ```
-当前版本:     2.0.0 (2025-11-25)
-前一版本:     1.0.0 (支持中，仅修复bug)
-支持策略:     当前版本 + 前一版本
+当前版本:     v5.1 (2025-11-30)
+稳定性:       ✅ Stable
+下一版本:     v5.2 (计划中)
 ```
 
 ### 特性统计
 
 ```
-语句类型:         25 / 30  (83%)
-表达式层次:       9 / 10   (90%)
-关键字:           80+ / 100 (80%+)
-内置函数:         19
-系统变量命名空间:  5
-数据类型:         7
-VR规则:           4
+语句类型:         14 个模块
+总特性数:         49+
+用户函数:         ✅ 支持
+模块系统:         ✅ 支持
+OpenAPI 集成:     ✅ 支持 (5 phases)
+Input 表达式:     ✅ 支持
 ```
 
 ### 实现状态
 
 ```
-✅ 已实现并测试:   25/25  (100%)
-⚠️ 需要测试:       0/25   (0%)
-🚧 部分实现:       0/25   (0%)
-❌ 未实现:         0/25   (0%)
-🗑️ 已废弃:         0/25   (0%)
+✅ 已实现并测试:   100%
+核心特性:         稳定
+文档覆盖:         完整
 ```
-
-### 同步状态
-
-```
-特性总数:         49
-已文档化:         49   (100%)
-已实现方法:       50
-已文档化方法:     39   (78%)
-未文档化方法:     0    (0%)
-
-同步状态:         ✅ SYNCED
-最后验证:         2025-11-25
-```
-
----
-
-## 🚀 快速使用指南
-
-### 场景1: 我想查看支持哪些语法
-
-```bash
-# 查看主控文档
-cat grammar/MASTER.md
-
-# 使用 grep 查找特定语法
-grep -i "navigate" grammar/MASTER.md
-```
-
-### 场景2: 我想添加新语法特性
-
-```bash
-# 步骤1: 创建提案
-cp grammar/proposals/TEMPLATE.md \
-   grammar/proposals/PROPOSAL-002-my-feature.md
-
-# 步骤2: 参考示例
-cat grammar/proposals/EXAMPLE-001-try-catch.md
-
-# 步骤3: 遵循治理流程
-cat grammar/GOVERNANCE.md
-
-# 步骤4: 实施后验证
-python grammar/tools/check_sync.py
-```
-
-### 场景3: 我想检查脚本兼容性
-
-```bash
-# 检查单个脚本
-python grammar/tools/check_version.py examples/flows/script.flow
-
-# 显示使用的特性
-python grammar/tools/check_version.py examples/flows/script.flow --show-features
-
-# 批量检查
-for f in examples/flows/*.flow; do
-  python grammar/tools/check_version.py "$f"
-done
-```
-
-### 场景4: 我想发布新版本
-
-```bash
-# 1. 更新 CHANGELOG.md
-vim grammar/CHANGELOG.md
-
-# 2. 验证同步
-python grammar/tools/check_sync.py
-
-# 3. 运行测试
-pytest tests/
-
-# 4. 创建标签
-git tag -a grammar-v2.1.0 -m "Grammar version 2.1.0"
-git push origin grammar-v2.1.0
-
-# 5. 归档提案
-mv grammar/proposals/PROPOSAL-*.md grammar/proposals/archived/
-```
-
----
-
-## 📖 学习路径
-
-### 路径A: 快速入门（15分钟）
-
-1. [QUICKSTART.md](./QUICKSTART.md) - 5分钟
-2. [MASTER.md](./MASTER.md) - 浏览特性列表 - 10分钟
-
-### 路径B: 语法维护者（1.5小时）
-
-1. [MASTER.md](./MASTER.md) - 10分钟
-2. [GOVERNANCE.md](./GOVERNANCE.md) - 15分钟
-3. [CHANGELOG.md](./CHANGELOG.md) - 10分钟
-4. [proposals/README.md](./proposals/README.md) - 10分钟
-5. [proposals/EXAMPLE-001-try-catch.md](./proposals/EXAMPLE-001-try-catch.md) - 20分钟
-6. [CHANGE-MANAGEMENT.md](./CHANGE-MANAGEMENT.md) - 30分钟
-7. 实践工具 - 5分钟
-
-### 路径C: 完整理解（2小时）
-
-按顺序阅读所有文档：
-1. QUICKSTART.md
-2. MASTER.md
-3. GOVERNANCE.md
-4. CHANGELOG.md
-5. proposals/README.md + EXAMPLE
-6. CHANGE-MANAGEMENT.md
-7. SUMMARY.md
-8. 实践所有工具
 
 ---
 
 ## ❓ 常见问题
 
-**Q: 为什么需要语法治理系统？**
-A: 随着 DSL 的演进，语法特性会不断增加和变化。没有系统化的管理，会导致：
-- 不知道支持哪些语法
-- 文档和代码不一致
-- 版本兼容性混乱
-- 语法无序增长失控
+**Q: Flowby 是什么？**
+A: Flowby 是一个优雅的 Web 自动化 DSL，使用 Python 风格的语法，支持声明式的自动化流程编排。
 
-**Q: 我想添加新语法，从哪里开始？**
+**Q: 脚本文件使用什么扩展名？**
+A: `.flow`
+
+**Q: 如何快速学习语法？**
 A:
-1. 阅读 [GOVERNANCE.md](./GOVERNANCE.md) 了解 6 步流程
-2. 使用 [proposals/TEMPLATE.md](./proposals/TEMPLATE.md) 创建提案
-3. 参考 [proposals/EXAMPLE-001-try-catch.md](./proposals/EXAMPLE-001-try-catch.md)
+1. 阅读 [QUICKSTART.md](./QUICKSTART.md)
+2. 查看 [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md)
+3. 运行 `examples/hello_world.flow`
 
-**Q: 如何验证文档和代码同步？**
-A: 运行 `python grammar/tools/check_sync.py`，工具会自动检查并报告。
+**Q: 哪里可以找到语法示例？**
+A:
+- [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 完整示例集
+- `examples/` 目录 - 实战脚本
+- [MASTER.md](./MASTER.md) - 每个特性都有示例
+
+**Q: 如何提出新的语法特性？**
+A:
+1. 阅读 [proposals/README.md](./proposals/README.md)
+2. 使用 [proposals/TEMPLATE.md](./proposals/TEMPLATE.md) 创建提案
+3. 提交 PR 并创建 Issue
 
 **Q: 语法版本如何管理？**
 A: 采用语义化版本（MAJOR.MINOR.PATCH）：
-- MAJOR: 不兼容的变更（如移除特性）
+- MAJOR: 不兼容的重大变更
 - MINOR: 新增功能，向后兼容
-- PATCH: Bug修复
+- PATCH: Bug 修复
 
 详见 [CHANGELOG.md](./CHANGELOG.md)
-
-**Q: 提案被拒绝了怎么办？**
-A: 提案被拒绝通常有明确的理由。可以：
-- 查看评审意见
-- 修改提案解决问题
-- 重新提交
-- 或者接受决定，归档提案
-
-**Q: 工具报告不同步怎么办？**
-A:
-1. 查看具体的不同步项
-2. 更新 MASTER.md 或修改代码
-3. 重新运行工具验证
-4. 所有修改必须经过 Code Review
 
 ---
 
@@ -440,24 +390,28 @@ A:
 
 ### 实现代码
 
-- `src/registration_system/dsl/parser.py` - Parser 实现
-- `src/registration_system/dsl/lexer.py` - Lexer 实现
-- `src/registration_system/dsl/ast_nodes.py` - AST 节点定义
-- `src/registration_system/dsl/interpreter.py` - Interpreter 实现
-- `src/registration_system/dsl/symbol_table.py` - 符号表实现
-
-### 其他文档
-
-- `docs/DSL-GRAMMAR.ebnf` - EBNF 完整规范
-- `docs/DSL-GRAMMAR-QUICK-REFERENCE.md` - BNF 样式快速参考
-- `docs/DSL-SYNTAX-CHEATSHEET.md` - 表格式语法速查表
-- `docs/technical-analysis/` - 技术深度分析（4个文档）
-- `docs/README.md` - 文档中心主索引
+- `src/flowby/parser.py` - Parser 实现
+- `src/flowby/lexer.py` - Lexer 实现
+- `src/flowby/ast_nodes.py` - AST 节点定义
+- `src/flowby/interpreter.py` - Interpreter 实现
+- `src/flowby/expression_evaluator.py` - 表达式求值
 
 ### 测试
 
-- `tests/` - 所有语法特性的测试用例
-- 运行: `pytest tests/ -v`
+- `tests/unit/` - 单元测试
+- `tests/grammar_alignment/` - 语法对齐测试
+- `tests/integration/` - 集成测试
+
+运行测试:
+```bash
+pytest tests/ -v
+```
+
+### 示例
+
+- `examples/hello_world.flow` - Hello World
+- `examples/web_automation/` - Web 自动化示例
+- `examples/api_integration/` - API 集成示例
 
 ---
 
@@ -465,39 +419,41 @@ A:
 
 ### 维护团队
 
-**Team**: Registration System Core Team
-**Contact**: 提交 Issue 到项目仓库
+**Project**: Flowby
+**Team**: Flowby Contributors
+**Contact**: https://github.com/flowby/flowby
 
 ### 贡献指南
 
 如需贡献：
-1. 遵循提案流程（添加新特性）
-2. 遵循 Git 提交规范
-3. 确保所有测试通过
-4. 运行 `check_sync.py` 验证同步
+1. Fork 项目仓库
+2. 创建 feature 分支
+3. 提交 PR（遵循提案流程）
+4. 确保测试通过
 5. 更新相关文档
+
+详见 [CONTRIBUTING.md](../CONTRIBUTING.md)
 
 ### 报告问题
 
 发现问题时：
 1. 检查是否已有相关 Issue
 2. 创建新 Issue，描述清楚
-3. 提供复现步骤
-4. 附上相关代码示例
+3. 提供复现步骤和示例代码
 
 ---
 
 ## 📜 许可证
 
-本项目遵循项目主许可证。
+MIT License - 详见 [LICENSE](../LICENSE)
 
 ---
 
-**System Version**: 2.0.0
-**Last Updated**: 2025-11-25
-**Status**: ✅ Production Ready
-**Maintainer**: Registration System Core Team
+**Version**: v5.1
+**Last Updated**: 2025-11-30
+**Status**: ✅ Stable
+**Maintainer**: Flowby Contributors
 
 ---
 
-**记住**: 语法治理不仅仅是版本控制，这是确保 DSL 可持续发展的基础设施！🚀
+**记住**: 优雅的语法是自动化的基础！🌸

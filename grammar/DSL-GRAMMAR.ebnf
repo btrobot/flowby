@@ -1,0 +1,878 @@
+(* ============================================================================= *)
+(* Registration System DSL - EBNF Grammar Specification                        *)
+(* Version: 4.3                                                                *)
+(* Generated: 2025-11-29                                                       *)
+(* Branch: fix/http-enhanced-tests                                            *)
+(* ============================================================================= *)
+
+(* ============================================================================= *)
+(* v3.0 Important Note: Python-Style Indentation                               *)
+(* ============================================================================= *)
+(* In v3.0, all block statements use Python-style indentation instead of       *)
+(* explicit "end" keywords. The EBNF notation below uses "end" for structural  *)
+(* clarity, but in actual syntax:                                              *)
+(*   - "end <keyword>" is replaced by DEDENT token                             *)
+(*   - Block bodies are marked by INDENT/DEDENT tokens from the lexer          *)
+(*   - Indentation must be consistent (4 spaces or 1 tab = 4 spaces)           *)
+(*                                                                              *)
+(* Example:                                                                     *)
+(*   EBNF:    while EXPR : STMTS end while                                     *)
+(*   Actual:  while EXPR : INDENT STMTS DEDENT                                 *)
+(* ============================================================================= *)
+
+(* ============================================================================= *)
+(* 1. Program Structure                                                         *)
+(* ============================================================================= *)
+
+program = { statement } ;
+
+statement = variable_declaration
+          | control_flow_statement
+          | function_definition
+          | return_statement
+          | navigation_statement
+          | action_statement
+          | assertion_statement
+          | exit_statement
+          | service_call_statement
+          | extraction_statement
+          | log_statement
+          | screenshot_statement
+          | expression_statement
+          ;
+
+(* ============================================================================= *)
+(* 2. Variable Declarations                                                     *)
+(* ============================================================================= *)
+
+variable_declaration = let_statement | const_statement | assignment ;
+
+let_statement = "let" identifier "=" expression ;
+
+const_statement = "const" identifier "=" expression ;
+
+assignment = identifier "=" expression ;
+
+identifier = IDENTIFIER ;
+
+(* ============================================================================= *)
+(* 3. Control Flow Statements                                                   *)
+(* ============================================================================= *)
+
+control_flow_statement = step_block
+                       | if_block
+                       | when_block
+                       | for_each_loop
+                       | while_loop
+                       | break_statement
+                       | continue_statement
+                       ;
+
+(* Step Block *)
+step_block = "step" string_literal [ ":" ]
+             [ "with" "diagnosis" diagnosis_level ]
+             statement_list
+             "end" "step" ;
+
+diagnosis_level = "none" | "minimal" | "basic" | "standard" | "detailed" | "full" ;
+
+(* If Block *)
+if_block = "if" expression ":"
+           statement_list
+           [ else_clause ]
+           "end" "if" ;
+
+else_clause = "else" ":" statement_list ;
+
+(* When Block *)
+when_block = "when" string_literal ":"
+             when_case_list
+             [ otherwise_clause ]
+             "end" "when" ;
+
+when_case_list = when_case { when_case } ;
+
+when_case = string_literal ":" statement_list ;
+
+otherwise_clause = "otherwise" ":" statement_list ;
+
+(* For Each Loop *)
+for_each_loop = "for" identifier "in" expression ":"
+                statement_list
+                "end" "for" ;
+
+(* While Loop - v3.0 *)
+while_loop = "while" expression ":"
+             statement_list
+             "end" "while" ;
+
+(* Break Statement - v3.0 *)
+break_statement = "break" ;
+
+(* Continue Statement - v3.0 *)
+continue_statement = "continue" ;
+
+statement_list = { statement } ;
+
+(* ============================================================================= *)
+(* 3.5. Function Definitions and Return Statements (v4.3)                      *)
+(* ============================================================================= *)
+
+(* Function Definition - v4.3 *)
+function_definition = "function" identifier "(" [ parameter_list ] ")" ":"
+                      statement_list
+                      "end" "function" ;
+
+parameter_list = identifier { "," identifier } ;
+
+(* Return Statement - v4.3 *)
+return_statement = "return" [ expression ] ;
+
+(* Expression Statement - v4.3 (for standalone function calls) *)
+expression_statement = function_call ;
+
+(* Function Call Expression - v4.3 *)
+function_call = identifier "(" [ argument_list ] ")" ;
+
+argument_list = expression { "," expression } ;
+
+(* Semantics:
+   - Functions are user-defined, reusable code blocks
+   - Parameters are pass-by-value (copied into function scope)
+   - Functions have local scope, isolated from global variables
+   - Functions can access global constants (read-only)
+   - Functions can call other functions (user-defined or built-in)
+   - Recursion is NOT supported (detected at runtime)
+   - Closures are NOT supported (cannot access outer function locals)
+   - return statement is optional; functions return None by default
+   - return can only be used inside functions
+*)
+
+(* ============================================================================= *)
+(* 4. Navigation Statements                                                     *)
+(* ============================================================================= *)
+
+navigation_statement = navigate_statement
+                     | go_statement
+                     | reload_statement
+                     ;
+
+(* Navigate To *)
+navigate_statement = "navigate" "to" expression
+                     [ wait_for_clause ] ;
+
+wait_for_clause = "wait" "for" page_state ;
+
+page_state = "networkidle" | "domcontentloaded" | "load" ;
+
+(* Go Back/Forward *)
+go_statement = "go" direction ;
+
+direction = "back" | "forward" ;
+
+(* Reload *)
+reload_statement = "reload" ;
+
+(* ============================================================================= *)
+(* 5. Wait Statements                                                           *)
+(* ============================================================================= *)
+
+wait_statement = wait_duration
+               | wait_for_element
+               | wait_for_navigation
+               ;
+
+(* Wait Duration *)
+wait_duration = "wait" [ "for" ] expression [ time_unit ] ;
+
+time_unit = "seconds" | "milliseconds" | "s" | "ms" ;
+
+(* Wait For Element *)
+wait_for_element = "wait" "for" "element" selector
+                   [ "to" "be" element_state ]
+                   [ timeout_clause ] ;
+
+element_state = "visible" | "hidden" | "attached" | "detached" ;
+
+timeout_clause = "timeout" expression ;
+
+(* Wait For Navigation *)
+wait_for_navigation = "wait" "for" "navigation"
+                      [ "to" expression ]
+                      [ "wait" "for" page_state ]
+                      [ timeout_clause ] ;
+
+(* ============================================================================= *)
+(* 6. Selection Statements                                                      *)
+(* ============================================================================= *)
+
+selection_statement = select_element | select_option ;
+
+(* Select Element *)
+select_element = "select" selector
+                 [ "where" where_clause_list ] ;
+
+where_clause_list = where_condition { "and" where_condition } ;
+
+where_condition = attribute_check | text_check | value_check ;
+
+attribute_check = attribute_name comparison_operator expression ;
+
+attribute_name = "text" | "value" | "class" | "id" | "name"
+               | "href" | "src" | "alt" | "title"
+               | IDENTIFIER ;
+
+text_check = "text" comparison_operator expression ;
+
+value_check = "value" comparison_operator expression ;
+
+comparison_operator = "contains" | "equals" | "matches" ;
+
+(* Select Option *)
+select_option = "select" "option" expression "from" selector ;
+
+(* ============================================================================= *)
+(* 7. Action Statements                                                         *)
+(* ============================================================================= *)
+
+action_statement = type_action
+                 | click_action
+                 | hover_action
+                 | clear_action
+                 | press_action
+                 | scroll_action
+                 | check_action
+                 | upload_action
+                 ;
+
+(* Type Action *)
+type_action = "type" expression [ "into" selector ]
+              [ typing_modifier ] ;
+
+typing_modifier = "slowly" | "fast" ;
+
+(* Click Action *)
+click_action = click_type [ selector ] ;
+
+click_type = "click" | "double" "click" | "right" "click" ;
+
+(* Hover Action *)
+hover_action = "hover" [ "over" ] selector ;
+
+(* Clear Action *)
+clear_action = "clear" [ selector ] ;
+
+(* Press Action *)
+press_action = "press" expression ;
+
+(* Scroll Action *)
+scroll_action = "scroll" scroll_target ;
+
+scroll_target = "to" ( "top" | "bottom" )
+              | "to" selector
+              | expression (* pixels *)
+              ;
+
+(* Check/Uncheck Action *)
+check_action = ( "check" | "uncheck" ) selector ;
+
+(* Upload Action *)
+upload_action = "upload" "file" expression [ "to" selector ] ;
+
+(* ============================================================================= *)
+(* 8. Assertion Statements                                                      *)
+(* ============================================================================= *)
+
+assertion_statement = "assert" assertion_type ;
+
+assertion_type = expression_assertion    (* v2.0: General expression assertion *)
+               | url_assertion           (* v1.0: Specific assertions *)
+               | element_assertion
+               | text_assertion
+               | attribute_assertion
+               ;
+
+(* General Expression Assertion (v2.0, v4.3+) *)
+expression_assertion = expression [ "," expression ] ;
+(* Syntax: assert EXPR [, message_expr]
+   Examples:
+     assert x > 5
+     assert user.age >= 18, "User must be adult"
+     assert condition, error_msg  # v4.3: message can be expression
+*)
+
+(* URL Assertion *)
+url_assertion = "url" url_check ;
+
+url_check = ( "contains" | "equals" | "matches" ) expression ;
+
+(* Element Assertion *)
+element_assertion = selector element_check ;
+
+element_check = "exists"
+              | "visible"
+              | "hidden"
+              | "has" "text" expression
+              | "has" "value" expression
+              | "has" attribute_name expression
+              ;
+
+(* Text Assertion *)
+text_assertion = "text" "of" selector text_check ;
+
+(* Attribute Assertion *)
+attribute_assertion = attribute_name "of" selector attribute_check ;
+
+(* ============================================================================= *)
+(* 8.5. Exit Statement (v4.1)                                                   *)
+(* ============================================================================= *)
+
+(* Exit Statement - Controlled Termination *)
+exit_statement = "exit" [ exit_code ] [ "," exit_message ] ;
+
+exit_code = INTEGER ;
+
+exit_message = STRING ;
+
+(* Exit semantics:
+   - exit           -> code=0 (success), no message
+   - exit 0         -> code=0 (success), no message
+   - exit 1         -> code=1 (failure), no message
+   - exit "msg"     -> code=1 (failure), message="msg"
+   - exit 0, "msg"  -> code=0 (success), message="msg"
+   - exit 1, "msg"  -> code=1 (failure), message="msg"
+*)
+
+(* ============================================================================= *)
+(* 9. Service Call Statements                                                   *)
+(* ============================================================================= *)
+
+service_call_statement = "call" string_literal
+                         [ parameter_list ]
+                         [ "into" identifier ] ;
+
+parameter_list = parameter { "," parameter } ;
+
+parameter = identifier "=" expression ;
+
+(* ============================================================================= *)
+(* 10. Extraction Statements                                                    *)
+(* ============================================================================= *)
+
+extraction_statement = "extract" extraction_target "from" selector
+                       [ extraction_options ]
+                       "into" identifier ;
+
+extraction_target = "text" | "value" | "attr" string_literal ;
+
+extraction_options = "pattern" string_literal ;
+
+(* ============================================================================= *)
+(* 11. Log Statements (v4.3+: log levels)                                       *)
+(* ============================================================================= *)
+
+log_statement = "log" [ log_level ] expression ;
+
+log_level = "debug" | "info" | "success" | "warning" | "error" ;
+
+(* Syntax (v4.3+):
+   log "message"                    # Default: info level
+   log info "message"               # Explicit level
+   log debug "debug info"           # Debug: 🔍
+   log success "done"               # Success: ✓
+   log warning "careful"            # Warning: ⚠
+   log error "failed"               # Error: ✗
+   log success f"User {name} registered"  # Level + f-string
+*)
+
+(* ============================================================================= *)
+(* 12. Screenshot Statements                                                    *)
+(* ============================================================================= *)
+
+screenshot_statement = "screenshot" [ screenshot_target ]
+                       [ "as" string_literal ]
+                       [ screenshot_options ] ;
+
+screenshot_target = "of" selector ;
+
+screenshot_options = "fullpage" ;
+
+(* ============================================================================= *)
+(* 13. Expressions                                                              *)
+(* ============================================================================= *)
+
+expression = logical_or_expression ;
+
+(* Logical OR (lowest precedence) *)
+logical_or_expression = logical_and_expression
+                        { "or" logical_and_expression } ;
+
+(* Logical AND *)
+logical_and_expression = logical_not_expression
+                         { "and" logical_not_expression } ;
+
+(* Logical NOT *)
+logical_not_expression = [ "not" ] comparison_expression ;
+
+(* Comparison *)
+comparison_expression = additive_expression
+                        [ comparison_operator additive_expression ] ;
+
+comparison_operator_expr = "==" | "!=" | ">" | "<" | ">=" | "<=" ;
+
+(* Additive *)
+additive_expression = multiplicative_expression
+                      { additive_operator multiplicative_expression } ;
+
+additive_operator = "+" | "-" ;
+
+(* Multiplicative *)
+multiplicative_expression = unary_expression
+                            { multiplicative_operator unary_expression } ;
+
+multiplicative_operator = "*" | "/" | "%" ;
+
+(* Unary *)
+unary_expression = [ unary_operator ] postfix_expression ;
+
+unary_operator = "-" | "not" ;
+
+(* Postfix (member access, array access, method call) *)
+postfix_expression = primary_expression { postfix_operator } ;
+
+postfix_operator = member_access
+                 | array_access
+                 | method_call
+                 ;
+
+member_access = "." identifier ;
+
+array_access = "[" expression "]" ;
+
+method_call = "(" [ argument_list ] ")" ;
+
+argument_list = expression { "," expression } ;
+
+(* Primary *)
+primary_expression = literal
+                   | function_call
+                   | identifier
+                   | system_variable
+                   | array_literal
+                   | object_literal
+                   | parenthesized_expression
+                   ;
+
+parenthesized_expression = "(" expression ")" ;
+
+(* ============================================================================= *)
+(* 14. Literals                                                                 *)
+(* ============================================================================= *)
+
+literal = string_literal
+        | number_literal
+        | boolean_literal
+        | null_literal
+        ;
+
+string_literal = STRING_TOKEN ;
+(* Supports interpolation: "Hello {name}" *)
+
+number_literal = NUMBER_TOKEN ;
+(* Examples: 123, 123.45, -10, 0.5 *)
+
+boolean_literal = "true" | "false" ;
+
+null_literal = "null" ;
+
+(* Array Literal *)
+array_literal = "[" [ array_elements ] "]" ;
+
+array_elements = expression { "," expression } ;
+
+(* Object Literal *)
+object_literal = "{" [ object_pairs ] "}" ;
+
+object_pairs = object_pair { "," object_pair } ;
+
+object_pair = ( identifier | string_literal ) ":" expression ;
+
+(* ============================================================================= *)
+(* 15. System Variables                                                         *)
+(* ============================================================================= *)
+
+system_variable = "$" system_variable_path ;
+
+system_variable_path = namespace { "." identifier } ;
+
+namespace = "context" | "page" | "browser" | "element" | "data" | "env" | "config" ;
+
+(* Examples:
+   $context.task_id
+   $page.url
+   $page.title
+   $env.API_KEY
+   $config.base_url
+*)
+
+(* ============================================================================= *)
+(* 16. Selectors                                                                *)
+(* ============================================================================= *)
+
+selector = expression ;
+(* Selectors are CSS selectors or XPath expressions expressed as strings
+   Examples:
+   "#username"
+   ".btn-primary"
+   "input[name='email']"
+   "//div[@class='container']"
+*)
+
+(* ============================================================================= *)
+(* 17. Lexical Tokens                                                           *)
+(* ============================================================================= *)
+
+(* Identifiers *)
+IDENTIFIER = letter { letter | digit | "_" } ;
+
+letter = "a" | "b" | "c" | "d" | "e" | "f" | "g" | "h" | "i" | "j" | "k" | "l" | "m"
+       | "n" | "o" | "p" | "q" | "r" | "s" | "t" | "u" | "v" | "w" | "x" | "y" | "z"
+       | "A" | "B" | "C" | "D" | "E" | "F" | "G" | "H" | "I" | "J" | "K" | "L" | "M"
+       | "N" | "O" | "P" | "Q" | "R" | "S" | "T" | "U" | "V" | "W" | "X" | "Y" | "Z" ;
+
+digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
+
+(* String Tokens *)
+STRING_TOKEN = double_quoted_string | single_quoted_string ;
+
+double_quoted_string = '"' { string_character | interpolation } '"' ;
+
+single_quoted_string = "'" { string_character } "'" ;
+
+string_character = ? any Unicode character except quote and backslash ?
+                 | escape_sequence ;
+
+escape_sequence = "\\" ( "n" | "t" | "r" | "\\" | '"' | "'" ) ;
+
+interpolation = "{" expression "}" ;
+
+(* Number Tokens *)
+NUMBER_TOKEN = [ "-" ] integer_part [ "." fractional_part ] ;
+
+integer_part = digit { digit } ;
+
+fractional_part = digit { digit } ;
+
+(* ============================================================================= *)
+(* 18. Keywords (Reserved Words)                                                *)
+(* ============================================================================= *)
+
+(* Keywords are case-insensitive *)
+
+keywords = "let" | "const" | "navigate" | "to" | "go" | "back" | "forward" | "reload"
+         | "wait" | "for" | "function" | "return" | "until" | "element" | "navigation"
+         | "select" | "where" | "and" | "or" | "not"
+         | "type" | "click" | "double" | "right" | "hover" | "over" | "of"
+         | "clear" | "press" | "scroll" | "check" | "uncheck" | "upload" | "file" | "from"
+         | "call" | "into" | "with"
+         | "extract" | "attr" | "pattern"
+         | "log" | "debug" | "info" | "success" | "warning" | "error"
+         | "each" | "in"
+         | "true" | "false" | "null"
+         | "assert" | "url" | "contains" | "equals" | "matches" | "exists" | "visible" | "hidden"
+         | "text" | "value" | "has"
+         | "diagnosis" | "none" | "minimal" | "basic" | "standard" | "detailed" | "full"
+         | "screenshot" | "as" | "fullpage"
+         | "step" | "end" | "if" | "else" | "when" | "otherwise"
+         | "option" | "input" | "button" | "link" | "textarea" | "div" | "span"
+         | "slowly" | "fast"
+         | "networkidle" | "domcontentloaded" | "load"
+         | "attached" | "detached"
+         | "top" | "bottom"
+         | "timeout" | "be" | "class" | "id" | "name" | "href" | "src" | "alt" | "title"
+         ;
+
+(* ============================================================================= *)
+(* 19. Operators                                                                *)
+(* ============================================================================= *)
+
+(* Assignment *)
+(* = *)
+
+(* Arithmetic *)
+(* + - * / % *)
+
+(* Comparison *)
+(* == != > < >= <= *)
+
+(* Logical *)
+(* and or not *)
+
+(* Member Access *)
+(* . *)
+
+(* Array/Object Access *)
+(* [ ] *)
+
+(* Function Call *)
+(* ( ) *)
+
+(* ============================================================================= *)
+(* 20. Comments                                                                 *)
+(* ============================================================================= *)
+
+comment = line_comment | block_comment ;
+
+line_comment = "#" { ? any character except newline ? } newline ;
+
+block_comment = '"""' { ? any character ? } '"""' ;
+
+(* ============================================================================= *)
+(* 21. Operator Precedence (from lowest to highest)                            *)
+(* ============================================================================= *)
+
+(*
+Priority 1 (Lowest):  or
+Priority 2:           and
+Priority 3:           not
+Priority 4:           == != > < >= <=
+Priority 5:           + -
+Priority 6:           * / %
+Priority 7:           unary - unary not
+Priority 8:           . [] ()
+Priority 9 (Highest): literals, identifiers, system variables, grouping ()
+*)
+
+(* ============================================================================= *)
+(* 22. Example Programs                                                         *)
+(* ============================================================================= *)
+
+(*
+Example 1: Simple Variable Assignment
+======================================
+let name = "Alice"
+let age = 30
+log "Name: {name}, Age: {age}"
+*)
+
+(*
+Example 2: Navigation and Selection
+===================================
+navigate to "https://example.com"
+wait for element "#username"
+
+select "#username"
+type "user@test.com"
+
+select "#password"
+type "secret123"
+
+click "#login-button"
+*)
+
+(*
+Example 3: Conditional Logic
+============================
+let count = 0
+
+if count > 0:
+    log "Count is positive"
+else:
+    log "Count is zero or negative"
+end if
+*)
+
+(*
+Example 4: Service Call
+=======================
+call "http.post" with
+    url="https://api.example.com/users",
+    json={name: "Alice", email: "alice@test.com"},
+    headers={"Authorization": "Bearer token"}
+into response
+
+log "Status: {response.status_code}"
+
+if response.status_code == 200:
+    log "Success: User ID is {response.data.id}"
+end if
+*)
+
+(*
+Example 5: Loop
+===============
+let items = [1, 2, 3, 4, 5]
+
+for item in items:
+    log "Item: {item}"
+    let squared = item * item
+    log "Squared: {squared}"
+end for
+*)
+
+(*
+Example 6: Extraction
+====================
+navigate to "https://example.com/profile"
+
+extract text from ".username" into username
+extract attr "href" from ".profile-link" into profile_url
+
+log "Username: {username}"
+log "Profile URL: {profile_url}"
+*)
+
+(*
+Example 7: Step Block with Diagnosis
+====================================
+step "User Login" with diagnosis detailed:
+    navigate to $config.base_url + "/login"
+
+    select "#email"
+    type $config.test_user.email
+
+    select "#password"
+    type $config.test_user.password
+
+    click "#submit-button"
+
+    wait for element ".dashboard"
+    assert .dashboard exists
+end step
+*)
+
+(*
+Example 8: When Block (Pattern Matching)
+========================================
+let status = "pending"
+
+when status:
+    "success":
+        log "Operation succeeded"
+    "error":
+        log "Operation failed"
+    "pending":
+        log "Operation is in progress"
+    otherwise:
+        log "Unknown status"
+end when
+*)
+
+(*
+Example 9: Assertion
+====================
+navigate to "https://example.com"
+
+assert url contains "example.com"
+assert "#header" exists
+assert "#header" visible
+assert text of ".welcome" equals "Welcome!"
+assert value of "#username" contains "user"
+*)
+
+(*
+Example 10: System Variables
+============================
+log "Task ID: {$context.task_id}"
+log "Current URL: {$page.url}"
+log "Page Title: {$page.title}"
+log "API Key: {$env.API_KEY}"
+log "Base URL: {$config.base_url}"
+*)
+
+(*
+Example 11: User-Defined Functions (v4.3)
+=========================================
+# Simple function definition
+function greet():
+    log "Hello, World!"
+end function
+
+# Call the function
+greet()
+
+# Function with parameters
+function add(a, b):
+    return a + b
+end function
+
+let sum = add(10, 20)
+log "Sum: {sum}"  # Output: Sum: 30
+
+# Function with local variables
+function calculate_area(width, height):
+    let area = width * height
+    return area
+end function
+
+let room_area = calculate_area(5, 4)
+log "Room area: {room_area}"  # Output: Room area: 20
+*)
+
+(*
+Example 12: Function Composition (v4.3)
+======================================
+# Define validation functions
+function is_valid_email(email):
+    return email contains "@" and email contains "."
+end function
+
+function is_strong_password(password):
+    return len(password) >= 8
+end function
+
+# Compose functions
+function validate_user(email, password):
+    if not is_valid_email(email):
+        return false
+    end if
+    
+    if not is_strong_password(password):
+        return false
+    end if
+    
+    return true
+end function
+
+# Use the composed function
+let valid = validate_user("user@example.com", "secret123")
+
+if valid:
+    log "User credentials are valid"
+else:
+    log "Invalid credentials"
+end if
+*)
+
+(*
+Example 13: Functions with Loops (v4.3)
+======================================
+function sum_array(numbers):
+    let total = 0
+    for num in numbers:
+        total = total + num
+    end for
+    return total
+end function
+
+function find_max(numbers):
+    let max = numbers[0]
+    for num in numbers:
+        if num > max:
+            max = num
+        end if
+    end for
+    return max
+end function
+
+let values = [10, 25, 7, 42, 15]
+let sum = sum_array(values)
+let max = find_max(values)
+
+log "Sum: {sum}"    # Output: Sum: 99
+log "Max: {max}"    # Output: Max: 42
+*)
+
+(* ============================================================================= *)
+(* End of EBNF Grammar Specification                                           *)
+(* ============================================================================= *)
