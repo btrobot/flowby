@@ -101,7 +101,7 @@ _参见 GRAMMAR-GOVERNANCE.md 的 6 步实施流程_
 
 | # | 标题 | 提出日期 | 状态 | 影响 | 目标版本 |
 |---|------|---------|------|------|---------|
-| 010 | Resource Constructor Refactoring | 2025-11-30 | 📝 Draft | MAJOR | v6.0 |
+| 010 | Resource Constructor Refactoring | 2025-11-30 | 💭 Under Discussion | MAJOR | v6.0 |
 
 ### 已归档提案
 
