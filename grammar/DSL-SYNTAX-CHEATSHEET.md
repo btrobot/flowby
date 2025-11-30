@@ -419,7 +419,7 @@ arr[index]
 
 ```flow
 Math.abs(-10)
-str.length()
+len(str)
 Date.now()
 ```
 

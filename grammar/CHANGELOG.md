@@ -1717,7 +1717,7 @@ let message = f"Generated password: {random.password(length=10, special=False)}"
 ```dsl
 let base_length = 10
 let pwd = random.password(length=base_length + 6, special=True)
-assert pwd.length() == 16
+assert len(pwd) == 16
 ```
 
 ### 🔧 Changed (修改)

@@ -562,8 +562,9 @@ let users = [
 # Use in string interpolation
 log f"Generated email: {random.email()}"
 
-# Method chaining
-let uppercase_email = random.email().toUpperCase()
+# Python-style string method
+let email = random.email()
+let uppercase_email = email.upper()
 ```
 
 
@@ -2029,7 +2030,7 @@ let should_retry = not success and retry_count < 3
 # Member access
 let username = user.profile.name
 let first_item = items[0]
-let last_item = items[items.length() - 1]
+let last_item = items[len(items) - 1]
 
 # Method calls
 let upper = text.toUpper()

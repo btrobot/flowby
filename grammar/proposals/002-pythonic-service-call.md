@@ -171,9 +171,9 @@ if status_code == 200:
 #### 方法链式调用
 
 ```dsl
-# ✅ 链式调用
-let uppercase_email = random.email().toUpperCase()
-let response_text = http.get(url: api_url).text()
+# ✅ Python-style 方法调用
+let email = random.email()
+let uppercase_email = email.upper()
 ```
 
 ### 语法对比
@@ -277,7 +277,7 @@ class MethodCall(Expression):
     Syntax: object.method(arg1, arg2, ...)
 
     Examples:
-        text.toUpperCase()
+        text.upper()
         Math.round(value)
         random.email()          # v3.1: 服务调用
         http.get(url: "...")    # v3.1: 服务调用
@@ -777,7 +777,7 @@ def test_random_password():
     """测试 random.password()"""
     script = '''
     let pwd = random.password(length: 16, special: True)
-    assert pwd.length() == 16
+    assert len(pwd) == 16
     '''
     # 验证密码长度和字符集
 
@@ -804,7 +804,7 @@ def test_service_in_array_literal():
     """测试在数组字面量中使用"""
     script = '''
     let emails = [random.email(), random.email()]
-    assert emails.length() == 2
+    assert len(emails) == 2
     '''
 
 def test_service_in_string_interpolation():

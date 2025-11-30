@@ -90,9 +90,9 @@ addopts = [
     "-v",
     "--strict-markers",
     "--tb=short",
-    "--cov=flowby",
-    "--cov-report=term-missing",
-    "--cov-report=html",
+    # "--cov=flowby",
+    # "--cov-report=term-missing",
+    # "--cov-report=html",
 ]
 
 [tool.coverage.run]

@@ -102,7 +102,7 @@ while status != "completed":
 
 #### 场景4: 处理队列 (中频)
 ```flow
-while items.length() > 0:
+while len(items) > 0:
     let item = items.pop(0)
     if not validate(item):
         continue  # 跳过无效项
@@ -273,7 +273,7 @@ else:
 let items = ["item1", "", "item3", None, "item5"]
 let processed = 0
 
-while items.length() > 0:
+while len(items) > 0:
     let item = items.pop(0)
 
     # 跳过空项和 None
@@ -1070,7 +1070,7 @@ step "处理队列":
     let items = ["item1", "", "item3", None, "item5"]
     let processed = 0
 
-    while items.length() > 0:
+    while len(items) > 0:
         let item = items.pop(0)
 
         if item == "" or item == None:

@@ -240,8 +240,9 @@ log f"User ID: {random.uuid()}"
 call "random.email" into email
 # 无法将 email 转大写后再用
 
-# ✅ v3.1: 链式调用
-let uppercase_email = random.email().toUpperCase()
+# ✅ v3.1: Python-style 方法调用
+let email = random.email()
+let uppercase_email = email.upper()
 ```
 
 ### 5. 条件表达式中使用
