@@ -149,7 +149,7 @@
 
 ---
 
-### 8. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - V3 语法示例集
+### 8. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - V3 语法示例集
 
 **用途**: V3.0+ 语法的实战示例
 
@@ -247,19 +247,19 @@ cat grammar/DSL-SYNTAX-CHEATSHEET.md
 
 **快速入门（5分钟）**:
 1. 阅读 [QUICKSTART.md](./QUICKSTART.md)
-2. 查看 [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl)
+2. 查看 [V3-EXAMPLES.flow](./V3-EXAMPLES.flow)
 
 **深入学习（30分钟）**:
 1. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 10分钟
 2. [MASTER.md](./MASTER.md) - 浏览特性 - 15分钟
-3. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 实战示例 - 5分钟
+3. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 实战示例 - 5分钟
 
 **完整掌握（1小时）**:
 1. QUICKSTART.md
 2. DSL-SYNTAX-CHEATSHEET.md
 3. DSL-GRAMMAR-QUICK-REFERENCE.md
 4. MASTER.md
-5. V3-EXAMPLES.dsl
+5. V3-EXAMPLES.flow
 
 ### 场景 3: 我想提出新特性
 
@@ -305,7 +305,7 @@ git log --oneline -- grammar/MASTER.md
 1. [QUICKSTART.md](./QUICKSTART.md) - 5分钟
 2. [DSL-SYNTAX-CHEATSHEET.md](./DSL-SYNTAX-CHEATSHEET.md) - 15分钟
 3. [MASTER.md](./MASTER.md) - 浏览特性列表 - 20分钟
-4. [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 实战示例 - 20分钟
+4. [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 实战示例 - 20分钟
 
 ### 路径 C: 语法贡献者（2小时）
 
@@ -366,7 +366,7 @@ A:
 
 **Q: 哪里可以找到语法示例？**
 A:
-- [V3-EXAMPLES.dsl](./V3-EXAMPLES.dsl) - 完整示例集
+- [V3-EXAMPLES.flow](./V3-EXAMPLES.flow) - 完整示例集
 - `examples/` 目录 - 实战脚本
 - [MASTER.md](./MASTER.md) - 每个特性都有示例
 

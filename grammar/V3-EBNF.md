@@ -827,7 +827,7 @@ Program
 - Python Language Reference - Lexical Analysis (Python 3.12)
 - PEP 8 - Style Guide for Python Code (缩进规范)
 - `DESIGN-V3.md` - v3.0完整语法规范（Python化版本）
-- `V3-EXAMPLES.dsl` - 完整示例集（Python风格）
+- `V3-EXAMPLES.flow` - 完整示例集（Python风格）
 - `PYTHON-ALIGNMENT-REVIEW.md` - Python对齐度审查报告
 
 ---
@@ -874,7 +874,7 @@ Program
 ---
 
 **重要说明**:
-- 本EBNF规范必须与 `DESIGN-V3.md` 和 `V3-EXAMPLES.dsl` 保持同步
+- 本EBNF规范必须与 `DESIGN-V3.md` 和 `V3-EXAMPLES.flow` 保持同步
 - 任何语法变更都应同时更新三份文档
 - v3.0完全不兼容v2.0，这是破坏性变更
 - 设计定位：**为Python程序员编写的DSL**

@@ -578,6 +578,73 @@ let discount = get_discount(customer_total)
 
 ---
 
+## 模块系统 (v5.0)
+
+| 特性 | 语法 | 示例 |
+|------|------|------|
+| Library Declaration | `library NAME` | `library validators` |
+| Export Const | `export const VAR = value` | `export const VERSION = "1.0"` |
+| Export Function | `export function NAME(...)` | `export function validate(x)` |
+| Import Alias | `import NAME from "path"` | `import helpers from "libs/helpers.flow"` |
+| From-Import | `from "path" import A, B` | `from "libs/utils.flow" import sum, avg` |
+| Member Access | `module.member` | `helpers.VERSION` |
+
+**完整示例**:
+```flow
+# File: libs/validators.flow
+library validators
+
+export const EMAIL_PATTERN = "^[\\w]+@[\\w]+\\.[a-z]+$"
+
+export function validate_email(email):
+    return email contains "@" and email contains "."
+
+# File: main.flow
+import validators from "libs/validators.flow"
+
+let email = "user@example.com"
+if validators.validate_email(email):
+    log "✅ Valid"
+```
+
+---
+
+## Input Expression (v5.1)
+
+| 特性 | 语法 | 说明 |
+|------|------|------|
+| 基本输入 | `input("prompt")` | 提示用户输入 |
+| 默认值 | `input("prompt", default="val")` | 空输入时使用默认值 |
+| 类型转换 | `input("prompt", type=TYPE)` | TYPE: text, password, integer, float |
+| 组合参数 | `input("p", default="v", type=integer)` | 默认值 + 类型转换 |
+
+**示例**:
+```flow
+# Basic
+let name = input("Name: ")
+
+# With default (CI/CD friendly)
+let email = input("Email: ", default="test@example.com")
+
+# Type conversion
+let age = input("Age: ", type=integer)
+let price = input("Price: ", type=float)
+
+# Password (no echo)
+let password = input("Password: ", type=password)
+
+# Combined
+let retries = input("Retries: ", default="3", type=integer)
+```
+
+**类型转换行为**:
+- `text`: 默认，返回字符串
+- `password`: 无回显输入，返回字符串
+- `integer`: 转换为整数，无效输入抛出 ValueError
+- `float`: 转换为浮点数，无效输入抛出 ValueError
+
+---
+
 ## 注释
 
 ```flow

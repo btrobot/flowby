@@ -3096,7 +3096,7 @@ when user_role:
 
 ### Migration Documents
 - `grammar/V3-MIGRATION-GUIDE.md` - v2.0 → v3.0 migration guide (TODO)
-- `grammar/V3-EXAMPLES.dsl` - Complete v3.0 examples (TODO)
+- `grammar/V3-EXAMPLES.flow` - Complete v3.0 examples (TODO)
 
 ### Test Files
 - `tests/grammar_alignment/test_v3_*.py` - 538 v3.0 grammar tests

@@ -30,6 +30,9 @@ statement = variable_declaration
           | control_flow_statement
           | function_definition
           | return_statement
+          | library_declaration
+          | export_statement
+          | import_statement
           | navigation_statement
           | action_statement
           | assertion_statement
@@ -146,6 +149,39 @@ argument_list = expression { "," expression } ;
    - Closures are NOT supported (cannot access outer function locals)
    - return statement is optional; functions return None by default
    - return can only be used inside functions
+*)
+
+(* ============================================================================= *)
+(* 3.6. Module System (v5.0)                                                   *)
+(* ============================================================================= *)
+
+(* Library Declaration - v5.0 *)
+library_declaration = "library" identifier ;
+
+(* Export Statement - v5.0 *)
+export_statement = "export" ( const_statement | function_definition ) ;
+
+(* Import Statement - v5.0 *)
+import_statement = import_alias | from_import ;
+
+(* Import with alias: import module_name from "path" *)
+import_alias = "import" identifier "from" string_literal ;
+
+(* From-import: from "path" import name1, name2, ... *)
+from_import = "from" string_literal "import" import_list ;
+
+import_list = identifier { "," identifier } ;
+
+(* Semantics:
+   - library declaration must be the first line of a .flow file
+   - library creates a namespace for exported members
+   - export makes constants or functions available to importers
+   - import loads a library and binds it to an alias
+   - from-import loads specific members from a library
+   - import paths are relative to the importing file
+   - imported modules are cached (loaded once per execution)
+   - circular imports are detected and prevented
+   - member access: module_alias.member_name
 *)
 
 (* ============================================================================= *)
@@ -455,6 +491,7 @@ argument_list = expression { "," expression } ;
 
 (* Primary *)
 primary_expression = literal
+                   | input_expression
                    | function_call
                    | identifier
                    | system_variable
@@ -464,6 +501,30 @@ primary_expression = literal
                    ;
 
 parenthesized_expression = "(" expression ")" ;
+
+(* Input Expression - v5.1 *)
+input_expression = "input" "(" expression [ "," input_parameter_list ] ")" ;
+
+input_parameter_list = input_parameter { "," input_parameter } ;
+
+input_parameter = "default" "=" expression
+                | "type" "=" input_type
+                ;
+
+input_type = "text" | "password" | "integer" | "float" ;
+
+(* Semantics:
+   - input() prompts user for console input (interactive mode)
+   - First argument is the prompt message (string or expression)
+   - default= parameter provides value when input is empty (CI/CD friendly)
+   - type= parameter specifies input type and auto-converts:
+     - text: default, returns string
+     - password: no echo, returns string
+     - integer: converts to int, raises error if invalid
+     - float: converts to float, raises error if invalid
+   - Returns the input value (or default) after type conversion
+   - Non-interactive mode: always uses default value if provided
+*)
 
 (* ============================================================================= *)
 (* 14. Literals                                                                 *)
@@ -871,6 +932,77 @@ let max = find_max(values)
 
 log "Sum: {sum}"    # Output: Sum: 99
 log "Max: {max}"    # Output: Max: 42
+*)
+
+(*
+Example 14: Module System (v5.0)
+======================================
+# File: libs/validators.flow
+library validators
+
+export const EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+
+export function validate_email(email):
+    # Email validation logic
+    if email contains "@" and email contains ".":
+        return true
+    end if
+    return false
+end function
+
+export function validate_age(age):
+    return age >= 18 and age <= 120
+end function
+
+# File: main.flow
+import validators from "libs/validators.flow"
+
+let email = "user@example.com"
+if validators.validate_email(email):
+    log "Valid email"
+end if
+
+# Or use from-import
+from "libs/validators.flow" import validate_email, EMAIL_PATTERN
+
+if validate_email(email):
+    log "Pattern: {EMAIL_PATTERN}"
+end if
+*)
+
+(*
+Example 15: Input Expression (v5.1)
+======================================
+# Basic input
+let name = input("Enter your name: ")
+log "Hello, {name}!"
+
+# Input with default value (CI/CD friendly)
+let email = input("Email: ", default="test@example.com")
+
+# Input with type conversion
+let age = input("Age: ", type=integer)
+let price = input("Price: ", type=float)
+
+# Password input (no echo)
+let password = input("Password: ", type=password)
+
+# Combined parameters
+let retry_count = input("Retry count: ", default="3", type=integer)
+
+# Conditional input
+if $env.INTERACTIVE == "true":
+    let custom_url = input("Enter URL: ", default="https://example.com")
+else:
+    let custom_url = "https://example.com"
+end if
+
+# Input in loops
+let num_items = input("How many items? ", type=integer)
+for i in range(num_items):
+    let item = input("Item {i + 1}: ")
+    log "Added: {item}"
+end for
 *)
 
 (* ============================================================================= *)

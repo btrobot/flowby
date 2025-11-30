@@ -925,7 +925,199 @@ else:
 
 ---
 
-## 15. 注释
+## 15. 模块系统 (v5.0)
+
+### Library Declaration
+
+```bnf
+library_declaration ::= "library" IDENTIFIER
+```
+
+**示例**:
+```flow
+# File: libs/helpers.flow
+library helpers
+
+export const VERSION = "1.0.0"
+
+export function greet(name):
+    return "Hello, {name}!"
+```
+
+### Export Statement
+
+```bnf
+export_statement ::= "export" ("const" | "function") ...
+```
+
+**导出常量**:
+```flow
+export const MAX_RETRIES = 3
+export const API_BASE = "https://api.example.com"
+```
+
+**导出函数**:
+```flow
+export function validate_email(email):
+    return email contains "@" and email contains "."
+```
+
+### Import Statement
+
+```bnf
+import_statement ::= "import" IDENTIFIER "from" STRING
+                   | "from" STRING "import" identifier_list
+
+identifier_list ::= IDENTIFIER ("," IDENTIFIER)*
+```
+
+**Import with alias**:
+```flow
+import helpers from "libs/helpers.flow"
+
+log helpers.VERSION
+let msg = helpers.greet("Alice")
+```
+
+**From-import (specific members)**:
+```flow
+from "libs/helpers.flow" import greet, VERSION
+
+log VERSION
+log greet("Bob")
+```
+
+### Member Access
+
+```bnf
+member_access ::= module_name "." member_name
+```
+
+**示例**:
+```flow
+import validators from "libs/validators.flow"
+
+if validators.validate_email("user@example.com"):
+    log "Valid email"
+```
+
+### 完整示例
+
+```flow
+# File: libs/validators.flow
+library validators
+
+export const EMAIL_PATTERN = "^[a-zA-Z0-9._%+-]+@.+\\..+$"
+
+export function validate_email(email):
+    if email contains "@" and email contains ".":
+        return true
+    return false
+
+export function validate_age(age):
+    return age >= 18 and age <= 120
+
+# File: main.flow
+import validators from "libs/validators.flow"
+
+let email = input("Email: ")
+let age = input("Age: ", type=integer)
+
+if validators.validate_email(email) and validators.validate_age(age):
+    log "✅ 验证通过"
+else:
+    log "❌ 验证失败"
+```
+
+---
+
+## 16. Input Expression (v5.1)
+
+### 基本语法
+
+```bnf
+input_expression ::= "input" "(" expression ["," parameter_list] ")"
+
+parameter_list ::= parameter ("," parameter)*
+
+parameter ::= "default" "=" expression
+            | "type" "=" ("text" | "password" | "integer" | "float")
+```
+
+### 基本输入
+
+```flow
+let name = input("Enter your name: ")
+log "Hello, {name}!"
+```
+
+### 带默认值（CI/CD 友好）
+
+```flow
+let email = input("Email: ", default="test@example.com")
+let url = input("URL: ", default="https://example.com")
+```
+
+### 类型转换
+
+```flow
+# Integer conversion
+let age = input("Age: ", type=integer)
+
+# Float conversion
+let price = input("Price: ", type=float)
+
+# Password input (no echo)
+let password = input("Password: ", type=password)
+```
+
+### 组合参数
+
+```flow
+let retry_count = input("Retry count: ", default="3", type=integer)
+let timeout = input("Timeout (s): ", default="30.0", type=float)
+```
+
+### 实战示例
+
+```flow
+# Interactive configuration
+let env = input("Environment [dev/prod]: ", default="dev")
+let debug = input("Enable debug? [yes/no]: ", default="no")
+
+if debug == "yes":
+    const LOG_LEVEL = "DEBUG"
+else:
+    const LOG_LEVEL = "INFO"
+
+let max_retries = input("Max retries: ", default="3", type=integer)
+
+# Use configured values
+for attempt in range(1, max_retries + 1):
+    log "Attempt {attempt}/{max_retries} in {env} environment"
+    # ... automation logic ...
+```
+
+### 参数说明
+
+| 参数 | 类型 | 必需 | 默认值 | 说明 |
+|------|------|------|--------|------|
+| `prompt` | String/Expr | ✅ | - | 提示文本 |
+| `default` | Any/Expr | ❌ | None | 默认值（空输入时使用） |
+| `type` | Keyword | ❌ | text | 输入类型：text, password, integer, float |
+
+### 类型转换行为
+
+| Type | 行为 | 错误处理 |
+|------|------|----------|
+| `text` | 返回字符串（默认） | 无 |
+| `password` | 无回显输入，返回字符串 | 无 |
+| `integer` | 转换为整数 | ValueError if invalid |
+| `float` | 转换为浮点数 | ValueError if invalid |
+
+---
+
+## 17. 注释
 
 ```flow
 # 单行注释
@@ -938,7 +1130,7 @@ else:
 
 ---
 
-## 16. 完整示例
+## 18. 完整示例
 
 ```flow
 # 配置
@@ -996,7 +1188,7 @@ end step
 
 ---
 
-## 17. 语法图例说明
+## 19. 语法图例说明
 
 ```
 ::=     定义为
