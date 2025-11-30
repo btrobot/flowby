@@ -509,50 +509,6 @@ class ExitStatement(ASTNode):
     message: Optional[str] = None
 
 
-@dataclass
-class ResourceStatement(ASTNode):
-    """
-    资源语句 (Resource Statement) - v4.2
-
-    基于 OpenAPI 规范定义外部 REST API 资源
-
-    语法:
-        resource <name> from <spec_file>
-        或
-        resource <name>:
-            spec: <file>
-            base_url: <url>
-            auth: <expr>
-            timeout: <int>
-            headers: <dict>
-        end resource
-
-    示例:
-        resource user_api from "openapi/user-service.yml"
-
-        resource user_api:
-            spec: "openapi/user-service.yml"
-            base_url: "https://api.example.com"
-            auth: bearer(token)
-            timeout: 60
-        end resource
-
-    Attributes:
-        name: 资源名称（在 DSL 中引用时使用）
-        spec_file: OpenAPI 规范文件路径（YAML/JSON）
-        base_url: API 基础 URL（覆盖 OpenAPI 中的 servers）
-        auth: 认证配置表达式
-        timeout: 请求超时时间（秒）
-        headers: 默认 HTTP headers 表达式
-    """
-    name: str
-    spec_file: str
-    base_url: Optional['Expression'] = None
-    auth: Optional['Expression'] = None
-    timeout: Optional[int] = None
-    headers: Optional['Expression'] = None
-
-
 # ============================================================
 # 截图语句
 # ============================================================

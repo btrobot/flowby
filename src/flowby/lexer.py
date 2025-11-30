@@ -117,9 +117,6 @@ class TokenType(Enum):
     ASSERT = auto()
     EXIT = auto()            # exit 语句 (v4.1)
 
-    # 资源定义
-    RESOURCE = auto()        # resource 语句 (v4.2)
-
     # 模块系统 (v5.0)
     LIBRARY = auto()         # library 声明 (v5.0)
     EXPORT = auto()          # export 语句 (v5.0)
@@ -343,9 +340,6 @@ class Lexer:
         # 断言/验证
         'assert': TokenType.ASSERT,
         'exit': TokenType.EXIT,
-
-        # 资源定义
-        'resource': TokenType.RESOURCE,
 
         # 模块系统 (v5.0)
         'library': TokenType.LIBRARY,

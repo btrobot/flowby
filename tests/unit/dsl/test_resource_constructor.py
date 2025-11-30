@@ -399,26 +399,3 @@ let prod_api = Resource("{spec_path}", base_url = "https://prod.example.com")
         assert dev_api.base_url == "https://dev.example.com"
         assert prod_api.base_url == "https://prod.example.com"
         assert dev_api is not prod_api  # 不同的实例
-
-
-class TestResourceConstructorCompatibility:
-    """测试 Resource() 构造函数与现有功能的兼容性"""
-
-    def test_resource_does_not_conflict_with_resource_keyword(self, tmp_path):
-        """测试 Resource() 不与 resource 关键字冲突"""
-        # Resource (首字母大写) 应该被识别为标识符，而非关键字
-        source = "let api = Resource"
-
-        tokens = Lexer().tokenize(source)
-        # 检查 Resource 被识别为 IDENTIFIER
-        resource_token = [t for t in tokens if t.value == "Resource"][0]
-        from flowby.lexer import TokenType
-        assert resource_token.type == TokenType.IDENTIFIER
-
-    def test_lowercase_resource_still_keyword(self):
-        """测试小写 resource 仍然是关键字"""
-        from flowby.lexer import Lexer, TokenType
-
-        # 小写 resource 应该被识别为 RESOURCE 关键字
-        tokens = Lexer().tokenize("resource")
-        assert tokens[0].type == TokenType.RESOURCE

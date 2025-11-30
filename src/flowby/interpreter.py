@@ -6,7 +6,6 @@ DSL 解释器
 
 from typing import TYPE_CHECKING, Optional, Any, Dict
 from pathlib import Path
-import warnings
 
 if TYPE_CHECKING:
     from .context import ExecutionContext
@@ -53,8 +52,6 @@ from .ast_nodes import (
     ContinueStatement,
     # v4.1 Exit 语句
     ExitStatement,
-    # v4.2 Resource 语句
-    ResourceStatement,
     # v4.3 函数定义
     FunctionDefNode,
     ReturnNode,
@@ -744,10 +741,6 @@ class Interpreter:
         elif isinstance(statement, ExitStatement):
             self._execute_exit(statement)
 
-        # 资源定义 (v4.2)
-        elif isinstance(statement, ResourceStatement):
-            self._execute_resource(statement)
-
         # 截图语句
         elif isinstance(statement, ScreenshotStatement):
             # v2.0: name 和 selector 可能是表达式，需要求值
@@ -947,132 +940,6 @@ class Interpreter:
 
         # 抛出提前退出异常
         raise EarlyExitException(code=code, message=message)
-
-    def _execute_resource(self, statement: ResourceStatement) -> None:
-        """
-        执行 resource 语句 - v4.2
-
-        加载 OpenAPI 规范文件并创建资源命名空间
-
-        语法:
-            resource <name> from <spec_file>
-            或
-            resource <name>:
-                spec: <file>
-                base_url: <url>
-                auth: <expr>
-                timeout: <int>
-                headers: <dict>
-            end resource
-
-        示例:
-            resource user_api from "openapi/user-service.yml"
-
-            resource user_api:
-                spec: "openapi/user-service.yml"
-                base_url: "https://api.example.com"
-                auth: bearer(token)
-                timeout: 60
-            end resource
-        """
-        from .openapi_loader import OpenAPISpec
-        from .resource_namespace import ResourceNamespace
-
-        # 1. 加载 OpenAPI 规范（v4.2.1: 支持智能路径查找）
-        try:
-            # 传递脚本路径以支持智能路径查找
-            spec = OpenAPISpec(
-                spec_file=statement.spec_file,
-                script_path=self.context.script_path
-            )
-        except FileNotFoundError as e:
-            raise ExecutionError(
-                line=statement.line,
-                statement=f"resource {statement.name} from \"{statement.spec_file}\"",
-                error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"OpenAPI 文件不存在: {statement.spec_file}"
-            )
-        except ValueError as e:
-            raise ExecutionError(
-                line=statement.line,
-                statement=f"resource {statement.name} from \"{statement.spec_file}\"",
-                error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"OpenAPI 文件解析失败: {str(e)}"
-            )
-        except Exception as e:
-            raise ExecutionError(
-                line=statement.line,
-                statement=f"resource {statement.name} from \"{statement.spec_file}\"",
-                error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"加载 OpenAPI 文件失败: {str(e)}"
-            )
-
-        # 2. 求值配置表达式
-        base_url = None
-        if statement.base_url:
-            base_url_result = self.expression_evaluator.evaluate(statement.base_url)
-            if not isinstance(base_url_result, str):
-                raise ExecutionError(
-                    line=statement.line,
-                    statement=f"resource {statement.name}",
-                    error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"base_url 必须是字符串，得到: {type(base_url_result).__name__}"
-                )
-            base_url = base_url_result
-
-        auth = None
-        if statement.auth:
-            auth = self.expression_evaluator.evaluate(statement.auth)
-            if not isinstance(auth, dict):
-                raise ExecutionError(
-                    line=statement.line,
-                    statement=f"resource {statement.name}",
-                    error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"auth 必须是字典，得到: {type(auth).__name__}"
-                )
-
-        headers = None
-        if statement.headers:
-            headers = self.expression_evaluator.evaluate(statement.headers)
-            if not isinstance(headers, dict):
-                raise ExecutionError(
-                    line=statement.line,
-                    statement=f"resource {statement.name}",
-                    error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"headers 必须是字典，得到: {type(headers).__name__}"
-                )
-
-        # 3. 创建资源命名空间
-        try:
-            resource_ns = ResourceNamespace(
-                name=statement.name,
-                spec=spec,
-                base_url=base_url,
-                auth=auth,
-                timeout=statement.timeout,
-                headers=headers,
-                context=self.context
-            )
-        except Exception as e:
-            raise ExecutionError(
-                f"第 {statement.line} 行: 创建资源命名空间失败\n{str(e)}",
-                statement.line
-            )
-
-        # 4. 注册到符号表（resource 定义为常量）
-        from .symbol_table import SymbolType
-        self.symbol_table.define(
-            name=statement.name,
-            value=resource_ns,
-            symbol_type=SymbolType.CONSTANT,  # resource 定义为常量
-            line_number=statement.line
-        )
-
-        # 5. 记录日志
-        self.context.logger.info(
-            f"[RESOURCE] 已加载资源 '{statement.name}' "
-            f"({len(spec.operations)} 个操作): {statement.spec_file}"
-        )
 
     def _execute_step(self, statement: StepBlock) -> None:
         """执行 Step 块"""
