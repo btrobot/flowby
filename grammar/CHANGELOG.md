@@ -36,14 +36,87 @@ PATCH: Bug 修复，向后兼容
 
 ## 🎯 当前版本
 
-**语法版本**: `5.1.0` (已发布)
-**发布日期**: 2025-11-29
-**项目版本**: fix/http-enhanced-tests
+**语法版本**: `6.0.0` (已发布)
+**发布日期**: 2025-11-30
+**项目版本**: main
 **状态**: ✅ Released
 
 ---
 
 ## 📜 版本历史
+
+---
+
+## [6.0.0] - 2025-11-30
+
+### 🚀 重大变更 (BREAKING CHANGES)
+
+#### Resource() Constructor Function - 资源构造函数重构 (v6.0)
+
+**Proposal ID**: GP-010
+**Feature ID**: DSL-RESOURCE-CONSTRUCTOR-001
+
+**移除的语法**:
+```dsl
+# ❌ 已移除：resource 语句
+resource api from "spec.yml"
+
+resource api:
+    spec: "spec.yml"
+    base_url: "https://api.example.com"
+    timeout: 60
+```
+
+**新语法**:
+```dsl
+# ✅ 新语法：Resource() 构造函数
+let api = Resource("spec.yml")
+
+let api = Resource("spec.yml",
+    base_url = "https://api.example.com",
+    timeout = 60,
+    auth = {type: "bearer", token: env.API_TOKEN}
+)
+```
+
+**变更理由**:
+- ✅ 支持动态配置（运行时生成 token、URL 等）
+- ✅ 统一语法风格（与其他内置函数一致）
+- ✅ 更好的测试性（可单元测试）
+- ✅ 简化解释器（移除特殊语句类型）
+
+**迁移指南**:
+```dsl
+# 旧代码（v4.2-v5.1）
+resource user_api from "openapi/users.yml"
+
+# 新代码（v6.0+）
+let user_api = Resource("openapi/users.yml")
+
+# 旧代码（带配置）
+resource api:
+    spec: "api.yml"
+    base_url: "https://prod.example.com"
+    auth: {type: "bearer", token: "secret"}
+
+# 新代码（带配置）
+let api = Resource("api.yml",
+    base_url = "https://prod.example.com",
+    auth = {type: "bearer", token: "secret"}
+)
+```
+
+**技术实现**:
+- 新增 `Resource()` 内置函数（builtin_functions.py）
+- 自动注入 `ExecutionContext`（expression_evaluator.py）
+- 词法分析器支持首字母大写标识符（lexer.py）
+- 删除 `ResourceStatement` AST 节点（ast_nodes.py）
+- 删除 `_parse_resource()` 和 `_execute_resource()` 方法
+- 删除 `TokenType.RESOURCE` 枚举
+
+**测试覆盖**:
+- 17 个专项单元测试
+- 1099 个回归测试全部通过
 
 ---
 

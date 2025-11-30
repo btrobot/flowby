@@ -64,7 +64,7 @@ step "User Login":
 
 ```flow
 # api_demo.flow
-resource user_api from "openapi:specs/user-service.yml"
+let user_api = Resource("openapi:specs/user-service.yml")
 
 step "Fetch User Data":
     let user = user_api.getUser(userId=123)

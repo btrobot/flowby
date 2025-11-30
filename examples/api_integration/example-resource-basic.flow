@@ -1,9 +1,9 @@
 # 基本 OpenAPI 资源使用示例
-# version: 4.2
-# tags: [resource, openapi, basic]
+# version: 6.0
+# tags: [resource, openapi, basic, Resource-constructor]
 
 # 引入用户服务 API（使用 OpenAPI 规范）
-resource user_api from "openapi/user-service.yml"
+let user_api = Resource("openapi/user-service.yml")
 
 log "=== 示例 1: 获取单个用户 ==="
 
