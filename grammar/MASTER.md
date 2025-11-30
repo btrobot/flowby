@@ -243,7 +243,7 @@ reload
 
 | # | Feature | Syntax | Status | Since | Parser Method | Tests | Notes |
 |---|---------|--------|--------|-------|---------------|-------|-------|
-| 4.1 | Wait Duration | `wait [for] N [UNIT]` | ✅ | v1.0 | `_parse_wait()` | ✅ | Units: s, ms, seconds, milliseconds |
+| 4.1 | Wait Duration | `wait [for] N [UNIT]` / `wait EXPR UNIT` | ✅ | v1.0/v6.0.2 | `_parse_wait()` | ✅ | **v6.0.2: 支持数值表达式**; Units: s, ms, seconds, milliseconds |
 | 4.2 | Wait Element | `wait for element SEL [to be STATE] [timeout N]` | ✅ | v1.0 | `_parse_wait_for()` | ✅ | 4 element states |
 | 4.3 | Wait Navigation | `wait for navigation [to URL] [wait for STATE] [timeout N]` | ✅ | v1.0 | `_parse_wait_for()` | ✅ | Navigation completion |
 
@@ -253,10 +253,16 @@ reload
 
 **Examples**:
 ```dsl
-# Wait duration
+# Wait duration - 字面量（向后兼容）
 wait 2s
 wait for 500ms
 wait 1.5 seconds
+
+# Wait duration - 表达式（v6.0.2 新增）
+wait delay_time s                  # 变量
+wait (retry * 2) s                 # 算术表达式
+wait (base_delay + offset) ms      # 复杂表达式
+# 注意：使用表达式时，时间单位是必需的
 
 # Wait for element
 wait for element "#loading"

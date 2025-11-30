@@ -15,23 +15,73 @@ if TYPE_CHECKING:
 from ..errors import ExecutionError
 
 
-def execute_wait_duration(duration: float, context: 'ExecutionContext', line: int = 0):
+def execute_wait_duration(
+    duration,  # float 或 Expression (v6.0.2)
+    context: 'ExecutionContext',
+    line: int = 0,
+    unit: Optional[str] = None,  # v6.0.2: 时间单位（仅表达式需要）
+    evaluator: Optional['ExpressionEvaluator'] = None  # v6.0.2: 表达式求值器
+):
     """
-    等待固定时间
+    等待固定时间 (v6.0.2: 支持数值表达式)
 
     Args:
-        duration: 等待时间（秒）
+        duration: 等待时间
+            - float: 已转换为秒的字面量
+            - Expression: 需要求值的表达式
         context: 执行上下文
         line: 行号
+        unit: 时间单位（仅表达式需要）
+        evaluator: 表达式求值器（仅表达式需要）
     """
-    context.logger.info(f"等待 {duration} 秒")
+    from ..ast_nodes import Expression
 
-    time.sleep(duration)
+    # v6.0.2: 如果是表达式，求值并转换
+    if isinstance(duration, Expression):
+        if evaluator is None:
+            raise ExecutionError(
+                line=line,
+                statement=f"wait {duration} {unit}",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="内部错误：缺少表达式求值器"
+            )
+
+        # 求值表达式
+        value = evaluator.evaluate(duration)
+
+        # 检查类型
+        if not isinstance(value, (int, float)):
+            raise ExecutionError(
+                line=line,
+                statement=f"wait {duration} {unit}",
+                error_type=ExecutionError.TYPE_ERROR,
+                message=f"wait 表达式必须求值为数值类型，但得到 {type(value).__name__}: {value}"
+            )
+
+        # 转换单位为秒
+        if unit in ('ms', 'milliseconds'):
+            duration_seconds = float(value) / 1000.0
+        elif unit in ('s', 'sec', 'second', 'seconds'):
+            duration_seconds = float(value)
+        else:
+            raise ExecutionError(
+                line=line,
+                statement=f"wait {duration} {unit}",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"无效的时间单位: {unit}"
+            )
+    else:
+        # 字面量，已经转换为秒
+        duration_seconds = float(duration)
+
+    context.logger.info(f"等待 {duration_seconds} 秒")
+
+    time.sleep(duration_seconds)
 
     context.add_execution_record(
         record_type="wait",
-        content=f"wait {duration}s",
-        duration=duration,
+        content=f"wait {duration_seconds}s",
+        duration=duration_seconds,
         success=True
     )
 

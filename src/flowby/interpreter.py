@@ -569,7 +569,9 @@ class Interpreter:
         elif isinstance(statement, WaitDurationStatement):
             execute_wait_duration(
                 duration=statement.duration,
+                unit=statement.unit,  # v6.0.2: 传递时间单位（仅表达式需要）
                 context=self.context,
+                evaluator=self.expression_evaluator,  # v6.0.2: 传递表达式求值器
                 line=statement.line
             )
 

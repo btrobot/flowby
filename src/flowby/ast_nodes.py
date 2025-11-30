@@ -180,14 +180,21 @@ class ReloadStatement(ASTNode):
 @dataclass
 class WaitDurationStatement(ASTNode):
     """
-    等待固定时间语句
+    等待固定时间语句 (v6.0.2: 支持数值表达式)
 
-    语法: wait 3s / wait 500ms
+    语法:
+        wait 3s / wait 500ms              # 字面量
+        wait delay_time s                 # 变量
+        wait (retry * 2) s                # 表达式
 
     Attributes:
-        duration: 时间值（秒）
+        duration: 时间值（可以是 float 或 Expression）
+            - 如果是 float: 已转换为秒的字面量
+            - 如果是 Expression: 需要在运行时求值
+        unit: 时间单位字符串（s, ms等），仅在 duration 为 Expression 时使用
     """
-    duration: float  # 统一转换为秒
+    duration: Any  # float (字面量) 或 Expression (表达式)
+    unit: Optional[str] = None  # v6.0.2: 时间单位（仅表达式需要）
 
 
 @dataclass

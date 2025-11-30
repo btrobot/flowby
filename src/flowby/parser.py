@@ -344,7 +344,8 @@ class Parser:
             condition = self._parse_expression()
             return WaitUntilStatement(condition=condition, line=line)
 
-        # wait <duration> (v4.0: 支持整数和浮点数)
+        # wait <duration> (v6.0.2: 支持数值表达式)
+        # 向后兼容：数字字面量 + 可选单位
         if self._check_any(TokenType.INTEGER, TokenType.NUMBER):
             duration_token = self._advance()
             time_value = duration_token.value
@@ -359,14 +360,46 @@ class Parser:
             duration = self._parse_time_value(time_value)
             return WaitDurationStatement(duration=duration, line=line)
 
-        raise ParserError(
-            self._peek().line,
-            self._peek().column,
-            self._peek().type.name,
-            self._peek().value,
-            "期望 'for', 'until' 或时间值",
-            "for | until | <time_value>"
-        )
+        # v6.0.2: 支持数值表达式 (wait delay_time s / wait (retry * 2) s)
+        # 尝试解析表达式
+        try:
+            duration_expr = self._parse_expression()
+
+            # 时间单位是必需的（避免歧义）
+            if not self._check(TokenType.IDENTIFIER):
+                raise ParserError(
+                    self._peek().line,
+                    self._peek().column,
+                    self._peek().type.name,
+                    self._peek().value,
+                    "使用表达式时需要指定时间单位（s, ms 等）",
+                    "s | ms | seconds | milliseconds"
+                )
+
+            unit = self._peek().value.lower()
+            if unit not in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+                raise ParserError(
+                    self._peek().line,
+                    self._peek().column,
+                    self._peek().type.name,
+                    self._peek().value,
+                    f"无效的时间单位: {unit}",
+                    "s | ms | seconds | milliseconds"
+                )
+
+            self._advance()  # consume the unit
+            return WaitDurationStatement(duration=duration_expr, unit=unit, line=line)
+
+        except ParserError:
+            # 如果表达式解析失败，抛出原始错误
+            raise ParserError(
+                self._peek().line,
+                self._peek().column,
+                self._peek().type.name,
+                self._peek().value,
+                "期望 'for', 'until' 或时间值（数字或表达式 + 单位）",
+                "for | until | <number> [unit] | <expression> <unit>"
+            )
 
     def _parse_wait_for(self) -> ASTNode:
         """解析 wait for ... 语句"""
