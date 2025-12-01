@@ -6,9 +6,9 @@ HttpProvider 单元测试
 import pytest
 import responses
 from requests.exceptions import Timeout, ConnectionError, SSLError
-from registration_system.dsl.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from registration_system.dsl.services.registry import ServiceRegistry
-from registration_system.dsl.services.errors import ServiceError
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services.registry import ServiceRegistry
+from flowby.services.errors import ServiceError
 
 
 @pytest.fixture

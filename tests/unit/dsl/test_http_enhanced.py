@@ -16,11 +16,11 @@ from unittest.mock import Mock, patch
 from textwrap import dedent
 import requests
 
-from registration_system.dsl.lexer import Lexer
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.context import ExecutionContext
-from registration_system.dsl.interpreter import Interpreter
-from registration_system.dsl.errors import ExecutionError
+from flowby.lexer import Lexer
+from flowby.parser import Parser
+from flowby.context import ExecutionContext
+from flowby.interpreter import Interpreter
+from flowby.errors import ExecutionError
 
 
 def parse_script(script: str):

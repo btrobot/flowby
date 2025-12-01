@@ -17,9 +17,9 @@ Reference: grammar/DESIGN-V3.md #2, grammar/V3-EBNF.md
 """
 
 import pytest
-from registration_system.dsl.ast_nodes import Program
-from registration_system.dsl.interpreter import Interpreter
-from registration_system.dsl.context import ExecutionContext
+from flowby.ast_nodes import Program
+from flowby.interpreter import Interpreter
+from flowby.context import ExecutionContext
 
 
 # ============================================================================

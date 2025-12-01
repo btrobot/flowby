@@ -12,7 +12,7 @@ AST Nodes v2.0 测试
 """
 
 import pytest
-from registration_system.dsl.ast_nodes import (
+from flowby.ast_nodes import (
     # v2.0 变量语句
     LetStatement,
     ConstStatement,

@@ -21,16 +21,16 @@ import shutil
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from registration_system.dsl.lexer import Lexer, TokenType
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.ast_nodes import AssertStatement
-from registration_system.dsl.diagnosis import (
+from flowby.lexer import Lexer, TokenType
+from flowby.parser import Parser
+from flowby.ast_nodes import AssertStatement
+from flowby.diagnosis import (
     DiagnosisLevel,
     DiagnosisConfig,
     DEFAULT_DIAGNOSIS_CONFIG,
 )
-from registration_system.dsl.diagnosis.config import get_collectors_for_level, LEVEL_COLLECTORS
-from registration_system.dsl.diagnosis.collectors import (
+from flowby.diagnosis.config import get_collectors_for_level, LEVEL_COLLECTORS
+from flowby.diagnosis.collectors import (
     get_collector,
     COLLECTORS,
     ScreenshotCollector,
@@ -43,8 +43,8 @@ from registration_system.dsl.diagnosis.collectors import (
     PerformanceCollector,
     ViewportCollector,
 )
-from registration_system.dsl.diagnosis.report import DiagnosisReportGenerator
-from registration_system.dsl.diagnosis.cleanup import DiagnosisCleanup
+from flowby.diagnosis.report import DiagnosisReportGenerator
+from flowby.diagnosis.cleanup import DiagnosisCleanup
 
 
 class TestDiagnosisLevelEnum:
@@ -635,7 +635,7 @@ class TestIntegration:
     def test_execution_context_has_diagnosis_manager(self):
         """测试执行上下文有诊断管理器"""
         # Arrange
-        from registration_system.dsl.context import ExecutionContext
+        from flowby.context import ExecutionContext
 
         # Act
         ctx = ExecutionContext("test_task")
@@ -646,7 +646,7 @@ class TestIntegration:
     def test_execution_context_has_diagnosis_config(self):
         """测试执行上下文有诊断配置"""
         # Arrange
-        from registration_system.dsl.context import ExecutionContext
+        from flowby.context import ExecutionContext
 
         # Act
         ctx = ExecutionContext("test_task")
@@ -660,7 +660,7 @@ class TestIntegration:
     def test_execution_context_diagnosis_listeners_none(self):
         """测试执行上下文诊断监听器初始为 None"""
         # Arrange
-        from registration_system.dsl.context import ExecutionContext
+        from flowby.context import ExecutionContext
 
         # Act
         ctx = ExecutionContext("test_task")
@@ -671,7 +671,7 @@ class TestIntegration:
     def test_set_diagnosis_config(self):
         """测试设置诊断配置"""
         # Arrange
-        from registration_system.dsl.context import ExecutionContext
+        from flowby.context import ExecutionContext
 
         ctx = ExecutionContext("test_task")
         new_config = DiagnosisConfig(default_level=DiagnosisLevel.FULL)

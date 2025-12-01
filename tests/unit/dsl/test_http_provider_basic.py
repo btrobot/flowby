@@ -9,8 +9,8 @@ HttpProvider 基础结构测试
 """
 
 import pytest
-from registration_system.dsl.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from registration_system.dsl.services.registry import ServiceRegistry
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services.registry import ServiceRegistry
 
 
 class TestHttpProviderRegistration:

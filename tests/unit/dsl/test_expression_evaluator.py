@@ -17,13 +17,13 @@
 """
 
 import pytest
-from registration_system.dsl.expression_evaluator import (
+from flowby.expression_evaluator import (
     ExpressionEvaluator,
     to_boolean,
     to_number,
     to_string,
 )
-from registration_system.dsl.ast_nodes import (
+from flowby.ast_nodes import (
     Literal,
     Identifier,
     SystemVariable,
@@ -33,9 +33,9 @@ from registration_system.dsl.ast_nodes import (
     ArrayAccess,
     StringInterpolation,
 )
-from registration_system.dsl.symbol_table import SymbolTableStack, SymbolType
-from registration_system.dsl.system_variables import SystemVariables
-from registration_system.dsl.errors import ExecutionError
+from flowby.symbol_table import SymbolTableStack, SymbolType
+from flowby.system_variables import SystemVariables
+from flowby.errors import ExecutionError
 
 
 class MockContext:

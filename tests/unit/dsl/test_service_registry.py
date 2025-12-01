@@ -11,8 +11,8 @@ Service Registry 单元测试
 
 import pytest
 from typing import List, Any
-from registration_system.dsl.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from registration_system.dsl.services import ServiceRegistry, ServiceProvider, ServiceError
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services import ServiceRegistry, ServiceProvider, ServiceError
 
 
 class MockProvider(ServiceProvider):

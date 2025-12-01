@@ -14,8 +14,8 @@ RandomProvider 单元测试
 
 import pytest
 import re
-from registration_system.dsl.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from registration_system.dsl.services import ServiceRegistry, ServiceError
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services import ServiceRegistry, ServiceError
 
 
 class TestPasswordGeneration:

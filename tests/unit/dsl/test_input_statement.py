@@ -11,17 +11,17 @@ import pytest
 from io import StringIO
 from unittest.mock import patch, MagicMock
 
-from registration_system.dsl.lexer import Lexer, TokenType
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.ast_nodes import (
+from flowby.lexer import Lexer, TokenType
+from flowby.parser import Parser
+from flowby.ast_nodes import (
     InputExpression,
     Literal,
     LetStatement,
 )
-from registration_system.dsl.expression_evaluator import ExpressionEvaluator
-from registration_system.dsl.symbol_table import SymbolTableStack, SymbolType
-from registration_system.dsl.system_variables import SystemVariables
-from registration_system.dsl.errors import ExecutionError, ParserError
+from flowby.expression_evaluator import ExpressionEvaluator
+from flowby.symbol_table import SymbolTableStack, SymbolType
+from flowby.system_variables import SystemVariables
+from flowby.errors import ExecutionError, ParserError
 
 
 # ============================================================
@@ -345,7 +345,7 @@ class TestInputEvaluator:
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
 
         # 设置变量
-        from registration_system.dsl.ast_nodes import Identifier
+        from flowby.ast_nodes import Identifier
 
         self.symbol_table.define("prompt_text", "请输入姓名: ", SymbolType.VARIABLE, 1)
 

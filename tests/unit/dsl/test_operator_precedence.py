@@ -15,9 +15,9 @@
 """
 
 import pytest
-from registration_system.dsl.lexer import Lexer
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.ast_nodes import (
+from flowby.lexer import Lexer
+from flowby.parser import Parser
+from flowby.ast_nodes import (
     BinaryOp,
     UnaryOp,
     Identifier,

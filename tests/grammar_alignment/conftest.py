@@ -28,8 +28,8 @@ def parse():
             assert len(ast) == 1
             assert isinstance(ast[0], LetStatement)
     """
-    from registration_system.dsl.lexer import Lexer
-    from registration_system.dsl.parser import Parser
+    from flowby.lexer import Lexer
+    from flowby.parser import Parser
 
     def _parse(code: str):
         lexer = Lexer()
@@ -58,8 +58,8 @@ def parse_v3():
             assert result.success == False
             assert "error" in result.error.lower()
     """
-    from registration_system.dsl.lexer import Lexer
-    from registration_system.dsl.parser import Parser
+    from flowby.lexer import Lexer
+    from flowby.parser import Parser
 
     class ParseResult:
         """完整的解析结果（Lexer + Parser）"""
@@ -100,8 +100,8 @@ def can_parse_v3():
             # 验证非法语法
             assert can_parse_v3('let x = ') == False
     """
-    from registration_system.dsl.lexer import Lexer
-    from registration_system.dsl.parser import Parser
+    from flowby.lexer import Lexer
+    from flowby.parser import Parser
 
     def _can_parse(code: str) -> bool:
         try:

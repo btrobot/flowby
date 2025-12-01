@@ -15,7 +15,7 @@ import tempfile
 import pytest
 import shutil
 from pathlib import Path
-from registration_system.dsl.config import (
+from flowby.config import (
     ConfigLoader,
     ConfigError,
     ServicesConfig,

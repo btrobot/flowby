@@ -11,14 +11,14 @@ Reference: grammar/MASTER.md #8-Service Call
 
 import pytest
 from unittest.mock import Mock, patch
-from registration_system.dsl.ast_nodes import (
+from flowby.ast_nodes import (
     LetStatement,
     MethodCall,
     Program,
 )
-from registration_system.dsl.interpreter import Interpreter
-from registration_system.dsl.context import ExecutionContext
-from registration_system.dsl.errors import ExecutionError
+from flowby.interpreter import Interpreter
+from flowby.context import ExecutionContext
+from flowby.errors import ExecutionError
 
 
 # ============================================================================
