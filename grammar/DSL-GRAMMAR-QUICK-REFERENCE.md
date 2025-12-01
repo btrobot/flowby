@@ -86,16 +86,14 @@ step "登录流程" with diagnosis detailed:
     navigate to "https://example.com/login"
     type "user@test.com" into "#email"
     click "#submit"
-end step
 ```
 
 ### If 块（条件）
 
 ```bnf
 if_block ::= "if" expression ":"
-             statement*
-             [ "else" ":" statement* ]
-             "end" "if"
+             INDENT statement* DEDENT
+             [ "else" ":" INDENT statement* DEDENT ]
 ```
 
 **示例：**
@@ -104,16 +102,15 @@ if age >= 18:
     log "Adult"
 else:
     log "Minor"
-end if
 ```
 
 ### When 块（模式匹配）
 
 ```bnf
 when_block ::= "when" STRING ":"
-               ( STRING ":" statement* )+
-               [ "otherwise" ":" statement* ]
-               "end" "when"
+               INDENT ( STRING ":" INDENT statement* DEDENT )+
+               [ "otherwise" ":" INDENT statement* DEDENT ]
+               DEDENT
 ```
 
 **示例：**
@@ -125,30 +122,26 @@ when status:
         log "Failed"
     otherwise:
         log "Unknown"
-end when
 ```
 
 ### For 循环（遍历）
 
 ```bnf
 for_loop ::= "for" IDENTIFIER "in" expression ":"
-             statement*
-             "end" "for"
+             INDENT statement* DEDENT
 ```
 
 **示例：**
 ```flow
 for item in items:
     log "Item: {item}"
-end for
 ```
 
 ### While 循环（条件循环）- v3.0
 
 ```bnf
 while_loop ::= "while" expression ":"
-               statement*
-               "end" "while"
+               INDENT statement* DEDENT
 ```
 
 **示例：**
@@ -638,8 +631,8 @@ screenshot fullpage as "full-page"
 ```bnf
 literal ::= STRING           # "hello" or 'hello'
           | NUMBER           # 123 or 123.45
-          | BOOLEAN          # true or false
-          | NULL             # null
+          | BOOLEAN          # True or False
+          | NONE             # None
           | array_literal    # [1, 2, 3]
           | object_literal   # {name: "Alice"}
 ```
@@ -655,7 +648,7 @@ let message = "Hello, {name}!"  # 结果: "Hello, Alice!"
 
 ```flow
 let arr = [1, 2, 3, 4, 5]
-let mixed = ["text", 123, true, null]
+let mixed = ["text", 123, True, None]
 ```
 
 ### 对象字面量
@@ -1704,7 +1697,6 @@ let batches = items.chunk(3)
 for batch in batches:
     log "Processing: {batch}"
     sleep(0.5)
-end for
 ```
 
 ---
@@ -1738,7 +1730,6 @@ step "导航到登录页" with diagnosis standard:
     assert url contains "/login"
     assert "#login-form" exists
     assert "#login-form" visible
-end step
 
 # 步骤 2: 填写表单
 step "填写登录表单":
@@ -1749,7 +1740,6 @@ step "填写登录表单":
     type TEST_PASS
 
     screenshot as "login-form-filled"
-end step
 
 # 步骤 3: 提交登录
 step "提交登录":
@@ -1761,7 +1751,6 @@ step "提交登录":
 
     extract text from ".username" into username
     log "登录成功，用户名: {username}"
-end step
 
 # 步骤 4: 验证登录状态
 step "验证登录状态":
@@ -1774,8 +1763,6 @@ step "验证登录状态":
         log "用户信息: {JSON.stringify(user_info.data)}"
     else:
         log "获取用户信息失败"
-    end if
-end step
 ```
 
 ---

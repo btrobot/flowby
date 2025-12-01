@@ -45,7 +45,6 @@
 ```flow
 step "步骤名称" [with diagnosis LEVEL]:
     ...
-end step
 ```
 
 | 诊断级别 | 说明 |
@@ -62,7 +61,6 @@ end step
 step "登录" with diagnosis standard:
     navigate to "https://example.com"
     click "#login"
-end step
 ```
 
 ### If-Else
@@ -72,7 +70,6 @@ if condition:
     ...
 [else:
     ...]
-end if
 ```
 
 **示例：**
@@ -81,7 +78,6 @@ if age >= 18:
     log "Adult"
 else:
     log "Minor"
-end if
 ```
 
 ### When-Otherwise（模式匹配）
@@ -94,7 +90,6 @@ when variable:
         ...
     [otherwise:
         ...]
-end when
 ```
 
 **示例：**
@@ -106,7 +101,6 @@ when status:
         log "Fail"
     otherwise:
         log "Unknown"
-end when
 ```
 
 ### For-Each 循环
@@ -114,14 +108,12 @@ end when
 ```flow
 for VAR in collection:
     ...
-end for
 ```
 
 **示例：**
 ```flow
 for item in items:
     log "Item: {item}"
-end for
 ```
 
 ---
@@ -386,7 +378,7 @@ extract text from ".phone" pattern "\d{3}-\d{4}" into phone
 | **字符串** | `"hello"`, `'world'`, `"Hello {name}"`, `f"Hello {name}"` |
 | **数字** | `123`, `3.14`, `-10`, `0.5` |
 | **布尔** | `true`, `false` |
-| **空值** | `null` |
+| **空值** | `None` |
 | **数组** | `[1, 2, 3]`, `["a", "b", "c"]` |
 | **对象** | `{name: "Alice", age: 30}` |
 
@@ -911,7 +903,6 @@ let items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
 for batch in items.chunk(3):
     log "Processing: {batch}"
     sleep(0.5)
-end for
 ```
 
 ---
@@ -942,7 +933,6 @@ step "打开登录页":
     navigate to BASE_URL + "/login"
     wait for element "#login-form"
     assert "#login-form" visible
-end step
 
 # 输入
 step "填写表单":
@@ -951,14 +941,12 @@ step "填写表单":
 
     select "#password"
     type "password123"
-end step
 
 # 提交
 step "提交登录":
     click "#submit-button"
     wait for navigation
     assert url contains "/dashboard"
-end step
 
 # 验证
 step "验证登录":
@@ -967,7 +955,6 @@ step "验证登录":
 
     assert ".welcome" exists
     screenshot as "dashboard"
-end step
 ```
 
 ### API 调用示例
@@ -989,7 +976,6 @@ into response
 
 if response.status_code == 201:
     log "Created: {response.data.id}"
-end if
 ```
 
 ### 循环与条件
@@ -1002,8 +988,6 @@ for item in items:
         log "{item} is even"
     else:
         log "{item} is odd"
-    end if
-end for
 ```
 
 ---
