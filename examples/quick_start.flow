@@ -1,0 +1,150 @@
+# ==================================================
+# Flowby DSL v3.0 快速入门示例
+# ==================================================
+#
+# 本示例展示 Flowby DSL 的核心特性：
+#   - 变量声明（let/const）
+#   - 控制流（if/else, for, while）
+#   - 内置函数
+#   - 字符串插值
+#   - 集合操作
+#
+# 运行方式：
+#   flowby examples/quick_start.flow
+#
+
+step "变量和数据类型":
+    log info "=== 变量声明 ==="
+
+    # 可变变量（let）
+    let app_name = "Flowby"
+    let version = 3.0
+    let is_ready = True
+
+    # 常量（const）
+    const MAX_RETRIES = 3
+    const API_ENDPOINT = "https://api.example.com"
+
+    # 集合类型
+    let numbers = [1, 2, 3, 4, 5]
+    let user = {
+        name: "Alice",
+        age: 25,
+        email: "alice@example.com"
+    }
+
+    log "Name: {app_name}, Version: {version}"
+    log "User: {user.name} ({user.email})"
+
+step "控制流 - If 语句":
+    log info "=== If/Else 控制流 ==="
+
+    let score = 85
+
+    if score >= 90:
+        log success "优秀！"
+    else:
+        if score >= 60:
+            log "及格"
+        else:
+            log error "不及格"
+
+step "控制流 - For 循环":
+    log info "=== For 循环 ==="
+
+    # 遍历数组
+    let fruits = ["Apple", "Banana", "Cherry"]
+    log "水果列表："
+    for fruit in fruits:
+        log "  - {fruit}"
+
+    # 使用 enumerate 获取索引
+    log "\n带索引的遍历："
+    for index, fruit in enumerate(fruits):
+        log "  {index + 1}. {fruit}"
+
+    # 使用 range 生成数字序列
+    log "\n数字序列："
+    for i in range(1, 4):
+        log "  第 {i} 次迭代"
+
+step "控制流 - While 循环":
+    log info "=== While 循环 ==="
+
+    let count = 0
+    while count < 3:
+        log "Count: {count}"
+        count = count + 1
+
+    log "循环结束，count = {count}"
+
+step "内置函数":
+    log info "=== 内置函数 ==="
+
+    let text = "  Flowby DSL  "
+    let items = [1, 2, 3, 4, 5]
+
+    # 字符串函数
+    log "原始文本: '{text}'"
+    log "去除空格: '{text.strip()}'"
+    log "小写: '{text.lower()}'"
+    log "大写: '{text.upper()}'"
+
+    # 数组函数
+    log "\n数组操作："
+    log "长度: {len(items)}"
+    log "最大值: {max(items)}"
+    log "最小值: {min(items)}"
+    log "求和: {sum(items)}"
+
+step "When 多路分支":
+    log info "=== When 语句（类似 switch/match）==="
+
+    let status = "success"
+
+    when status:
+        "pending":
+            log "处理中..."
+        "success":
+            log success "成功！"
+        "error":
+            log error "失败"
+        otherwise:
+            log "未知状态"
+
+step "表达式和运算符":
+    log info "=== 表达式求值 ==="
+
+    # 算术运算
+    let a = 10
+    let b = 3
+    log "加法: {a + b}"
+    log "减法: {a - b}"
+    log "乘法: {a * b}"
+    log "除法: {a / b}"
+    log "取模: {a % b}"
+
+    # 逻辑运算
+    let is_admin = True
+    let is_active = True
+    log "\n逻辑运算："
+    log "AND: {is_admin and is_active}"
+    log "OR: {is_admin or False}"
+    log "NOT: {not False}"
+
+    # 比较运算
+    log "\n比较运算："
+    log "相等: {a == 10}"
+    log "不等: {a != 5}"
+    log "大于: {a > b}"
+    log "小于等于: {b <= a}"
+
+step "完成":
+    log ""
+    log success "恭喜！你已经学会了 Flowby DSL 的基础语法！"
+    log ""
+    log "下一步："
+    log "  • 查看 examples/web_automation/ 学习浏览器自动化"
+    log "  • 查看 examples/api_integration/ 学习 API 调用"
+    log "  • 阅读 docs/ 了解更多高级特性"
+    log ""

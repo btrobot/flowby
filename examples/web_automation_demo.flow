@@ -1,0 +1,87 @@
+# ==================================================
+# Flowby DSL v3.0 - Web 自动化示例
+# ==================================================
+#
+# 本示例展示如何使用 Flowby 进行浏览器自动化：
+#   - 页面导航
+#   - 元素查找和操作
+#   - 等待策略
+#   - 数据提取
+#   - 截图
+#
+# 运行方式：
+#   flowby examples/web_automation_demo.flow
+#
+
+# 声明全局变量（跨 step 共享）
+let first_result = ""
+let page_title = ""
+
+step "打开搜索引擎":
+    log info "=== 页面导航 ==="
+
+    # 导航到目标页面
+    navigate to "https://www.bing.com"
+
+    # 等待页面加载完成
+    wait for load
+
+    log success "页面加载完成"
+
+step "搜索操作":
+    log info "=== 元素交互 ==="
+
+    # 在搜索框输入文本
+    type "Flowby DSL" into "#sb_form_q"
+
+    # 等待一下
+    wait 1s
+
+    # 点击搜索按钮
+    click "#search_icon"
+
+    # 等待搜索结果加载
+    wait for element ".b_algo"
+
+    log success "搜索完成"
+
+step "提取搜索结果":
+    log info "=== 数据提取 ==="
+
+    # 提取第一条结果的标题
+    extract text from ".b_algo h2" into first_result
+
+    # 提取页面标题
+    extract text from "title" into page_title
+
+    log "页面标题: {page_title}"
+    log "第一条结果: {first_result}"
+
+step "截图保存":
+    log info "=== 截图 ==="
+
+    # 截取当前页面
+    screenshot as "search_result"
+
+    log success "截图已保存"
+
+step "条件判断":
+    log info "=== 条件逻辑 ==="
+
+    # 检查是否有搜索结果
+    if len(first_result) > 0:
+        log success "找到搜索结果"
+    else:
+        log error "未找到搜索结果"
+
+step "完成":
+    log ""
+    log success "Web 自动化示例执行完成！"
+    log ""
+    log "你已经学会："
+    log "  ✓ 页面导航 (navigate to)"
+    log "  ✓ 元素操作 (type, click)"
+    log "  ✓ 等待策略 (wait for, wait Xs)"
+    log "  ✓ 数据提取 (extract)"
+    log "  ✓ 截图 (screenshot)"
+    log ""

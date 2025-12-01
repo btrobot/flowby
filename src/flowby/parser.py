@@ -2216,6 +2216,15 @@ class Parser:
         # 变量名 (允许某些关键字作为变量名)
         variable_name = self._parse_variable_name()
 
+        # v6.3: VR-001 要求 - 提前注册 extract 目标变量
+        from .symbol_table import SymbolType
+        self.symbol_table_stack.define(
+            name=variable_name,
+            value=None,  # 值在运行时提取
+            symbol_type=SymbolType.VARIABLE,
+            line_number=line
+        )
+
         return ExtractStatement(
             extract_type=extract_type,
             selector=selector,
@@ -2987,9 +2996,11 @@ class Parser:
                 expr_tokens = lexer.tokenize(expr_text)
 
                 # 创建临时 parser 解析表达式
+                # v6.3: 共享符号表栈，避免 VR-001 误报
                 temp_parser = Parser()
                 temp_parser.tokens = expr_tokens
                 temp_parser.current = 0
+                temp_parser.symbol_table_stack = self.symbol_table_stack  # 共享符号表
                 expr = temp_parser._parse_expression()
 
                 parts.append(expr)
