@@ -1716,22 +1716,39 @@ class Parser:
         return ConstStatement(name=name_token.value, value=value, line=line)
 
     def _parse_assignment(self) -> Assignment:
-        """解析赋值语句"""
+        """
+        解析赋值语句
+
+        v6.3: 添加 VR-002 和 VR-004 检查
+        """
         line = self._peek().line
         name_token = self._consume_identifier_or_keyword("期望变量名")
+
+        # v6.3: VR-004 检查 - 系统变量只读（优先检查）
+        if name_token.value in SYSTEM_VARIABLES:
+            raise ParserError(
+                line,
+                0,  # 列号暂不可用
+                "IDENTIFIER",
+                name_token.value,
+                f"不能修改系统变量 '{name_token.value}'（VR-004 违规）",
+                f"系统变量 (page, env, response) 是只读的"
+            )
+
+        # v6.3: VR-002 检查 - 常量不能重新赋值
+        symbol = self.symbol_table_stack.current_scope()._lookup(name_token.value)  # type: ignore[attr-defined]
+        if symbol and symbol.symbol_type == SymbolType.CONSTANT:
+            raise ParserError(
+                line,
+                0,  # 列号暂不可用
+                "IDENTIFIER",
+                name_token.value,
+                f"不能修改常量 '{name_token.value}'（VR-002 违规）",
+                f"常量在定义后不可修改（定义于第 {symbol.line_number} 行）。请使用 'let' 声明可变变量"
+            )
+
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
         value = self._parse_expression()
-
-        # VR规则检查：检查是否为常量修改
-        symbol = self.symbol_table_stack.current_scope()._lookup(name_token.value)  # type: ignore[attr-defined]
-        if symbol and not symbol.is_mutable():
-            type_name = "常量" if symbol.symbol_type == SymbolType.CONSTANT else "系统变量"
-            self.violations.append(Violation(
-                rule_id="VR-VAR-004",
-                message=f"不能修改 {type_name}: '{name_token.value}'",
-                line_number=line,
-                severity="ERROR"
-            ))
 
         return Assignment(name=name_token.value, value=value, line=line)
 
