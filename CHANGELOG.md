@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **VR-001 Variable Undefined Checking** (v6.3) - Parser-stage variable validation
+  - Detects undefined variables before runtime
+  - Comprehensive error messages with VR-001 violation markers
+  - System variables (page, env, response) exempted from checking
+  - 25 comprehensive test cases covering all scenarios
+- **Enhanced Symbol Table** (v6.3) - Extended symbol type support
+  - `SymbolType.LOOP_VARIABLE` - For loop variables
+  - `SymbolType.PARAMETER` - Function parameters
+  - `SymbolType.MODULE` - Import module aliases
+  - `SymbolType.IMPORTED` - Imported members
+- **Improved Parser Scope Management** (v6.3) - Symbol registration during parsing
+  - For loop variables registered before loop body
+  - Function scope creation with parameter registration
+  - Import symbols registered for VR-001 checking
+  - Exception-safe scope management with try-finally blocks
 - **Resource() constructor function** (v6.0) - Modern replacement for `resource` statement
   - Dynamic API client creation with `Resource(spec_file, **options)`
   - Full parameter support: base_url, auth, timeout, headers, resilience, mock
@@ -20,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive input expression (v5.1)
 - Browser automation with Playwright
 - Built-in HTTP client and random data services
-- Comprehensive test suite (1099+ tests)
+- Comprehensive test suite (1124+ tests)
 - Complete grammar documentation
 - Example scripts and tutorials
 
