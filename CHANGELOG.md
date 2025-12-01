@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **VR-003 Duplicate Declaration Prevention** (v6.3) - Same-scope duplication check
+  - Prevents redeclaration of variables/constants in same scope
+  - Allows variable shadowing in nested scopes (functions, loops)
+  - Detects parameter-local variable naming conflicts
+  - Detects import-declaration conflicts
+  - Simplified symbol registration logic
+  - 22 comprehensive test cases
 - **VR-002 Const Reassignment Checking** (v6.3) - Parser-stage const protection
   - Prevents modification of const-declared variables
   - Detects violations before runtime execution
@@ -46,7 +53,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive input expression (v5.1)
 - Browser automation with Playwright
 - Built-in HTTP client and random data services
-- Comprehensive test suite (1149+ tests)
+- Comprehensive test suite (1171+ tests)
 - Complete grammar documentation
 - Example scripts and tutorials
 
