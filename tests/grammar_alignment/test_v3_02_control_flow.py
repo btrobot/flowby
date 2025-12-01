@@ -40,7 +40,7 @@ step "test":
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "基本 step 块应该正确解析"
+        assert result.success is True, "基本 step 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -54,7 +54,7 @@ step "登录流程":
     log f"开始登录: {email}"
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内多个语句应该正确解析"
+        assert result.success is True, "step 块内多个语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -70,7 +70,7 @@ step "检查状态":
         log "用户未激活"
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内嵌套 if 应该正确解析"
+        assert result.success is True, "step 块内嵌套 if 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -82,7 +82,7 @@ step "测试" with diagnosis detailed:
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块的 diagnosis 选项应该正确解析"
+        assert result.success is True, "step 块的 diagnosis 选项应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -96,7 +96,7 @@ step "外层步骤":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套 step 块应该正确解析"
+        assert result.success is True, "嵌套 step 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -114,7 +114,7 @@ step "步骤3":
     let z = 3
 """
         result = parse_v3(source)
-        assert result.success == True, "连续的 step 块应该正确解析"
+        assert result.success is True, "连续的 step 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -127,7 +127,7 @@ step "test":
 end step
 """
         result = parse_v3(source)
-        assert result.success == False, "使用 end step 应该报错"
+        assert result.success is False, "使用 end step 应该报错"
         assert (
             "end" in result.error.lower() or "缩进" in result.error
         ), "错误提示应提及 end 关键字或缩进"
@@ -141,7 +141,7 @@ end step
 step "test":
 """
         result = parse_v3(source)
-        assert result.success == False, "空 step 块应该报错"
+        assert result.success is False, "空 step 块应该报错"
         assert (
             "块" in result.error or "body" in result.error.lower() or "语句" in result.error
         ), "错误提示应提及空块"
@@ -166,7 +166,7 @@ if x > 0:
     let y = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "基本 if 语句应该正确解析"
+        assert result.success is True, "基本 if 语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -182,7 +182,7 @@ else:
     y = 0
 """
         result = parse_v3(source)
-        assert result.success == True, "if-else 语句应该正确解析"
+        assert result.success is True, "if-else 语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -202,7 +202,7 @@ else:
     grade = "F"
 """
         result = parse_v3(source)
-        assert result.success == True, "if-else if 链应该正确解析"
+        assert result.success is True, "if-else if 链应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -218,7 +218,7 @@ else:
     log "未激活"
 """
         result = parse_v3(source)
-        assert result.success == True, "if 条件使用 True/False 应该正确解析"
+        assert result.success is True, "if 条件使用 True/False 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -234,7 +234,7 @@ else:
     log "数据存在"
 """
         result = parse_v3(source)
-        assert result.success == True, "if 条件检查 None 应该正确解析"
+        assert result.success is True, "if 条件检查 None 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -254,7 +254,7 @@ else:
     z = 3
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套 if 语句应该正确解析"
+        assert result.success is True, "嵌套 if 语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -269,7 +269,7 @@ if x > 0 and y < 10 or z == 5:
     let result = True
 """
         result = parse_v3(source)
-        assert result.success == True, "if 复杂条件应该正确解析"
+        assert result.success is True, "if 复杂条件应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -283,7 +283,7 @@ if x > 0:
 end if
 """
         result = parse_v3(source)
-        assert result.success == False, "使用 end if 应该报错"
+        assert result.success is False, "使用 end if 应该报错"
         assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
@@ -296,7 +296,7 @@ if x > 0
     let y = 1
 """
         result = parse_v3(source)
-        assert result.success == False, "if 缺少冒号应该报错"
+        assert result.success is False, "if 缺少冒号应该报错"
         assert ":" in result.error or "冒号" in result.error, "错误提示应提及冒号"
 
 
@@ -323,7 +323,7 @@ when status:
         x = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "基本 when 语句应该正确解析"
+        assert result.success is True, "基本 when 语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -342,7 +342,7 @@ when status:
         x = 3
 """
         result = parse_v3(source)
-        assert result.success == True, "when 带 otherwise 应该正确解析"
+        assert result.success is True, "when 带 otherwise 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -362,7 +362,7 @@ when code:
         log "未知状态"
 """
         result = parse_v3(source)
-        assert result.success == True, "when 多个分支应该正确解析"
+        assert result.success is True, "when 多个分支应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -382,7 +382,7 @@ when status:
         log "非活跃用户"
 """
         result = parse_v3(source)
-        assert result.success == True, "when 分支内嵌套语句应该正确解析"
+        assert result.success is True, "when 分支内嵌套语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -397,7 +397,7 @@ when status:
 end when
 """
         result = parse_v3(source)
-        assert result.success == False, "使用 end when 应该报错"
+        assert result.success is False, "使用 end when 应该报错"
         assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
@@ -411,7 +411,7 @@ when status
         let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False, "when 缺少冒号应该报错"
+        assert result.success is False, "when 缺少冒号应该报错"
 
     # === v3.1 OR 模式测试 ===
 
@@ -430,7 +430,7 @@ when status:
         log "Access denied"
 """
         result = parse_v3(source)
-        assert result.success == True, "OR 模式应该正确解析"
+        assert result.success is True, "OR 模式应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -449,7 +449,7 @@ when http_status:
         log "Server error"
 """
         result = parse_v3(source)
-        assert result.success == True, "数字 OR 模式应该正确解析"
+        assert result.success is True, "数字 OR 模式应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -469,7 +469,7 @@ when user_role:
         access_level = "guest"
 """
         result = parse_v3(source)
-        assert result.success == True, "混合 OR 模式应该正确解析"
+        assert result.success is True, "混合 OR 模式应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -488,7 +488,7 @@ when priority:
         log "Low priority"
 """
         result = parse_v3(source)
-        assert result.success == True, "三值 OR 模式应该正确解析"
+        assert result.success is True, "三值 OR 模式应该正确解析"
 
 
 # ============================================================================
@@ -510,7 +510,7 @@ for item in items:
     log f"Item: {item}"
 """
         result = parse_v3(source)
-        assert result.success == True, "基本 for 循环应该正确解析"
+        assert result.success is True, "基本 for 循环应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -525,7 +525,7 @@ for user in users:
     log f"邮箱: {email}"
 """
         result = parse_v3(source)
-        assert result.success == True, "for 循环内多个语句应该正确解析"
+        assert result.success is True, "for 循环内多个语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -541,7 +541,7 @@ for item in items:
         log f"非正数: {item}"
 """
         result = parse_v3(source)
-        assert result.success == True, "for 循环内嵌套 if 应该正确解析"
+        assert result.success is True, "for 循环内嵌套 if 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -555,7 +555,7 @@ for row in matrix:
         log f"值: {col}"
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套 for 循环应该正确解析"
+        assert result.success is True, "嵌套 for 循环应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -571,7 +571,7 @@ for user in users:
 """
         # 这段代码应该让 Python 程序员感觉很熟悉
         result = parse_v3(source)
-        assert result.success == True, "for 循环应该像 Python 一样"
+        assert result.success is True, "for 循环应该像 Python 一样"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -585,7 +585,7 @@ for item in items:
 end for
 """
         result = parse_v3(source)
-        assert result.success == False, "使用 end for 应该报错"
+        assert result.success is False, "使用 end for 应该报错"
         assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
@@ -598,7 +598,7 @@ for item in items
     log item
 """
         result = parse_v3(source)
-        assert result.success == False, "for 缺少冒号应该报错"
+        assert result.success is False, "for 缺少冒号应该报错"
 
 
 # ============================================================================
@@ -630,7 +630,7 @@ step "复杂流程":
             log "一"
 """
         result = parse_v3(source)
-        assert result.success == True, "所有控制结构组合应该正确解析"
+        assert result.success is True, "所有控制结构组合应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -656,7 +656,7 @@ step "用户验证":
             log "用户未激活"
 """
         result = parse_v3(source)
-        assert result.success == True, "Python 风格的控制流应该正确解析"
+        assert result.success is True, "Python 风格的控制流应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -675,7 +675,7 @@ step "level1":
                             log "深层嵌套"
 """
         result = parse_v3(source)
-        assert result.success == True, "深层嵌套应该正确解析"
+        assert result.success is True, "深层嵌套应该正确解析"
 
 
 # ============================================================================
@@ -706,7 +706,7 @@ class TestV3_ControlFlow_PythonAlignment:
         """✅ 验证：结构与 Python 匹配"""
         # DSL 代码应该能解析
         result = parse_v3(dsl_code)
-        assert result.success == True, f"DSL 代码应该像 Python 一样解析：{dsl_code}"
+        assert result.success is True, f"DSL 代码应该像 Python 一样解析：{dsl_code}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -720,7 +720,7 @@ for user in users:
         log f"Active user: {user.name}"
 """
         result = parse_v3(source)
-        assert result.success == True, "Python 程序员的直觉写法应该能正确解析"
+        assert result.success is True, "Python 程序员的直觉写法应该能正确解析"
 
 
 # ============================================================================
@@ -803,7 +803,7 @@ for index, item in enumerate(items):
     log f"{index}: {item}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v40
     @pytest.mark.syntax
@@ -815,7 +815,7 @@ for index, item in enumerate(items, start=1):
     log f"{index}: {item}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v40
     @pytest.mark.syntax
@@ -827,7 +827,7 @@ for key, value in pairs:
     log f"{key} = {value}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v40
     @pytest.mark.syntax
@@ -839,7 +839,7 @@ for a, b, c in triplets:
     log f"{a}, {b}, {c}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v40
     @pytest.mark.syntax
@@ -852,7 +852,7 @@ for i, row in enumerate(matrix):
         log f"[{i},{j}] = {item}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v40
     @pytest.mark.execution

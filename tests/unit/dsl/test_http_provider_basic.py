@@ -203,7 +203,7 @@ class TestHttpProviderCustomConfig:
         http_provider = registry.providers.get("http")
 
         # Assert
-        assert http_provider.verify_ssl == False, "SSL 验证应该被禁用"
+        assert http_provider.verify_ssl is False, "SSL 验证应该被禁用"
 
         # Cleanup
         registry.close()
@@ -220,7 +220,7 @@ class TestHttpProviderCustomConfig:
         assert (
             http_provider.default_headers["User-Agent"] == "DSL-Test/1.0"
         ), "User-Agent 配置应该正确"
-        assert http_provider.verify_ssl == False, "SSL 验证配置应该正确"
+        assert http_provider.verify_ssl is False, "SSL 验证配置应该正确"
 
         # Cleanup
         registry.close()

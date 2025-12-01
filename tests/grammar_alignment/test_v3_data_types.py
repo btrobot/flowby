@@ -36,7 +36,7 @@ class TestV3_DataTypes_Boolean:
         """✅ 正确：True（首字母大写）"""
         source = "let active = True"
         result = parse_v3(source)
-        assert result.success == True, "True 应该被正确解析"
+        assert result.success is True, "True 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -45,7 +45,7 @@ class TestV3_DataTypes_Boolean:
         """✅ 正确：False（首字母大写）"""
         source = "let inactive = False"
         result = parse_v3(source)
-        assert result.success == True, "False 应该被正确解析"
+        assert result.success is True, "False 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -54,7 +54,7 @@ class TestV3_DataTypes_Boolean:
         """✅ 正确：表达式中的 True"""
         source = "let active = True\nlet result = active == True"
         result = parse_v3(source)
-        assert result.success == True, "表达式中的 True 应该正确解析"
+        assert result.success is True, "表达式中的 True 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -67,7 +67,7 @@ if verified == False:
     log "未验证"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件中的 False 应该正确解析"
+        assert result.success is True, "条件中的 False 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -76,7 +76,7 @@ if verified == False:
         """✅ 正确：布尔运算"""
         source = "let result = True and False or True"
         result = parse_v3(source)
-        assert result.success == True, "布尔运算应该正确解析"
+        assert result.success is True, "布尔运算应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -85,7 +85,7 @@ if verified == False:
         """✅ 正确：not True"""
         source = "let result = not True"
         result = parse_v3(source)
-        assert result.success == True, "not True 应该正确解析"
+        assert result.success is True, "not True 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -94,7 +94,7 @@ if verified == False:
         """❌ 错误：true（小写）应报错"""
         source = "let active = true"
         result = parse_v3(source)
-        assert result.success == False, "小写 true 应该报错"
+        assert result.success is False, "小写 true 应该报错"
         assert (
             "True" in result.error or "布尔" in result.error
         ), f"错误提示应提及 True，实际：{result.error}"
@@ -106,7 +106,7 @@ if verified == False:
         """❌ 错误：false（小写）应报错"""
         source = "let active = false"
         result = parse_v3(source)
-        assert result.success == False, "小写 false 应该报错"
+        assert result.success is False, "小写 false 应该报错"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -115,7 +115,7 @@ if verified == False:
         """❌ 错误：TRUE（全大写）应报错"""
         source = "let active = TRUE"
         result = parse_v3(source)
-        assert result.success == False, "全大写 TRUE 应该报错"
+        assert result.success is False, "全大写 TRUE 应该报错"
 
 
 # ============================================================================
@@ -133,7 +133,7 @@ class TestV3_DataTypes_None:
         """✅ 正确：None（首字母大写）"""
         source = "let data = None"
         result = parse_v3(source)
-        assert result.success == True, "None 应该被正确解析"
+        assert result.success is True, "None 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -142,7 +142,7 @@ class TestV3_DataTypes_None:
         """✅ 正确：None 比较"""
         source = "let data = None\nlet is_empty = data == None"
         result = parse_v3(source)
-        assert result.success == True, "None 比较应该正确解析"
+        assert result.success is True, "None 比较应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -155,7 +155,7 @@ if value == None:
     log "值为空"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件中的 None 应该正确解析"
+        assert result.success is True, "条件中的 None 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -164,7 +164,7 @@ if value == None:
         """✅ 正确：None 不等于"""
         source = "let data = 1\nlet has_value = data != None"
         result = parse_v3(source)
-        assert result.success == True, "None 不等于应该正确解析"
+        assert result.success is True, "None 不等于应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -173,7 +173,7 @@ if value == None:
         """❌ 错误：null 关键字应报错"""
         source = "let data = null"
         result = parse_v3(source)
-        assert result.success == False, "null 应该报错"
+        assert result.success is False, "null 应该报错"
         assert (
             "None" in result.error or "null" in result.error.lower()
         ), f"错误提示应提及 None，实际：{result.error}"
@@ -185,7 +185,7 @@ if value == None:
         """❌ 错误：none（小写）应报错"""
         source = "let data = none"
         result = parse_v3(source)
-        assert result.success == False, "小写 none 应该报错"
+        assert result.success is False, "小写 none 应该报错"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -194,7 +194,7 @@ if value == None:
         """❌ 错误：NONE（全大写）应报错"""
         source = "let data = NONE"
         result = parse_v3(source)
-        assert result.success == False, "全大写 NONE 应该报错"
+        assert result.success is False, "全大写 NONE 应该报错"
 
 
 # ============================================================================
@@ -211,7 +211,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：正整数"""
         source = "let count = 42"
         result = parse_v3(source)
-        assert result.success == True, "正整数应该正确解析"
+        assert result.success is True, "正整数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -219,7 +219,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：零"""
         source = "let value = 0"
         result = parse_v3(source)
-        assert result.success == True, "零应该正确解析"
+        assert result.success is True, "零应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -227,7 +227,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：负整数"""
         source = "let temp = -10"
         result = parse_v3(source)
-        assert result.success == True, "负整数应该正确解析"
+        assert result.success is True, "负整数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -235,7 +235,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：正浮点数"""
         source = "let pi = 3.14"
         result = parse_v3(source)
-        assert result.success == True, "正浮点数应该正确解析"
+        assert result.success is True, "正浮点数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -243,7 +243,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：负浮点数"""
         source = "let temp = -273.15"
         result = parse_v3(source)
-        assert result.success == True, "负浮点数应该正确解析"
+        assert result.success is True, "负浮点数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -251,7 +251,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：前导零的浮点数"""
         source = "let rate = 0.08"
         result = parse_v3(source)
-        assert result.success == True, "前导零的浮点数应该正确解析"
+        assert result.success is True, "前导零的浮点数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -259,7 +259,7 @@ class TestV3_DataTypes_Number:
         """✅ 正确：表达式中的数字"""
         source = "let result = 10 + 20 * 3"
         result = parse_v3(source)
-        assert result.success == True, "表达式中的数字应该正确解析"
+        assert result.success is True, "表达式中的数字应该正确解析"
 
 
 # ============================================================================
@@ -276,7 +276,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：双引号字符串"""
         source = 'let name = "Alice"'
         result = parse_v3(source)
-        assert result.success == True, "双引号字符串应该正确解析"
+        assert result.success is True, "双引号字符串应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -284,7 +284,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：单引号字符串"""
         source = "let name = 'Bob'"
         result = parse_v3(source)
-        assert result.success == True, "单引号字符串应该正确解析"
+        assert result.success is True, "单引号字符串应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -292,7 +292,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：空字符串"""
         source = 'let empty = ""'
         result = parse_v3(source)
-        assert result.success == True, "空字符串应该正确解析"
+        assert result.success is True, "空字符串应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -301,7 +301,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：f-string 插值（Python 风格）"""
         source = 'let count = 10\nlog f"Count: {count}"'
         result = parse_v3(source)
-        assert result.success == True, "f-string 应该正确解析"
+        assert result.success is True, "f-string 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -310,7 +310,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：f-string 多个插值"""
         source = 'let name = "Alice"\nlet count = 5\nlog f"User {name} has {count} items"'
         result = parse_v3(source)
-        assert result.success == True, "f-string 多个插值应该正确解析"
+        assert result.success is True, "f-string 多个插值应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -319,7 +319,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：f-string 内表达式"""
         source = 'let count = 5\nlog f"Total: {count + 1}"'
         result = parse_v3(source)
-        assert result.success == True, "f-string 内表达式应该正确解析"
+        assert result.success is True, "f-string 内表达式应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -328,7 +328,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：普通字符串不插值（无 f 前缀）"""
         source = 'let count = 5\nlog "Count: {count}"'  # 无 f 前缀，{count}是字面量
         result = parse_v3(source)
-        assert result.success == True, "普通字符串（无f前缀）应该正确解析为字面量"
+        assert result.success is True, "普通字符串（无f前缀）应该正确解析为字面量"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -336,7 +336,7 @@ class TestV3_DataTypes_String:
         """✅ 正确：字符串转义"""
         source = r'let text = "Line 1\nLine 2"'
         result = parse_v3(source)
-        assert result.success == True, "字符串转义应该正确解析"
+        assert result.success is True, "字符串转义应该正确解析"
 
 
 # ============================================================================
@@ -353,7 +353,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：空数组"""
         source = "let items = []"
         result = parse_v3(source)
-        assert result.success == True, "空数组应该正确解析"
+        assert result.success is True, "空数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -361,7 +361,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：数字数组"""
         source = "let numbers = [1, 2, 3, 4, 5]"
         result = parse_v3(source)
-        assert result.success == True, "数字数组应该正确解析"
+        assert result.success is True, "数字数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -369,7 +369,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：字符串数组"""
         source = 'let names = ["Alice", "Bob", "Charlie"]'
         result = parse_v3(source)
-        assert result.success == True, "字符串数组应该正确解析"
+        assert result.success is True, "字符串数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -378,7 +378,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：布尔数组（Python 风格）"""
         source = "let flags = [True, False, True]"
         result = parse_v3(source)
-        assert result.success == True, "布尔数组应该正确解析"
+        assert result.success is True, "布尔数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -387,7 +387,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：包含 None 的数组"""
         source = "let values = [1, None, 3]"
         result = parse_v3(source)
-        assert result.success == True, "包含 None 的数组应该正确解析"
+        assert result.success is True, "包含 None 的数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -395,7 +395,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：混合类型数组"""
         source = 'let mixed = [1, "two", True, None]'
         result = parse_v3(source)
-        assert result.success == True, "混合类型数组应该正确解析"
+        assert result.success is True, "混合类型数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -403,7 +403,7 @@ class TestV3_DataTypes_Array:
         """✅ 正确：嵌套数组"""
         source = "let matrix = [[1, 2], [3, 4], [5, 6]]"
         result = parse_v3(source)
-        assert result.success == True, "嵌套数组应该正确解析"
+        assert result.success is True, "嵌套数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -430,7 +430,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：空对象"""
         source = "let data = {}"
         result = parse_v3(source)
-        assert result.success == True, "空对象应该正确解析"
+        assert result.success is True, "空对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -438,7 +438,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：简单对象"""
         source = 'let user = {name: "Alice", age: 30}'
         result = parse_v3(source)
-        assert result.success == True, "简单对象应该正确解析"
+        assert result.success is True, "简单对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -447,7 +447,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：包含布尔值的对象（Python 风格）"""
         source = 'let user = {name: "Bob", active: True, verified: False}'
         result = parse_v3(source)
-        assert result.success == True, "包含布尔值的对象应该正确解析"
+        assert result.success is True, "包含布尔值的对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -456,7 +456,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：包含 None 的对象"""
         source = 'let user = {name: "Alice", email: None}'
         result = parse_v3(source)
-        assert result.success == True, "包含 None 的对象应该正确解析"
+        assert result.success is True, "包含 None 的对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -464,7 +464,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：嵌套对象（注意：'config' 是保留的命名空间，使用 'settings' 代替）"""
         source = 'let settings = {db: {host: "localhost", port: 5432}}'
         result = parse_v3(source)
-        assert result.success == True, "嵌套对象应该正确解析"
+        assert result.success is True, "嵌套对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -472,7 +472,7 @@ class TestV3_DataTypes_Object:
         """✅ 正确：包含数组的对象"""
         source = 'let user = {name: "Alice", scores: [95, 88, 92]}'
         result = parse_v3(source)
-        assert result.success == True, "包含数组的对象应该正确解析"
+        assert result.success is True, "包含数组的对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -516,7 +516,7 @@ let appConfig = {
 }
 """
         result = parse_v3(source)
-        assert result.success == True, "复杂嵌套结构应该正确解析"
+        assert result.success is True, "复杂嵌套结构应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -536,7 +536,7 @@ let mixed = [
 ]
 """
         result = parse_v3(source)
-        assert result.success == True, "包含所有类型的数组应该正确解析"
+        assert result.success is True, "包含所有类型的数组应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -564,7 +564,7 @@ let user = {
 }
 """
         result = parse_v3(source)
-        assert result.success == True, "真实用户配置应该正确解析"
+        assert result.success is True, "真实用户配置应该正确解析"
 
 
 # ============================================================================
@@ -591,7 +591,7 @@ class TestV3_DataTypes_PythonAlignment:
         """✅ 验证：数据类型与 Python 匹配"""
         source = f"let x = {dsl_value}"
         result = parse_v3(source)
-        assert result.success == True, f"DSL 值应该像 Python 一样：{dsl_value}"
+        assert result.success is True, f"DSL 值应该像 Python 一样：{dsl_value}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -610,7 +610,7 @@ class TestV3_DataTypes_PythonAlignment:
         """❌ 验证：非 Python 风格值报错"""
         source = f"let x = {wrong_value}"
         result = parse_v3(source)
-        assert result.success == False, f"非 Python 风格值应该报错：{wrong_value}"
+        assert result.success is False, f"非 Python 风格值应该报错：{wrong_value}"
 
 
 # ============================================================================

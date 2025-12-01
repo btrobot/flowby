@@ -50,12 +50,12 @@ def parse_v3():
         def test_variable(parse_v3):
             # 验证代码能被完整解析
             result = parse_v3("let x = 10")
-            assert result.success == True
+            assert result.success is True
             assert result.ast is not None
 
             # 验证错误提示
             result = parse_v3("let x = ")
-            assert result.success == False
+            assert result.success is False
             assert "error" in result.error.lower()
     """
     from flowby.lexer import Lexer
@@ -95,10 +95,10 @@ def can_parse_v3():
     用法:
         def test_syntax(can_parse_v3):
             # 验证合法语法
-            assert can_parse_v3('let x = 10') == True
+            assert can_parse_v3('let x = 10') is True
 
             # 验证非法语法
-            assert can_parse_v3('let x = ') == False
+            assert can_parse_v3('let x = ') is False
     """
     from flowby.lexer import Lexer
     from flowby.parser import Parser

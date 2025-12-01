@@ -19,7 +19,7 @@ class TestV3_7_AssertExpression:
         """✅ 正确：基础断言"""
         source = "assert True"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -28,10 +28,10 @@ class TestV3_7_AssertExpression:
         """✅ 正确：True/False 断言（Python 风格）"""
         source = """
 assert True
-assert False == False
+assert False is False
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -39,7 +39,7 @@ assert False == False
         """✅ 正确：比较表达式断言"""
         source = "let score = 80\nassert score >= 60"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -48,7 +48,7 @@ assert False == False
         """✅ 正确：None 断言（Python 风格）"""
         source = "let data = 1\nassert data != None"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -57,7 +57,7 @@ assert False == False
         """✅ 正确：系统变量断言（无 $ 前缀）"""
         source = 'assert page.url == "https://example.com"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -65,7 +65,7 @@ assert False == False
         """✅ 正确：带消息的断言"""
         source = 'let score = 80\nassert score >= 60, "分数不及格"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -73,7 +73,7 @@ assert False == False
         """✅ 正确：逻辑 AND 断言"""
         source = "let score = 95\nlet attendance = 85\nassert score >= 90 and attendance > 80"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -81,15 +81,15 @@ assert False == False
         """✅ 正确：逻辑 OR 断言"""
         source = "let is_admin = True\nlet is_moderator = False\nassert is_admin or is_moderator"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
     def test_assert_complex_expression(self, parse_v3):
         """✅ 正确：复杂表达式断言"""
-        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit == True"
+        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit is True"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -103,7 +103,7 @@ step "验证结果":
     assert element_count > 0
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("7.x")
@@ -117,7 +117,7 @@ if needs_verification:
     assert verification_code != None
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -134,7 +134,7 @@ step "登录验证":
     assert page.title contains "Dashboard"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 """

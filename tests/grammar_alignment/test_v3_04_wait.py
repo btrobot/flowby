@@ -32,7 +32,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：等待秒数"""
         source = "wait 5s"
         result = parse_v3(source)
-        assert result.success == True, "wait 秒数应该正确解析"
+        assert result.success is True, "wait 秒数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -41,7 +41,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：等待毫秒"""
         source = "wait 1000ms"
         result = parse_v3(source)
-        assert result.success == True, "wait 毫秒应该正确解析"
+        assert result.success is True, "wait 毫秒应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -50,7 +50,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：wait for 语法"""
         source = "wait for 2s"
         result = parse_v3(source)
-        assert result.success == True, "wait for 秒数应该正确解析"
+        assert result.success is True, "wait for 秒数应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -59,7 +59,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：wait for 毫秒"""
         source = "wait for 500ms"
         result = parse_v3(source)
-        assert result.success == True, "wait for 毫秒应该正确解析"
+        assert result.success is True, "wait for 毫秒应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -68,7 +68,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：完整单词 seconds"""
         source = "wait 3 seconds"
         result = parse_v3(source)
-        assert result.success == True, "wait seconds 应该正确解析"
+        assert result.success is True, "wait seconds 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -77,7 +77,7 @@ class TestV3_4_1_WaitDuration:
         """✅ 正确：完整单词 milliseconds"""
         source = "wait 200 milliseconds"
         result = parse_v3(source)
-        assert result.success == True, "wait milliseconds 应该正确解析"
+        assert result.success is True, "wait milliseconds 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -91,7 +91,7 @@ step "时间等待":
     wait for 500ms
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 wait 应该正确解析"
+        assert result.success is True, "step 块内的 wait 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -105,7 +105,7 @@ if slow_loading:
     wait 5s
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 wait 应该正确解析"
+        assert result.success is True, "if 块内的 wait 应该正确解析"
 
 
 # ============================================================================
@@ -123,7 +123,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：基础元素等待"""
         source = 'wait for element "#button"'
         result = parse_v3(source)
-        assert result.success == True, "基础元素等待应该正确解析"
+        assert result.success is True, "基础元素等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -132,7 +132,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：等待元素可见"""
         source = 'wait for element "#modal" to be visible'
         result = parse_v3(source)
-        assert result.success == True, "等待元素可见应该正确解析"
+        assert result.success is True, "等待元素可见应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -141,7 +141,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：等待元素隐藏"""
         source = 'wait for element ".loading" to be hidden'
         result = parse_v3(source)
-        assert result.success == True, "等待元素隐藏应该正确解析"
+        assert result.success is True, "等待元素隐藏应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -150,7 +150,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：等待元素附加"""
         source = 'wait for element "#item" to be attached'
         result = parse_v3(source)
-        assert result.success == True, "等待元素附加应该正确解析"
+        assert result.success is True, "等待元素附加应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -159,7 +159,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：等待元素分离"""
         source = 'wait for element "#deleted" to be detached'
         result = parse_v3(source)
-        assert result.success == True, "等待元素分离应该正确解析"
+        assert result.success is True, "等待元素分离应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -168,7 +168,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：带超时的元素等待"""
         source = 'wait for element "#delayed" timeout 10s'
         result = parse_v3(source)
-        assert result.success == True, "带超时的元素等待应该正确解析"
+        assert result.success is True, "带超时的元素等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -177,7 +177,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：等待可见带超时"""
         source = 'wait for element "#button" to be visible timeout 5s'
         result = parse_v3(source)
-        assert result.success == True, "等待可见带超时应该正确解析"
+        assert result.success is True, "等待可见带超时应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -186,7 +186,7 @@ class TestV3_4_2_WaitElement:
         """✅ 正确：类选择器"""
         source = 'wait for element ".modal-dialog" to be visible'
         result = parse_v3(source)
-        assert result.success == True, "类选择器应该正确解析"
+        assert result.success is True, "类选择器应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -200,7 +200,7 @@ step "元素等待":
     wait for element "#modal" to be visible
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的元素等待应该正确解析"
+        assert result.success is True, "step 块内的元素等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -214,7 +214,7 @@ if needs_confirmation:
     wait for element "#confirm-button" to be visible
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的元素等待应该正确解析"
+        assert result.success is True, "if 块内的元素等待应该正确解析"
 
 
 # ============================================================================
@@ -232,7 +232,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：基础导航等待"""
         source = "wait for navigation"
         result = parse_v3(source)
-        assert result.success == True, "基础导航等待应该正确解析"
+        assert result.success is True, "基础导航等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -241,7 +241,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：等待 networkidle"""
         source = "wait for navigation wait for networkidle"
         result = parse_v3(source)
-        assert result.success == True, "等待 networkidle 应该正确解析"
+        assert result.success is True, "等待 networkidle 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -250,7 +250,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：等待 load 事件"""
         source = "wait for navigation wait for load"
         result = parse_v3(source)
-        assert result.success == True, "等待 load 应该正确解析"
+        assert result.success is True, "等待 load 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -259,7 +259,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：等待 domcontentloaded"""
         source = "wait for navigation wait for domcontentloaded"
         result = parse_v3(source)
-        assert result.success == True, "等待 domcontentloaded 应该正确解析"
+        assert result.success is True, "等待 domcontentloaded 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -268,7 +268,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：等待导航到指定 URL"""
         source = 'wait for navigation to "https://example.com/success"'
         result = parse_v3(source)
-        assert result.success == True, "等待导航到指定 URL 应该正确解析"
+        assert result.success is True, "等待导航到指定 URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -277,7 +277,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：带超时的导航等待"""
         source = "wait for navigation timeout 10s"
         result = parse_v3(source)
-        assert result.success == True, "带超时的导航等待应该正确解析"
+        assert result.success is True, "带超时的导航等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -286,7 +286,7 @@ class TestV3_4_3_WaitNavigation:
         """✅ 正确：完整选项的导航等待"""
         source = 'wait for navigation to "https://example.com" wait for networkidle timeout 15s'
         result = parse_v3(source)
-        assert result.success == True, "完整选项的导航等待应该正确解析"
+        assert result.success is True, "完整选项的导航等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -300,7 +300,7 @@ step "导航等待":
     wait for navigation
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的导航等待应该正确解析"
+        assert result.success is True, "step 块内的导航等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -312,7 +312,7 @@ click "#submit-button"
 wait for navigation wait for networkidle
 """
         result = parse_v3(source)
-        assert result.success == True, "点击后等待导航应该正确解析"
+        assert result.success is True, "点击后等待导航应该正确解析"
 
 
 # ============================================================================
@@ -338,7 +338,7 @@ step "表单提交":
     wait for element "#success-message" to be visible timeout 10s
 """
         result = parse_v3(source)
-        assert result.success == True, "组合等待应该正确解析（Python 风格）"
+        assert result.success is True, "组合等待应该正确解析（Python 风格）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -353,7 +353,7 @@ else:
     wait for element "#content" timeout 10s
 """
         result = parse_v3(source)
-        assert result.success == True, "条件等待应该正确解析（纯缩进）"
+        assert result.success is True, "条件等待应该正确解析（纯缩进）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -371,7 +371,7 @@ step "复杂等待流程":
         wait for element ".desktop-menu" to be visible
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套块中的等待应该正确解析"
+        assert result.success is True, "嵌套块中的等待应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -387,7 +387,7 @@ wait for element "#result" to be visible timeout 10s
 wait 500ms
 """
         result = parse_v3(source)
-        assert result.success == True, "所有等待类型组合应该正确解析"
+        assert result.success is True, "所有等待类型组合应该正确解析"
 
 
 # ============================================================================

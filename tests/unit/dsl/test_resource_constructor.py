@@ -9,8 +9,6 @@ Resource() 构造函数单元测试 (v6.0)
 """
 
 import pytest
-from pathlib import Path
-from unittest.mock import Mock, patch, MagicMock
 
 from flowby.lexer import Lexer
 from flowby.parser import Parser

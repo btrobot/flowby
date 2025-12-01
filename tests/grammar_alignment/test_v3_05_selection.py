@@ -31,7 +31,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：基础元素选择"""
         source = 'select "input"'
         result = parse_v3(source)
-        assert result.success == True, "基础元素选择应该正确解析"
+        assert result.success is True, "基础元素选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -40,7 +40,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 name 属性选择"""
         source = 'select "input" where name equals "username"'
         result = parse_v3(source)
-        assert result.success == True, "按 name 选择应该正确解析"
+        assert result.success is True, "按 name 选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -49,7 +49,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按文本包含选择"""
         source = 'select "button" where text contains "Submit"'
         result = parse_v3(source)
-        assert result.success == True, "按文本包含选择应该正确解析"
+        assert result.success is True, "按文本包含选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -58,7 +58,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按文本相等选择"""
         source = 'select "button" where text equals "Click Me"'
         result = parse_v3(source)
-        assert result.success == True, "按文本相等选择应该正确解析"
+        assert result.success is True, "按文本相等选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -67,7 +67,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 href 包含选择"""
         source = 'select "a" where href contains "/admin"'
         result = parse_v3(source)
-        assert result.success == True, "按 href 包含选择应该正确解析"
+        assert result.success is True, "按 href 包含选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -76,7 +76,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 class 选择"""
         source = 'select "div" where class equals "active"'
         result = parse_v3(source)
-        assert result.success == True, "按 class 选择应该正确解析"
+        assert result.success is True, "按 class 选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -85,7 +85,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 id 包含选择"""
         source = 'select "div" where id contains "main"'
         result = parse_v3(source)
-        assert result.success == True, "按 id 包含选择应该正确解析"
+        assert result.success is True, "按 id 包含选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -94,7 +94,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 src 包含选择"""
         source = 'select "img" where src contains "logo"'
         result = parse_v3(source)
-        assert result.success == True, "按 src 包含选择应该正确解析"
+        assert result.success is True, "按 src 包含选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -103,7 +103,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：按 value 选择"""
         source = 'select "input" where value equals "test"'
         result = parse_v3(source)
-        assert result.success == True, "按 value 选择应该正确解析"
+        assert result.success is True, "按 value 选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -112,7 +112,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：多个条件选择"""
         source = 'select "div" where class equals "active" and id contains "main"'
         result = parse_v3(source)
-        assert result.success == True, "多个条件选择应该正确解析"
+        assert result.success is True, "多个条件选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -121,7 +121,7 @@ class TestV3_5_1_SelectElement:
         """✅ 正确：matches 操作符"""
         source = 'select "input" where name matches "user.*"'
         result = parse_v3(source)
-        assert result.success == True, "matches 操作符应该正确解析"
+        assert result.success is True, "matches 操作符应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -135,7 +135,7 @@ step "元素选择":
     select "button" where text contains "Submit"
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 select 应该正确解析"
+        assert result.success is True, "step 块内的 select 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -149,7 +149,7 @@ if has_filter:
     select "div" where class equals "filtered"
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 select 应该正确解析"
+        assert result.success is True, "if 块内的 select 应该正确解析"
 
 
 # ============================================================================
@@ -167,7 +167,7 @@ class TestV3_5_2_SelectOption:
         """✅ 正确：基础选项选择"""
         source = 'select option "China" from "#country"'
         result = parse_v3(source)
-        assert result.success == True, "基础选项选择应该正确解析"
+        assert result.success is True, "基础选项选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -176,7 +176,7 @@ class TestV3_5_2_SelectOption:
         """✅ 正确：类选择器"""
         source = 'select option "English" from ".language-selector"'
         result = parse_v3(source)
-        assert result.success == True, "类选择器应该正确解析"
+        assert result.success is True, "类选择器应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -185,7 +185,7 @@ class TestV3_5_2_SelectOption:
         """✅ 正确：属性选择器"""
         source = 'select option "Large" from \'select[name="size"]\''
         result = parse_v3(source)
-        assert result.success == True, "属性选择器应该正确解析"
+        assert result.success is True, "属性选择器应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -197,7 +197,7 @@ let country_code = "US"
 select option country_code from "#country-select"
 """
         result = parse_v3(source)
-        assert result.success == True, "使用变量的选项选择应该正确解析"
+        assert result.success is True, "使用变量的选项选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -211,7 +211,7 @@ step "下拉选择":
     select option "English" from "#language"
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 select option 应该正确解析"
+        assert result.success is True, "step 块内的 select option 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -225,7 +225,7 @@ if needs_selection:
     select option "Premium" from "#plan-selector"
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 select option 应该正确解析"
+        assert result.success is True, "if 块内的 select option 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -238,7 +238,7 @@ let size = "L"
 select option f"Size {size}" from "#size-selector"
 """
         result = parse_v3(source)
-        assert result.success == True, "f-string 选项值应该正确解析"
+        assert result.success is True, "f-string 选项值应该正确解析"
 
 
 # ============================================================================
@@ -264,7 +264,7 @@ step "表单填写":
     click
 """
         result = parse_v3(source)
-        assert result.success == True, "组合选择工作流应该正确解析（Python 风格）"
+        assert result.success is True, "组合选择工作流应该正确解析（Python 风格）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -279,7 +279,7 @@ else:
     select option "User" from "#role-selector"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件选择应该正确解析（纯缩进）"
+        assert result.success is True, "条件选择应该正确解析（纯缩进）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -296,7 +296,7 @@ step "复杂选择":
             select option "Filtered" from "#filter"
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套块中的选择应该正确解析"
+        assert result.success is True, "嵌套块中的选择应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -310,7 +310,7 @@ select option "China" from "#country"
 select "a" where href contains "/admin"
 """
         result = parse_v3(source)
-        assert result.success == True, "所有选择类型组合应该正确解析"
+        assert result.success is True, "所有选择类型组合应该正确解析"
 
 
 # ============================================================================

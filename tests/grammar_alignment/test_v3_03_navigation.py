@@ -32,7 +32,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：基础导航语法"""
         source = 'navigate to "https://example.com"'
         result = parse_v3(source)
-        assert result.success == True, "基础导航应该正确解析"
+        assert result.success is True, "基础导航应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -41,7 +41,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：HTTP 协议"""
         source = 'navigate to "http://example.com"'
         result = parse_v3(source)
-        assert result.success == True, "HTTP URL 应该正确解析"
+        assert result.success is True, "HTTP URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -50,7 +50,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：localhost 地址"""
         source = 'navigate to "http://localhost:3000"'
         result = parse_v3(source)
-        assert result.success == True, "localhost URL 应该正确解析"
+        assert result.success is True, "localhost URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -59,7 +59,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：带路径的 URL"""
         source = 'navigate to "https://example.com/login"'
         result = parse_v3(source)
-        assert result.success == True, "带路径的 URL 应该正确解析"
+        assert result.success is True, "带路径的 URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -68,7 +68,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：带查询参数的 URL"""
         source = 'navigate to "https://example.com?page=1&sort=asc"'
         result = parse_v3(source)
-        assert result.success == True, "带查询参数的 URL 应该正确解析"
+        assert result.success is True, "带查询参数的 URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -77,7 +77,7 @@ class TestV3_3_1_NavigateTo:
         """✅ 正确：带片段标识符的 URL"""
         source = 'navigate to "https://example.com#section"'
         result = parse_v3(source)
-        assert result.success == True, "带片段标识符的 URL 应该正确解析"
+        assert result.success is True, "带片段标识符的 URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -89,7 +89,7 @@ let base_url = "https://example.com"
 navigate to base_url
 """
         result = parse_v3(source)
-        assert result.success == True, "使用变量的 navigate 应该正确解析"
+        assert result.success is True, "使用变量的 navigate 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -99,7 +99,7 @@ navigate to base_url
         """✅ 正确：使用系统变量（无 $ 前缀，v3.0 Python 风格）"""
         source = "navigate to config.base_url"
         result = parse_v3(source)
-        assert result.success == True, "系统变量无 $ 前缀应该正确解析"
+        assert result.success is True, "系统变量无 $ 前缀应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -108,7 +108,7 @@ navigate to base_url
         """✅ 正确：等待 networkidle"""
         source = 'navigate to "https://example.com" wait for networkidle'
         result = parse_v3(source)
-        assert result.success == True, "wait for networkidle 应该正确解析"
+        assert result.success is True, "wait for networkidle 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -117,7 +117,7 @@ navigate to base_url
         """✅ 正确：等待 domcontentloaded"""
         source = 'navigate to "https://example.com" wait for domcontentloaded'
         result = parse_v3(source)
-        assert result.success == True, "wait for domcontentloaded 应该正确解析"
+        assert result.success is True, "wait for domcontentloaded 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -126,7 +126,7 @@ navigate to base_url
         """✅ 正确：等待 load"""
         source = 'navigate to "https://example.com" wait for load'
         result = parse_v3(source)
-        assert result.success == True, "wait for load 应该正确解析"
+        assert result.success is True, "wait for load 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -140,7 +140,7 @@ step "测试导航":
     navigate to "https://example.com/login"
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 navigate 应该正确解析（无 end step）"
+        assert result.success is True, "step 块内的 navigate 应该正确解析（无 end step）"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -154,7 +154,7 @@ if is_admin:
     navigate to "https://admin.example.com"
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 navigate 应该正确解析（无 end if）"
+        assert result.success is True, "if 块内的 navigate 应该正确解析（无 end if）"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -167,7 +167,7 @@ let path = "/dashboard"
 navigate to f"https://example.com{path}"
 """
         result = parse_v3(source)
-        assert result.success == True, "f-string 作为 URL 应该正确解析"
+        assert result.success is True, "f-string 作为 URL 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.error
@@ -176,7 +176,7 @@ navigate to f"https://example.com{path}"
         """❌ 错误：缺少 URL"""
         source = "navigate to"
         result = parse_v3(source)
-        assert result.success == False, "缺少 URL 应该报错"
+        assert result.success is False, "缺少 URL 应该报错"
 
 
 # ============================================================================
@@ -194,7 +194,7 @@ class TestV3_3_2_GoBackForward:
         """✅ 正确：后退语法"""
         source = "go back"
         result = parse_v3(source)
-        assert result.success == True, "go back 应该正确解析"
+        assert result.success is True, "go back 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -203,7 +203,7 @@ class TestV3_3_2_GoBackForward:
         """✅ 正确：前进语法"""
         source = "go forward"
         result = parse_v3(source)
-        assert result.success == True, "go forward 应该正确解析"
+        assert result.success is True, "go forward 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -218,7 +218,7 @@ step "浏览器历史":
     go back
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 go back 应该正确解析"
+        assert result.success is True, "step 块内的 go back 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -232,7 +232,7 @@ step "浏览器历史":
     go forward
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 go forward 应该正确解析"
+        assert result.success is True, "step 块内的 go forward 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -246,7 +246,7 @@ if need_back:
     go back
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 go back 应该正确解析"
+        assert result.success is True, "if 块内的 go back 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -260,7 +260,7 @@ go back
 go forward
 """
         result = parse_v3(source)
-        assert result.success == True, "导航序列应该正确解析"
+        assert result.success is True, "导航序列应该正确解析"
 
 
 # ============================================================================
@@ -278,7 +278,7 @@ class TestV3_3_3_Reload:
         """✅ 正确：基础刷新语法"""
         source = "reload"
         result = parse_v3(source)
-        assert result.success == True, "reload 应该正确解析"
+        assert result.success is True, "reload 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -292,7 +292,7 @@ step "页面刷新":
     reload
 """
         result = parse_v3(source)
-        assert result.success == True, "step 块内的 reload 应该正确解析"
+        assert result.success is True, "step 块内的 reload 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -306,7 +306,7 @@ if page_stale:
     reload
 """
         result = parse_v3(source)
-        assert result.success == True, "if 块内的 reload 应该正确解析"
+        assert result.success is True, "if 块内的 reload 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -318,7 +318,7 @@ navigate to "https://example.com"
 reload
 """
         result = parse_v3(source)
-        assert result.success == True, "导航后刷新应该正确解析"
+        assert result.success is True, "导航后刷新应该正确解析"
 
 
 # ============================================================================
@@ -346,7 +346,7 @@ step "用户导航流程":
         reload
 """
         result = parse_v3(source)
-        assert result.success == True, "综合导航流程应该正确解析（Python 风格）"
+        assert result.success is True, "综合导航流程应该正确解析（Python 风格）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -366,7 +366,7 @@ step "嵌套导航":
         navigate to config.login_url
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套块中的导航应该正确解析（纯缩进）"
+        assert result.success is True, "嵌套块中的导航应该正确解析（纯缩进）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -379,7 +379,7 @@ if page.url != config.base_url:
     reload
 """
         result = parse_v3(source)
-        assert result.success == True, "系统变量导航应该正确解析（无 $ 前缀）"
+        assert result.success is True, "系统变量导航应该正确解析（无 $ 前缀）"
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -394,7 +394,7 @@ else:
     navigate to "http://example.com"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件导航应该正确解析（True/False）"
+        assert result.success is True, "条件导航应该正确解析（True/False）"
 
 
 # ============================================================================

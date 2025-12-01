@@ -38,7 +38,7 @@ step "test":
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "单层缩进应该正确解析"
+        assert result.success is True, "单层缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -52,7 +52,7 @@ step "outer":
         let y = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "两层缩进应该正确解析"
+        assert result.success is True, "两层缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -69,7 +69,7 @@ step "level1":
                 let y = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "三层缩进应该正确解析"
+        assert result.success is True, "三层缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -83,7 +83,7 @@ step "two":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "回退到同级缩进应该正确解析"
+        assert result.success is True, "回退到同级缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -101,7 +101,7 @@ step "sibling":
     let a = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "一次回退多级缩进应该正确解析"
+        assert result.success is True, "一次回退多级缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -115,7 +115,7 @@ step "test":
     let z = 3
 """
         result = parse_v3(source)
-        assert result.success == True, "同级多个语句应该正确解析"
+        assert result.success is True, "同级多个语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -135,7 +135,7 @@ else:
     z = 3
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套 if 块应该正确解析"
+        assert result.success is True, "嵌套 if 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -149,7 +149,7 @@ step "outer":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "嵌套 step 块应该正确解析"
+        assert result.success is True, "嵌套 step 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -163,7 +163,7 @@ for item in items:
     let y = x + 1
 """
         result = parse_v3(source)
-        assert result.success == True, "for 循环缩进应该正确解析"
+        assert result.success is True, "for 循环缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -180,7 +180,7 @@ when status:
         x = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "when 块缩进应该正确解析"
+        assert result.success is True, "when 块缩进应该正确解析"
 
 
 # ============================================================================
@@ -198,7 +198,7 @@ class TestV3_Indentation_Boundaries:
         """✅ 正确：标准 4 空格缩进"""
         source = 'step "test":\n    let x = 1'  # 正好 4 空格
         result = parse_v3(source)
-        assert result.success == True, "4 空格缩进应该正确解析"
+        assert result.success is True, "4 空格缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -207,7 +207,7 @@ class TestV3_Indentation_Boundaries:
         """✅ 正确：8 空格二级缩进"""
         source = 'let x = True\nstep "test":\n    if x:\n        let y = 1'  # 4 + 4
         result = parse_v3(source)
-        assert result.success == True, "8 空格二级缩进应该正确解析"
+        assert result.success is True, "8 空格二级缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -216,7 +216,7 @@ class TestV3_Indentation_Boundaries:
         """✅ 正确：12 空格三级缩进"""
         source = 'let x = True\nlet y = True\nstep "test":\n    if x:\n        if y:\n            let z = 1'
         result = parse_v3(source)
-        assert result.success == True, "12 空格三级缩进应该正确解析"
+        assert result.success is True, "12 空格三级缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -225,7 +225,7 @@ class TestV3_Indentation_Boundaries:
         """❌ 错误：2 空格缩进（不是 4 的倍数）"""
         source = 'step "test":\n  let x = 1'  # 只有 2 空格
         result = parse_v3(source)
-        assert result.success == False, "2 空格缩进应该报错"
+        assert result.success is False, "2 空格缩进应该报错"
         assert "4" in result.error or "缩进" in result.error, "错误提示应提及 4 空格或缩进"
 
     @pytest.mark.v3
@@ -235,7 +235,7 @@ class TestV3_Indentation_Boundaries:
         """❌ 错误：3 空格缩进"""
         source = 'step "test":\n   let x = 1'  # 3 空格
         result = parse_v3(source)
-        assert result.success == False, "3 空格缩进应该报错"
+        assert result.success is False, "3 空格缩进应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -244,7 +244,7 @@ class TestV3_Indentation_Boundaries:
         """❌ 错误：5 空格缩进"""
         source = 'step "test":\n     let x = 1'  # 5 空格
         result = parse_v3(source)
-        assert result.success == False, "5 空格缩进应该报错"
+        assert result.success is False, "5 空格缩进应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -257,7 +257,7 @@ step "test":
   let y = 2
 """  # 第二个 let 只有 2 空格
         result = parse_v3(source)
-        assert result.success == False, "同一块内缩进不一致应该报错"
+        assert result.success is False, "同一块内缩进不一致应该报错"
         assert (
             "缩进" in result.error or "indent" in result.error.lower()
         ), "错误提示应提及缩进不一致"
@@ -272,7 +272,7 @@ step "test":
         let x = 1
 """  # 直接跳到 8 空格
         result = parse_v3(source)
-        assert result.success == False, "缩进跳跃应该报错"
+        assert result.success is False, "缩进跳跃应该报错"
         assert (
             "4" in result.error or "跳" in result.error or "jump" in result.error.lower()
         ), "错误提示应提及缩进跳跃"
@@ -288,7 +288,7 @@ step "test":
             let y = 1
 """  # 从 4 直接跳到 12
         result = parse_v3(source)
-        assert result.success == False, "缩进跳跃应该报错"
+        assert result.success is False, "缩进跳跃应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -302,7 +302,7 @@ step "test":
   let z = 2
 """  # 从 8 回退到 2（而非 4 或 0）
         result = parse_v3(source)
-        assert result.success == False, "回退到无效级别应该报错"
+        assert result.success is False, "回退到无效级别应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -314,7 +314,7 @@ step "test":
 let x = 1
 """  # step 后应该有缩进
         result = parse_v3(source)
-        assert result.success == False, "冒号后缺少缩进应该报错"
+        assert result.success is False, "冒号后缺少缩进应该报错"
         assert "缩进" in result.error or "indent" in result.error.lower(), "错误提示应提及缺少缩进"
 
 
@@ -335,7 +335,7 @@ class TestV3_Indentation_Tabs:
         result = parse_v3(source)
         # Tab 应该被接受（转为 8 空格）
         # 注：实际行为取决于 Lexer 实现，这里假设 Tab = 8 空格
-        assert result.success == True, "单个 Tab 应该被正确解析"
+        assert result.success is True, "单个 Tab 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -344,7 +344,7 @@ class TestV3_Indentation_Tabs:
         """✅ 正确：两个 Tab 嵌套"""
         source = 'let x = True\nstep "test":\n\tif x:\n\t\tlet y = 1'  # Tab + Tab
         result = parse_v3(source)
-        assert result.success == True, "两个 Tab 嵌套应该正确解析"
+        assert result.success is True, "两个 Tab 嵌套应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -353,7 +353,7 @@ class TestV3_Indentation_Tabs:
         """❌ 错误：混合空格和 Tab"""
         source = 'step "test":\n  \tlet x = 1'  # 2 空格 + 1 Tab
         result = parse_v3(source)
-        assert result.success == False, "混合空格和 Tab 应该报错"
+        assert result.success is False, "混合空格和 Tab 应该报错"
         assert (
             "混合" in result.error or "tab" in result.error.lower() or "空格" in result.error
         ), "错误提示应提及混合空格和 Tab"
@@ -365,7 +365,7 @@ class TestV3_Indentation_Tabs:
         """❌ 错误：Tab 后跟空格"""
         source = 'step "test":\n\t  let x = 1'  # Tab + 2 空格
         result = parse_v3(source)
-        assert result.success == False, "Tab 后跟空格应该报错"
+        assert result.success is False, "Tab 后跟空格应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -374,7 +374,7 @@ class TestV3_Indentation_Tabs:
         """❌ 错误：空格后跟 Tab"""
         source = 'step "test":\n  \t\tlet x = 1'  # 2 空格 + 2 Tab
         result = parse_v3(source)
-        assert result.success == False, "空格后跟 Tab 应该报错"
+        assert result.success is False, "空格后跟 Tab 应该报错"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -388,7 +388,7 @@ step "two":
     let y = 2
 """  # 第一个用 Tab，第二个用空格
         result = parse_v3(source)
-        assert result.success == False, "文件内混用 Tab 和空格应该报错"
+        assert result.success is False, "文件内混用 Tab 和空格应该报错"
 
 
 # ============================================================================
@@ -411,7 +411,7 @@ step "test":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "块内空行应该被忽略"
+        assert result.success is True, "块内空行应该被忽略"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -426,7 +426,7 @@ step "test":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "多个空行应该被忽略"
+        assert result.success is True, "多个空行应该被忽略"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -441,7 +441,7 @@ step "two":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "块之间的空行应该被忽略"
+        assert result.success is True, "块之间的空行应该被忽略"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -454,7 +454,7 @@ step "test":
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "块内注释行应该被忽略"
+        assert result.success is True, "块内注释行应该被忽略"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -467,7 +467,7 @@ step "test":
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "块前注释应该被忽略"
+        assert result.success is True, "块前注释应该被忽略"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -482,7 +482,7 @@ step "test":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "缩进的注释应该被正确处理"
+        assert result.success is True, "缩进的注释应该被正确处理"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -496,7 +496,7 @@ step "test":
     let y = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "块内注释的缩进不应影响块结构"
+        assert result.success is True, "块内注释的缩进不应影响块结构"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -511,7 +511,7 @@ step "test":
     let x = 1
 '''
         result = parse_v3(source)
-        assert result.success == True, "块内三引号注释应该被正确处理"
+        assert result.success is True, "块内三引号注释应该被正确处理"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -520,7 +520,7 @@ step "test":
         """✅ 正确：行尾空白应该被忽略"""
         source = 'step "test":    \n    let x = 1    \n'  # 行尾有空格
         result = parse_v3(source)
-        assert result.success == True, "行尾空白应该被忽略"
+        assert result.success is True, "行尾空白应该被忽略"
 
 
 # ============================================================================
@@ -541,7 +541,7 @@ step "test":
   let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         # 错误提示应包含行号（第 2 行）
         assert (
             "2" in result.error or "line 2" in result.error.lower()
@@ -557,7 +557,7 @@ step "test":
   let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         # 错误提示应提及期望 4 空格
         assert (
             "4" in result.error or "期望" in result.error or "expected" in result.error.lower()
@@ -573,7 +573,7 @@ step "test":
   let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         # 错误提示应提及实际 2 空格
         assert (
             "2" in result.error or "实际" in result.error or "actual" in result.error.lower()
@@ -589,7 +589,7 @@ step "test":
 let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         assert "缩进" in result.error or "indent" in result.error.lower(), "错误提示应提及缺少缩进"
 
     @pytest.mark.v3
@@ -602,7 +602,7 @@ step "test":
         let x = 1
 """
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         # 应提及跳跃或期望的中间级别
         assert (
             "跳" in result.error or "jump" in result.error.lower() or "4" in result.error
@@ -615,7 +615,7 @@ step "test":
         """验证混合缩进的错误提示"""
         source = 'step "test":\n\t  let x = 1'  # Tab + 空格
         result = parse_v3(source)
-        assert result.success == False
+        assert result.success is False
         assert (
             "混合" in result.error or "tab" in result.error.lower() or "空格" in result.error
         ), "错误提示应提及混合空格和 Tab"
@@ -646,7 +646,7 @@ step "level1":
                     let x = item
 """
         result = parse_v3(source)
-        assert result.success == True, "5 层深度嵌套应该正确解析"
+        assert result.success is True, "5 层深度嵌套应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -665,7 +665,7 @@ step "outer":
 let b = 2
 """
         result = parse_v3(source)
-        assert result.success == True, "连续多次回退应该正确解析"
+        assert result.success is True, "连续多次回退应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -685,7 +685,7 @@ else:
     grade = "F"
 """
         result = parse_v3(source)
-        assert result.success == True, "else if 链应该正确解析"
+        assert result.success is True, "else if 链应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -706,7 +706,7 @@ when status:
         x = 4
 """
         result = parse_v3(source)
-        assert result.success == True, "when 分支同级缩进应该正确解析"
+        assert result.success is True, "when 分支同级缩进应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -722,7 +722,7 @@ for user in users:
         log f"Inactive: {user.name}"
 """
         result = parse_v3(source)
-        assert result.success == True, "for 循环内嵌套 if 应该正确解析"
+        assert result.success is True, "for 循环内嵌套 if 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -742,7 +742,7 @@ step "complex":
                     log "three"
 """
         result = parse_v3(source)
-        assert result.success == True, "复杂控制结构组合应该正确解析"
+        assert result.success is True, "复杂控制结构组合应该正确解析"
 
 
 # ============================================================================
@@ -767,15 +767,9 @@ if x > 0:
 else:
     y = 0
 """
-        python_equiv = """
-if x > 0:
-    y = 1
-else:
-    y = 0
-"""
         # DSL 代码应该能解析
         result = parse_v3(dsl_code)
-        assert result.success == True, "DSL 代码应该像 Python 一样"
+        assert result.success is True, "DSL 代码应该像 Python 一样"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -791,7 +785,7 @@ for item in items:
 """
         # 应该能解析，且结构与 Python 相同
         result = parse_v3(dsl_code)
-        assert result.success == True, "for 循环应该像 Python 一样"
+        assert result.success is True, "for 循环应该像 Python 一样"
 
     @pytest.mark.v3
     @pytest.mark.indentation
@@ -810,7 +804,7 @@ step "login":
         log "User not active"
 """
         result = parse_v3(source)
-        assert result.success == True, "Python 程序员的直觉写法应该能正确解析"
+        assert result.success is True, "Python 程序员的直觉写法应该能正确解析"
 
 
 # ============================================================================

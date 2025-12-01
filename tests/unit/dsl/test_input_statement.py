@@ -8,8 +8,7 @@ Input Statement 测试 (v5.1)
 """
 
 import pytest
-from io import StringIO
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 
 from flowby.lexer import Lexer, TokenType
 from flowby.parser import Parser

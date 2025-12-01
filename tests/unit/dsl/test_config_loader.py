@@ -19,7 +19,6 @@ from flowby.config import (
     ConfigLoader,
     ConfigError,
     ServicesConfig,
-    GlobalSettings,
 )
 
 

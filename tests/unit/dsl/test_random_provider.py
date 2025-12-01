@@ -15,7 +15,7 @@ RandomProvider 单元测试
 import pytest
 import re
 from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from flowby.services import ServiceRegistry, ServiceError
+from flowby.services import ServiceRegistry
 
 
 class TestPasswordGeneration:

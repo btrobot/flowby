@@ -21,7 +21,6 @@ from flowby.ast_nodes import (
     BinaryOp,
     UnaryOp,
     Identifier,
-    Literal,
     LetStatement,
 )
 

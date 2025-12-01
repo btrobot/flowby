@@ -182,7 +182,7 @@ class TestHttpPostMethod:
         let user = {name: "Bob", email: "bob@example.com", age: 30}
         let response = http.post("https://api.example.com/users", user)
         assert response.id == 42
-        assert response.created == True
+        assert response.created is True
         """
         ast = parse_script(script)
 
@@ -303,7 +303,7 @@ class TestHttpPutMethod:
         script = """
         let updated_data = {name: "Alice Updated", status: "active"}
         let response = http.put("https://api.example.com/users/1", updated_data)
-        assert response.updated == True
+        assert response.updated is True
         """
         ast = parse_script(script)
 
@@ -353,7 +353,7 @@ class TestHttpDeleteMethod:
 
         script = """
         let response = http.delete("https://api.example.com/users/999")
-        assert response.deleted == True
+        assert response.deleted is True
         """
         ast = parse_script(script)
 
@@ -401,7 +401,7 @@ class TestHttpPatchMethod:
         script = """
         let partial_update = {status: "inactive"}
         let response = http.patch("https://api.example.com/users/5", partial_update)
-        assert response.patched == True
+        assert response.patched is True
         """
         ast = parse_script(script)
 

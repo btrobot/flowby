@@ -5,10 +5,9 @@ HttpProvider 单元测试
 
 import pytest
 import responses
-from requests.exceptions import Timeout, ConnectionError, SSLError
+from requests.exceptions import Timeout, ConnectionError
 from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
 from flowby.services.registry import ServiceRegistry
-from flowby.services.errors import ServiceError
 
 
 @pytest.fixture
@@ -48,7 +47,7 @@ class TestHttpProviderBasics:
         provider = registry.providers["http"]
         assert provider.name == "http"
         assert provider.default_timeout == 30
-        assert provider.verify_ssl == True
+        assert provider.verify_ssl is True
 
     def test_get_methods(self, http_provider):
         """测试 get_methods 返回所有支持的方法"""
@@ -81,7 +80,7 @@ class TestGetMethod:
         )
         response = registry.call("http.get", url="https://api.example.com/users")
         assert response["status_code"] == 200
-        assert response["ok"] == True
+        assert response["ok"] is True
         assert response["data"] == {"users": ["alice", "bob"]}
         assert response["error"] is None
 
@@ -132,7 +131,7 @@ class TestPostMethod:
         test_data = {"name": "John", "email": "john@example.com"}
         response = registry.call("http.post", url="https://api.example.com/users", json=test_data)
         assert response["status_code"] == 201
-        assert response["ok"] == True
+        assert response["ok"] is True
         assert len(responses.calls) == 1
         assert responses.calls[0].request.headers["Content-Type"] == "application/json"
 
@@ -171,7 +170,7 @@ class TestOtherMethods:
             "http.put", url="https://api.example.com/users/123", json={"name": "Updated Name"}
         )
         assert response["status_code"] == 200
-        assert response["ok"] == True
+        assert response["ok"] is True
 
     @responses.activate
     def test_delete_method(self, registry):
@@ -179,7 +178,7 @@ class TestOtherMethods:
         responses.add(responses.DELETE, "https://api.example.com/users/123", status=204)
         response = registry.call("http.delete", url="https://api.example.com/users/123")
         assert response["status_code"] == 204
-        assert response["ok"] == True
+        assert response["ok"] is True
 
     @responses.activate
     def test_patch_method(self, registry):
@@ -194,7 +193,7 @@ class TestOtherMethods:
             "http.patch", url="https://api.example.com/users/123", json={"field": "value"}
         )
         assert response["status_code"] == 200
-        assert response["ok"] == True
+        assert response["ok"] is True
 
     @responses.activate
     def test_request_method_get(self, registry):
@@ -206,7 +205,7 @@ class TestOtherMethods:
             "http.request", http_method="GET", url="https://api.example.com/data"
         )
         assert response["status_code"] == 200
-        assert response["ok"] == True
+        assert response["ok"] is True
 
     @responses.activate
     def test_request_method_post(self, registry):
@@ -221,7 +220,7 @@ class TestOtherMethods:
             json={"key": "value"},
         )
         assert response["status_code"] == 201
-        assert response["ok"] == True
+        assert response["ok"] is True
 
 
 class TestResponseParsing:
@@ -263,7 +262,7 @@ class TestResponseParsing:
         responses.add(responses.DELETE, "https://api.example.com/resource", status=204)
         response = registry.call("http.delete", url="https://api.example.com/resource")
         assert response["status_code"] == 204
-        assert response["ok"] == True
+        assert response["ok"] is True
         assert response["data"] is None
         assert response["text"] == ""
 
@@ -282,7 +281,7 @@ class TestErrorHandling:
         )
         response = registry.call("http.get", url="https://api.example.com/notfound")
         assert response["status_code"] == 404
-        assert response["ok"] == False
+        assert response["ok"] is False
         assert response["error"] is not None
         assert "HTTP 404" in response["error"]
 
@@ -297,7 +296,7 @@ class TestErrorHandling:
         )
         response = registry.call("http.get", url="https://api.example.com/error")
         assert response["status_code"] == 500
-        assert response["ok"] == False
+        assert response["ok"] is False
         assert response["error"] is not None
 
     @responses.activate
@@ -310,7 +309,7 @@ class TestErrorHandling:
         )
         response = registry.call("http.get", url="https://api.example.com/data")
         assert response["status_code"] == 0
-        assert response["ok"] == False
+        assert response["ok"] is False
         assert response["error"] is not None
         assert "无法连接到服务器" in response["error"]
 
@@ -322,7 +321,7 @@ class TestErrorHandling:
         )
         response = registry.call("http.get", url="https://api.example.com/slow")
         assert response["status_code"] == 0
-        assert response["ok"] == False
+        assert response["ok"] is False
         assert response["error"] is not None
         assert "请求超时" in response["error"]
 
@@ -371,7 +370,7 @@ class TestConfiguration:
         registry = ServiceRegistry(services_config)
         registry.initialize()
         provider = registry.providers["http"]
-        assert provider.verify_ssl == False
+        assert provider.verify_ssl is False
         registry.close()
 
 

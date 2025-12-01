@@ -21,7 +21,7 @@ class TestV3_6_1_Type:
         """✅ 正确：基础输入"""
         source = 'type "hello" into "#input"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.1")
@@ -29,7 +29,7 @@ class TestV3_6_1_Type:
         """✅ 正确：慢速输入"""
         source = 'type "test" into "#input" slowly'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.1")
@@ -37,7 +37,7 @@ class TestV3_6_1_Type:
         """✅ 正确：快速输入"""
         source = 'type "test" into "#input" fast'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.1")
@@ -50,7 +50,7 @@ step "填写表单":
     type "password123" into "#password"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_2_Click:
@@ -62,7 +62,7 @@ class TestV3_6_2_Click:
         """✅ 正确：点击元素"""
         source = 'click "#button"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.2")
@@ -70,7 +70,7 @@ class TestV3_6_2_Click:
         """✅ 正确：类选择器"""
         source = 'click ".submit-btn"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.2")
@@ -83,7 +83,7 @@ step "点击操作":
     click ".next-btn"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_3_DoubleClick:
@@ -95,7 +95,7 @@ class TestV3_6_3_DoubleClick:
         """✅ 正确：双击"""
         source = 'double click "#file"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.3")
@@ -108,7 +108,7 @@ if editable:
     double click ".editable-field"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_4_RightClick:
@@ -120,7 +120,7 @@ class TestV3_6_4_RightClick:
         """✅ 正确：右键点击"""
         source = 'right click "#context-menu"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_5_Hover:
@@ -132,7 +132,7 @@ class TestV3_6_5_Hover:
         """✅ 正确：悬停"""
         source = 'hover over "#menu"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.5")
@@ -140,7 +140,7 @@ class TestV3_6_5_Hover:
         """✅ 正确：悬停（无 over）"""
         source = 'hover "#tooltip"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_6_Clear:
@@ -152,7 +152,7 @@ class TestV3_6_6_Clear:
         """✅ 正确：清除输入"""
         source = 'clear "#search"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_7_Press:
@@ -164,7 +164,7 @@ class TestV3_6_7_Press:
         """✅ 正确：按 Enter"""
         source = "press Enter"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.7")
@@ -172,7 +172,7 @@ class TestV3_6_7_Press:
         """✅ 正确：按 Tab"""
         source = "press Tab"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.7")
@@ -180,7 +180,7 @@ class TestV3_6_7_Press:
         """✅ 正确：按 Escape"""
         source = "press Escape"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.7")
@@ -193,7 +193,7 @@ press ArrowLeft
 press ArrowRight
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_8_Scroll:
@@ -205,7 +205,7 @@ class TestV3_6_8_Scroll:
         """✅ 正确：滚动到顶部"""
         source = "scroll to top"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.8")
@@ -213,7 +213,7 @@ class TestV3_6_8_Scroll:
         """✅ 正确：滚动到底部"""
         source = "scroll to bottom"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.8")
@@ -221,7 +221,7 @@ class TestV3_6_8_Scroll:
         """✅ 正确：滚动到元素"""
         source = 'scroll to "#section"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.8")
@@ -229,7 +229,7 @@ class TestV3_6_8_Scroll:
         """✅ 正确：滚动到位置"""
         source = "scroll to 500"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_9_CheckUncheck:
@@ -241,7 +241,7 @@ class TestV3_6_9_CheckUncheck:
         """✅ 正确：选中复选框"""
         source = 'check "#agree"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.9")
@@ -249,7 +249,7 @@ class TestV3_6_9_CheckUncheck:
         """✅ 正确：取消选中"""
         source = 'uncheck "#newsletter"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_10_Upload:
@@ -261,7 +261,7 @@ class TestV3_6_10_Upload:
         """✅ 正确：文件上传"""
         source = 'upload file "/path/to/file.pdf" to "#file-input"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("6.10")
@@ -272,7 +272,7 @@ let avatar_path = "/path/to/avatar.jpg"
 upload file avatar_path to ".avatar-upload"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_6_Integration:
@@ -293,7 +293,7 @@ step "表单提交":
     assert page.url contains "/success"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -313,7 +313,7 @@ step "复杂操作":
         click "#login-button"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -333,7 +333,7 @@ check "#checkbox"
 upload file "/path" to "#upload"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -347,7 +347,7 @@ wait for element "#results" to be visible
 click ".first-result"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -362,7 +362,7 @@ else:
     scroll to top
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 """

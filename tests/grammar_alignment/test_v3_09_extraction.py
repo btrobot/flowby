@@ -19,7 +19,7 @@ class TestV3_9_Extract:
         """✅ 正确：提取文本"""
         source = 'extract text from "#title" into page_title'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("9.1")
@@ -27,7 +27,7 @@ class TestV3_9_Extract:
         """✅ 正确：提取值"""
         source = 'extract value from "#input" into input_value'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("9.1")
@@ -35,7 +35,7 @@ class TestV3_9_Extract:
         """✅ 正确：提取 href 属性"""
         source = 'extract attr "href" from "#link" into link_url'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("9.1")
@@ -43,15 +43,15 @@ class TestV3_9_Extract:
         """✅ 正确：提取 src 属性"""
         source = 'extract attr "src" from "img.logo" into logo_src'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("9.1")
     def test_extract_pattern(self, parse_v3):
         """✅ 正确：正则提取"""
-        source = 'extract text from "#code" pattern "\d{6}" into verification_code'
+        source = r'extract text from "#code" pattern "\d{6}" into verification_code'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("9.1")
@@ -64,7 +64,7 @@ step "数据提取":
     extract value from "#input" into input_value
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -78,7 +78,7 @@ step "提取并验证":
     assert display_name != None
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 """

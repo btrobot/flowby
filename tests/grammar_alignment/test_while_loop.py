@@ -12,15 +12,10 @@ Reference: grammar/MASTER.md #9-While Loop
 """
 
 import pytest
-from unittest.mock import Mock, patch
 from flowby.ast_nodes import (
     WhileLoop,
     BreakStatement,
-    ContinueStatement,
     LetStatement,
-    Assignment,
-    LogStatement,
-    IfBlock,
     Program,
 )
 from flowby.interpreter import Interpreter
@@ -113,7 +108,7 @@ while True:
         # pass 不是 DSL 语句，这应该失败或者只有 while 没有 body
         # 实际上应该至少有一条语句
         with pytest.raises(Exception):  # 应该报错
-            ast = parse(code)
+            parse(code)
 
 
 # ============================================================================
@@ -167,7 +162,7 @@ if True:
     break
 """
         with pytest.raises(RuntimeError, match="break.*只能在循环内使用"):
-            ast = parse(code)
+            parse(code)
 
     def test_break_at_top_level_error(self, parse):
         """Test break at top level raises error"""
@@ -176,7 +171,7 @@ let x = 10
 break
 """
         with pytest.raises(RuntimeError, match="break.*只能在循环内使用"):
-            ast = parse(code)
+            parse(code)
 
 
 # ============================================================================
@@ -218,7 +213,7 @@ if True:
     continue
 """
         with pytest.raises(RuntimeError, match="continue.*只能在循环内使用"):
-            ast = parse(code)
+            parse(code)
 
     def test_continue_at_top_level_error(self, parse):
         """Test continue at top level raises error"""
@@ -226,7 +221,7 @@ if True:
 continue
 """
         with pytest.raises(RuntimeError, match="continue.*只能在循环内使用"):
-            ast = parse(code)
+            parse(code)
 
 
 # ============================================================================

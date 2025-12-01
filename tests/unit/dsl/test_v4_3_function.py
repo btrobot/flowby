@@ -16,7 +16,7 @@ import pytest
 import uuid
 from flowby.lexer import Lexer
 from flowby.parser import Parser
-from flowby.interpreter import Interpreter, ReturnException
+from flowby.interpreter import Interpreter
 from flowby.context import ExecutionContext
 from flowby.errors import ExecutionError
 from flowby.symbol_table import SymbolType

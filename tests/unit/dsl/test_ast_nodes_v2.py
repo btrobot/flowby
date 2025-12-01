@@ -18,7 +18,6 @@ from flowby.ast_nodes import (
     ConstStatement,
     Assignment,
     # v2.0 表达式节点
-    Expression,
     BinaryOp,
     UnaryOp,
     Literal,
@@ -32,7 +31,6 @@ from flowby.ast_nodes import (
     # 更新的节点
     IfBlock,
     LogStatement,
-    ExtractStatement,
 )
 
 

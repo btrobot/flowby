@@ -18,7 +18,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.abs"""
         source = "let abs_val = Math.abs(-5)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -26,7 +26,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.round"""
         source = "let rounded = Math.round(3.7)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -34,7 +34,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.ceil"""
         source = "let ceiling = Math.ceil(3.2)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -42,7 +42,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.floor"""
         source = "let floor = Math.floor(3.8)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -50,7 +50,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.max"""
         source = "let max_val = Math.max(1, 5, 3)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -58,7 +58,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.min"""
         source = "let min_val = Math.min(1, 5, 3)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -66,7 +66,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.random（注意：不能使用 'random' 作为变量名，它是保留的命名空间）"""
         source = "let randomValue = Math.random()"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -74,7 +74,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.pow"""
         source = "let power = Math.pow(2, 3)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -82,7 +82,7 @@ class TestV3_Math_Functions:
         """✅ 正确：Math.sqrt"""
         source = "let sqrt = Math.sqrt(16)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -90,7 +90,7 @@ class TestV3_Math_Functions:
         """✅ 正确：嵌套 Math 函数"""
         source = "let result = Math.abs(Math.min(-5, -10))"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_Date_Functions:
@@ -102,7 +102,7 @@ class TestV3_Date_Functions:
         """✅ 正确：Date.now"""
         source = "let now = Date.now()"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -110,7 +110,7 @@ class TestV3_Date_Functions:
         """✅ 正确：Date.format"""
         source = 'let formatted = Date.format("YYYY-MM-DD")'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -118,7 +118,7 @@ class TestV3_Date_Functions:
         """✅ 正确：Date.from_timestamp"""
         source = "let from_ts = Date.from_timestamp(1609459200)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -127,7 +127,7 @@ class TestV3_Date_Functions:
         """✅ 正确：在日志中使用（f-string）"""
         source = 'log f"时间戳: {Date.now()}"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_JSON_Functions:
@@ -139,7 +139,7 @@ class TestV3_JSON_Functions:
         """✅ 正确：JSON.stringify"""
         source = 'let json_str = JSON.stringify({name: "Alice", age: 30})'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -147,7 +147,7 @@ class TestV3_JSON_Functions:
         """✅ 正确：JSON.parse"""
         source = 'let json_obj = JSON.parse("{\\"key\\": \\"value\\"}")'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -156,7 +156,7 @@ class TestV3_JSON_Functions:
         """✅ 正确：JSON 处理 Python 风格值"""
         source = "let json_str = JSON.stringify({active: True, data: None})"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_Global_Functions:
@@ -168,7 +168,7 @@ class TestV3_Global_Functions:
         """✅ 正确：Number 转换（类似 int）"""
         source = 'let num = Number("42")'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -176,7 +176,7 @@ class TestV3_Global_Functions:
         """✅ 正确：String 转换（类似 str）"""
         source = "let str = String(123)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -184,7 +184,7 @@ class TestV3_Global_Functions:
         """✅ 正确：Boolean 转换（类似 bool）"""
         source = "let bool = Boolean(1)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -192,7 +192,7 @@ class TestV3_Global_Functions:
         """✅ 正确：isNaN"""
         source = 'let is_nan = isNaN("abc")'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.builtin
@@ -200,7 +200,7 @@ class TestV3_Global_Functions:
         """✅ 正确：isFinite"""
         source = "let is_finite = isFinite(100)"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_Builtin_Integration:
@@ -220,7 +220,7 @@ step "数据处理":
     log f"分数: {rounded}, 时间: {now}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -238,7 +238,7 @@ else if isFinite(Number(user_input)):
         log f"有效数字: {num}"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -249,7 +249,7 @@ let result = Math.round(Math.abs(Number("-3.7")))
 let json_str = JSON.stringify({value: result})
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -262,7 +262,7 @@ assert result == 10
 assert isFinite(result)
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -278,7 +278,7 @@ else:
     log "未成年或无效输入"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 """

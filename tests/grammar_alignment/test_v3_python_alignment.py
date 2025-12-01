@@ -35,7 +35,7 @@ class TestV3_PythonAlignment_Boolean:
         # 正确的代码应该正确解析
         source = "let active = True"
         result = parse_v3(source)
-        assert result.success == True, "True 应该被正确解析"
+        assert result.success is True, "True 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -44,7 +44,7 @@ class TestV3_PythonAlignment_Boolean:
         """✅ 正确：False（首字母大写）"""
         source = "let verified = False"
         result = parse_v3(source)
-        assert result.success == True, "False 应该被正确解析"
+        assert result.success is True, "False 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -54,7 +54,7 @@ class TestV3_PythonAlignment_Boolean:
         # 错误的代码应该报错
         source = "let active = true"
         result = parse_v3(source)
-        assert result.success == False, "小写 true 应该报错"
+        assert result.success is False, "小写 true 应该报错"
         # 错误提示应该一致且清晰
         assert "True" in result.error or "布尔值" in result.error, "错误提示应提及 True 或布尔值"
 
@@ -65,7 +65,7 @@ class TestV3_PythonAlignment_Boolean:
         """❌ 错误：false（小写）应报错"""
         source = "let verified = false"
         result = parse_v3(source)
-        assert result.success == False, "小写 false 应该报错"
+        assert result.success is False, "小写 false 应该报错"
         assert "False" in result.error or "布尔值" in result.error, "错误提示应提及 False 或布尔值"
 
 
@@ -84,7 +84,7 @@ class TestV3_PythonAlignment_None:
         """✅ 正确：None（首字母大写）"""
         source = "let data = None"
         result = parse_v3(source)
-        assert result.success == True, "None 应该被正确解析"
+        assert result.success is True, "None 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -93,7 +93,7 @@ class TestV3_PythonAlignment_None:
         """❌ 错误：null 关键字应报错"""
         source = "let data = null"
         result = parse_v3(source)
-        assert result.success == False, "null 应该报错"
+        assert result.success is False, "null 应该报错"
         assert (
             "None" in result.error or "null" in result.error.lower()
         ), "错误提示应提及 None 或 null"
@@ -114,7 +114,7 @@ class TestV3_PythonAlignment_SystemVariables:
         """✅ 正确：page.url（无$前缀）"""
         source = 'assert page.url == "https://example.com"'
         result = parse_v3(source)
-        assert result.success == True, "page.url 应该被正确解析"
+        assert result.success is True, "page.url 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -123,7 +123,7 @@ class TestV3_PythonAlignment_SystemVariables:
         """✅ 正确：env.API_KEY（无$前缀）"""
         source = "log env.API_KEY"
         result = parse_v3(source)
-        assert result.success == True, "env.API_KEY 应该被正确解析"
+        assert result.success is True, "env.API_KEY 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -132,7 +132,7 @@ class TestV3_PythonAlignment_SystemVariables:
         """❌ 错误：$page.url 应报错"""
         source = 'assert $page.url == "test"'
         result = parse_v3(source)
-        assert result.success == False, "$page.url 应该报错"
+        assert result.success is False, "$page.url 应该报错"
         assert "$" in result.error or "page.url" in result.error, "错误提示应提及 $ 前缀问题"
 
     @pytest.mark.v3
@@ -142,7 +142,7 @@ class TestV3_PythonAlignment_SystemVariables:
         """❌ 错误：$env.API_KEY 应报错"""
         source = "log $env.API_KEY"
         result = parse_v3(source)
-        assert result.success == False, "$env.API_KEY 应该报错"
+        assert result.success is False, "$env.API_KEY 应该报错"
 
 
 # ============================================================================
@@ -160,7 +160,7 @@ class TestV3_PythonAlignment_FString:
         """✅ 正确：f-string 插值"""
         source = 'let count = 10\nlog f"Count: {count}"'
         result = parse_v3(source)
-        assert result.success == True, "f-string 应该被正确解析"
+        assert result.success is True, "f-string 应该被正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -170,7 +170,7 @@ class TestV3_PythonAlignment_FString:
         # 这应该被解析为字面量字符串 "Count: {count}"
         source = 'let count = 10\nlog "Count: {count}"'
         result = parse_v3(source)
-        assert result.success == True, "普通字符串应该被正确解析（作为字面量）"
+        assert result.success is True, "普通字符串应该被正确解析（作为字面量）"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -181,7 +181,7 @@ class TestV3_PythonAlignment_FString:
         source = 'let x = 5\nlog "Value: {x}"'
         result = parse_v3(source)
         # 应该成功解析，但 {x} 是字面量而非插值
-        assert result.success == True
+        assert result.success is True
         # 进一步验证：{x} 没有被当作变量引用
         # （这需要执行层面的验证，暂时只验证解析成功）
 
@@ -205,7 +205,7 @@ if x > 0:
     let y = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "无 end if 的 if 块应该正确解析"
+        assert result.success is True, "无 end if 的 if 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -217,7 +217,7 @@ step "test":
     let x = 1
 """
         result = parse_v3(source)
-        assert result.success == True, "无 end step 的 step 块应该正确解析"
+        assert result.success is True, "无 end step 的 step 块应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -231,7 +231,7 @@ if x > 0:
 end if
 """
         result = parse_v3(source)
-        assert result.success == False, "end if 应该报错"
+        assert result.success is False, "end if 应该报错"
         assert (
             "end" in result.error.lower() or "缩进" in result.error
         ), "错误提示应提及 end 关键字或缩进"
@@ -247,7 +247,7 @@ step "test":
 end step
 """
         result = parse_v3(source)
-        assert result.success == False, "end step 应该报错"
+        assert result.success is False, "end step 应该报错"
 
 
 # ============================================================================
@@ -271,7 +271,7 @@ class TestV3_PythonAlignment_BlockComment:
 let x = 1
 '''
         result = parse_v3(source)
-        assert result.success == True, "三引号块注释应该正确解析"
+        assert result.success is True, "三引号块注释应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -280,7 +280,7 @@ let x = 1
         """❌ 错误：C 风格注释应报错"""
         source = "/* comment */ let x = 1"
         result = parse_v3(source)
-        assert result.success == False, "C 风格注释应该报错"
+        assert result.success is False, "C 风格注释应该报错"
         # 错误消息应提到 SLASH 或 / （实际报错："未知的语句开始: SLASH"）
         assert (
             "SLASH" in result.error or "/" in result.error
@@ -319,9 +319,9 @@ class TestV3_PythonAlignment_Comprehensive:
         result = parse_v3(source)
 
         if should_pass:
-            assert result.success == True, f"Python 风格代码应该解析成功：{source}"
+            assert result.success is True, f"Python 风格代码应该解析成功：{source}"
         else:
-            assert result.success == False, f"非 Python 风格代码应该报错：{source}"
+            assert result.success is False, f"非 Python 风格代码应该报错：{source}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -343,10 +343,10 @@ step "用户登录":
         type email into "#email"
         success = True
 
-    assert success == True
+    assert success is True
 '''
         result = parse_v3(source)
-        assert result.success == True, "复杂 Python 风格代码应该正确解析"
+        assert result.success is True, "复杂 Python 风格代码应该正确解析"
 
 
 # ============================================================================
@@ -371,7 +371,7 @@ class TestV3_ErrorConsistency:
     def test_error_messages_contain_hint(self, parse_v3, source, error_keyword):
         """验证错误提示包含关键提示词"""
         result = parse_v3(source)
-        assert result.success == False, f"代码应该报错：{source}"
+        assert result.success is False, f"代码应该报错：{source}"
         assert (
             error_keyword in result.error or error_keyword.lower() in result.error.lower()
         ), f"错误提示应包含 '{error_keyword}'，实际：{result.error}"

@@ -63,26 +63,26 @@ class TestTypeConversion:
     def test_to_boolean_with_boolean_values(self):
         """测试布尔值转布尔"""
         # Arrange & Act & Assert
-        assert to_boolean(True) == True, "True 应该转换为 True"
-        assert to_boolean(False) == False, "False 应该转换为 False"
+        assert to_boolean(True) is True, "True 应该转换为 True"
+        assert to_boolean(False) is False, "False 应该转换为 False"
 
     def test_to_boolean_with_numbers(self):
         """测试数字转布尔"""
         # Arrange & Act & Assert
-        assert to_boolean(1) == True, "1 应该转换为 True"
-        assert to_boolean(0) == False, "0 应该转换为 False"
-        assert to_boolean(42) == True, "非零数字应该转换为 True"
+        assert to_boolean(1) is True, "1 应该转换为 True"
+        assert to_boolean(0) is False, "0 应该转换为 False"
+        assert to_boolean(42) is True, "非零数字应该转换为 True"
 
     def test_to_boolean_with_strings(self):
         """测试字符串转布尔"""
         # Arrange & Act & Assert
-        assert to_boolean("hello") == True, "非空字符串应该转换为 True"
-        assert to_boolean("") == False, "空字符串应该转换为 False"
+        assert to_boolean("hello") is True, "非空字符串应该转换为 True"
+        assert to_boolean("") is False, "空字符串应该转换为 False"
 
     def test_to_boolean_with_none(self):
         """测试 None 转布尔"""
         # Arrange & Act & Assert
-        assert to_boolean(None) == False, "None 应该转换为 False"
+        assert to_boolean(None) is False, "None 应该转换为 False"
 
     def test_to_number_with_integers(self):
         """测试整数转数字"""
@@ -189,7 +189,7 @@ class TestLiteralEvaluation:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "布尔字面量应该返回原值"
+        assert result is True, "布尔字面量应该返回原值"
 
     def test_null_literal(self, evaluator):
         """测试 null 字面量"""
@@ -488,7 +488,7 @@ class TestComparisonOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "10 > 5 应该为 True"
+        assert result is True, "10 > 5 应该为 True"
 
     def test_less_than(self, evaluator):
         """测试小于"""
@@ -501,7 +501,7 @@ class TestComparisonOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "3 < 5 应该为 True"
+        assert result is True, "3 < 5 应该为 True"
 
     def test_equal(self, evaluator):
         """测试相等"""
@@ -514,7 +514,7 @@ class TestComparisonOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "5 == 5 应该为 True"
+        assert result is True, "5 == 5 应该为 True"
 
     def test_not_equal(self, evaluator):
         """测试不等"""
@@ -527,7 +527,7 @@ class TestComparisonOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "5 != 3 应该为 True"
+        assert result is True, "5 != 3 应该为 True"
 
     @pytest.mark.parametrize(
         "left,op,right,expected",
@@ -585,7 +585,7 @@ class TestLogicalOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "True AND True 应该为 True"
+        assert result is True, "True AND True 应该为 True"
 
     def test_and_true_false(self, evaluator):
         """测试 True AND False"""
@@ -601,7 +601,7 @@ class TestLogicalOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == False, "True AND False 应该为 False"
+        assert result is False, "True AND False 应该为 False"
 
     def test_or_true_false(self, evaluator):
         """测试 True OR False"""
@@ -617,7 +617,7 @@ class TestLogicalOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "True OR False 应该为 True"
+        assert result is True, "True OR False 应该为 True"
 
     def test_not_false(self, evaluator):
         """测试 NOT False"""
@@ -628,7 +628,7 @@ class TestLogicalOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "NOT False 应该为 True"
+        assert result is True, "NOT False 应该为 True"
 
     def test_not_true(self, evaluator):
         """测试 NOT True"""
@@ -639,7 +639,7 @@ class TestLogicalOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == False, "NOT True 应该为 False"
+        assert result is False, "NOT True 应该为 False"
 
     @pytest.mark.parametrize(
         "left,op,right,expected",
@@ -697,7 +697,7 @@ class TestStringOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "'hello world' contains 'world' 应该为 True"
+        assert result is True, "'hello world' contains 'world' 应该为 True"
 
     def test_matches_operator(self, evaluator):
         """测试 matches 运算符（正则）"""
@@ -713,7 +713,7 @@ class TestStringOperations:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "'test123' matches '\\d+' 应该为 True"
+        assert result is True, "'test123' matches '\\d+' 应该为 True"
 
     @pytest.mark.parametrize(
         "text,substring,expected",
@@ -934,7 +934,7 @@ class TestComplexExpressions:
 
         # Assert
         # (25 + 5) * 2 = 60 > 50 = True
-        assert result == True, "(age + 5) * 2 > 50 应该为 True (当 age=25)"
+        assert result is True, "(age + 5) * 2 > 50 应该为 True (当 age=25)"
 
     def test_comparison_with_logical_and(self, evaluator):
         """测试比较与逻辑 AND"""
@@ -960,7 +960,7 @@ class TestComplexExpressions:
         result = evaluator.evaluate(expr)
 
         # Assert
-        assert result == True, "age > 18 AND username == 'alice' 应该为 True"
+        assert result is True, "age > 18 AND username == 'alice' 应该为 True"
 
     def test_complex_nested_expression(self, evaluator):
         """测试复杂嵌套表达式"""
@@ -987,4 +987,4 @@ class TestComplexExpressions:
 
         # Assert
         # (25 + 10) / 5 = 35 / 5 = 7.0
-        assert result == True, "(age + 10) / 5 == 7.0 应该为 True"
+        assert result is True, "(age + 10) / 5 == 7.0 应该为 True"

@@ -20,7 +20,7 @@ class TestV3_10_1_Log:
         """✅ 正确：普通字符串日志"""
         source = 'log "开始测试"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.1")
@@ -29,7 +29,7 @@ class TestV3_10_1_Log:
         """✅ 正确：f-string 日志（v3.0 Python 风格）"""
         source = 'let username = "admin"\nlog f"用户名: {username}"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.1")
@@ -38,7 +38,7 @@ class TestV3_10_1_Log:
         """✅ 正确：多变量 f-string"""
         source = 'let score = 95\nlet grade = "A"\nlog f"分数: {score}, 等级: {grade}"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.1")
@@ -47,7 +47,7 @@ class TestV3_10_1_Log:
         """✅ 正确：表达式 f-string"""
         source = 'let x = 5\nlet y = 3\nlog f"计算结果: {x + y * 2}"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.1")
@@ -56,7 +56,7 @@ class TestV3_10_1_Log:
         """✅ 正确：系统变量日志（无 $ 前缀）"""
         source = 'log f"当前URL: {page.url}"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.1")
@@ -71,7 +71,7 @@ step "日志输出":
     log "步骤结束"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_10_2_Screenshot:
@@ -83,7 +83,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：基础截图"""
         source = "screenshot"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -91,7 +91,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：全页面截图"""
         source = "screenshot fullpage"
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -99,7 +99,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：命名截图"""
         source = 'screenshot as "homepage"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -107,7 +107,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：元素截图"""
         source = 'screenshot of "#main-content"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -115,7 +115,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：命名元素截图"""
         source = 'screenshot of ".modal" as "modal-view"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -123,7 +123,7 @@ class TestV3_10_2_Screenshot:
         """✅ 正确：命名全页面截图"""
         source = 'screenshot of "body" fullpage as "full-page"'
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.feature("10.2")
@@ -137,7 +137,7 @@ step "截图记录":
     screenshot as "after"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 class TestV3_10_Integration:
@@ -159,7 +159,7 @@ step "测试流程":
     log "测试完成"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
     @pytest.mark.v3
     @pytest.mark.integration
@@ -174,7 +174,7 @@ if debug == True:
     screenshot as "debug"
 """
         result = parse_v3(source)
-        assert result.success == True
+        assert result.success is True
 
 
 """

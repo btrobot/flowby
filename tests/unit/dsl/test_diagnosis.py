@@ -14,12 +14,11 @@
 10. 完整工作流语法
 """
 
-import os
 import pytest
 import tempfile
 import shutil
 from pathlib import Path
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from flowby.lexer import Lexer, TokenType
 from flowby.parser import Parser
@@ -29,19 +28,9 @@ from flowby.diagnosis import (
     DiagnosisConfig,
     DEFAULT_DIAGNOSIS_CONFIG,
 )
-from flowby.diagnosis.config import get_collectors_for_level, LEVEL_COLLECTORS
+from flowby.diagnosis.config import get_collectors_for_level
 from flowby.diagnosis.collectors import (
     get_collector,
-    COLLECTORS,
-    ScreenshotCollector,
-    PageInfoCollector,
-    HtmlSourceCollector,
-    ElementInfoCollector,
-    ConsoleLogCollector,
-    ContextSnapshotCollector,
-    NetworkLogCollector,
-    PerformanceCollector,
-    ViewportCollector,
 )
 from flowby.diagnosis.report import DiagnosisReportGenerator
 from flowby.diagnosis.cleanup import DiagnosisCleanup
@@ -178,7 +167,7 @@ class TestDiagnosisConfig:
         config = DEFAULT_DIAGNOSIS_CONFIG
 
         # Act & Assert
-        assert config.cleanup.enabled == True, "清理应该默认启用"
+        assert config.cleanup.enabled is True, "清理应该默认启用"
         assert config.cleanup.max_age_days == 7, "最大保留天数应该是 7"
         assert config.cleanup.max_count == 100, "最大保留数量应该是 100"
         assert config.cleanup.max_size_mb == 500, "最大保留大小应该是 500MB"
@@ -189,8 +178,8 @@ class TestDiagnosisConfig:
         config = DEFAULT_DIAGNOSIS_CONFIG
 
         # Act & Assert
-        assert config.network_filter.include_assets == False, "默认不包含静态资源"
-        assert config.network_filter.only_failed == False, "默认不仅记录失败请求"
+        assert config.network_filter.include_assets is False, "默认不包含静态资源"
+        assert config.network_filter.only_failed is False, "默认不仅记录失败请求"
 
     def test_console_filter_config(self):
         """测试控制台过滤配置"""

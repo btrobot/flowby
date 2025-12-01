@@ -36,7 +36,7 @@ class TestV3_SystemVariables_Page:
         """✅ 正确：page.url（无 $ 前缀）"""
         source = 'log f"当前URL: {page.url}"'
         result = parse_v3(source)
-        assert result.success == True, "page.url 应该正确解析"
+        assert result.success is True, "page.url 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -46,7 +46,7 @@ class TestV3_SystemVariables_Page:
         """✅ 正确：page.title（无 $ 前缀）"""
         source = 'log f"页面标题: {page.title}"'
         result = parse_v3(source)
-        assert result.success == True, "page.title 应该正确解析"
+        assert result.success is True, "page.title 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -56,7 +56,7 @@ class TestV3_SystemVariables_Page:
         """✅ 正确：page.origin（无 $ 前缀）"""
         source = "log page.origin"
         result = parse_v3(source)
-        assert result.success == True, "page.origin 应该正确解析"
+        assert result.success is True, "page.origin 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -69,7 +69,7 @@ if page.url == "https://example.com":
     log "正确的页面"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件中的 page 变量应该正确解析"
+        assert result.success is True, "条件中的 page 变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -79,7 +79,7 @@ if page.url == "https://example.com":
         """❌ 错误：$page.url 应报错"""
         source = "log $page.url"
         result = parse_v3(source)
-        assert result.success == False, "$page.url 应该报错"
+        assert result.success is False, "$page.url 应该报错"
         assert (
             "$" in result.error or "page.url" in result.error
         ), f"错误提示应提及 $ 前缀或 page.url，实际：{result.error}"
@@ -101,7 +101,7 @@ class TestV3_SystemVariables_Env:
         """✅ 正确：env.API_KEY（无 $ 前缀）"""
         source = 'log f"API Key: {env.API_KEY}"'
         result = parse_v3(source)
-        assert result.success == True, "env.API_KEY 应该正确解析"
+        assert result.success is True, "env.API_KEY 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -115,7 +115,7 @@ let port = env.DB_PORT
 let user = env.DB_USER
 """
         result = parse_v3(source)
-        assert result.success == True, "多个 env 变量应该正确解析"
+        assert result.success is True, "多个 env 变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -128,7 +128,7 @@ if env.DEBUG == "true":
     log "调试模式"
 """
         result = parse_v3(source)
-        assert result.success == True, "条件中的 env 变量应该正确解析"
+        assert result.success is True, "条件中的 env 变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -138,7 +138,7 @@ if env.DEBUG == "true":
         """❌ 错误：$env.API_KEY 应报错"""
         source = "log $env.API_KEY"
         result = parse_v3(source)
-        assert result.success == False, "$env.API_KEY 应该报错"
+        assert result.success is False, "$env.API_KEY 应该报错"
 
 
 # ============================================================================
@@ -157,7 +157,7 @@ class TestV3_SystemVariables_Browser:
         """✅ 正确：browser.name（无 $ 前缀）"""
         source = 'log f"浏览器: {browser.name}"'
         result = parse_v3(source)
-        assert result.success == True, "browser.name 应该正确解析"
+        assert result.success is True, "browser.name 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -167,7 +167,7 @@ class TestV3_SystemVariables_Browser:
         """✅ 正确：browser.version（无 $ 前缀）"""
         source = "log browser.version"
         result = parse_v3(source)
-        assert result.success == True, "browser.version 应该正确解析"
+        assert result.success is True, "browser.version 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -177,7 +177,7 @@ class TestV3_SystemVariables_Browser:
         """❌ 错误：$browser.name 应报错"""
         source = "log $browser.name"
         result = parse_v3(source)
-        assert result.success == False, "$browser.name 应该报错"
+        assert result.success is False, "$browser.name 应该报错"
 
 
 # ============================================================================
@@ -196,7 +196,7 @@ class TestV3_SystemVariables_Context:
         """✅ 正确：context.task_id（无 $ 前缀）"""
         source = 'log f"任务ID: {context.task_id}"'
         result = parse_v3(source)
-        assert result.success == True, "context.task_id 应该正确解析"
+        assert result.success is True, "context.task_id 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -206,7 +206,7 @@ class TestV3_SystemVariables_Context:
         """✅ 正确：context.execution_id（无 $ 前缀）"""
         source = "log context.execution_id"
         result = parse_v3(source)
-        assert result.success == True, "context.execution_id 应该正确解析"
+        assert result.success is True, "context.execution_id 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -216,7 +216,7 @@ class TestV3_SystemVariables_Context:
         """✅ 正确：context.start_time（无 $ 前缀）"""
         source = "let start = context.start_time"
         result = parse_v3(source)
-        assert result.success == True, "context.start_time 应该正确解析"
+        assert result.success is True, "context.start_time 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -226,7 +226,7 @@ class TestV3_SystemVariables_Context:
         """❌ 错误：$context.task_id 应报错"""
         source = "log $context.task_id"
         result = parse_v3(source)
-        assert result.success == False, "$context.task_id 应该报错"
+        assert result.success is False, "$context.task_id 应该报错"
 
 
 # ============================================================================
@@ -245,7 +245,7 @@ class TestV3_SystemVariables_Config:
         """✅ 正确：config.base_url（无 $ 前缀）"""
         source = "navigate to config.base_url"
         result = parse_v3(source)
-        assert result.success == True, "config.base_url 应该正确解析"
+        assert result.success is True, "config.base_url 应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -255,7 +255,7 @@ class TestV3_SystemVariables_Config:
         """✅ 正确：f-string 中的 config 变量"""
         source = 'log f"Base URL: {config.base_url}"'
         result = parse_v3(source)
-        assert result.success == True, "f-string 中的 config 变量应该正确解析"
+        assert result.success is True, "f-string 中的 config 变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -265,7 +265,7 @@ class TestV3_SystemVariables_Config:
         """❌ 错误：$config.base_url 应报错"""
         source = "log $config.base_url"
         result = parse_v3(source)
-        assert result.success == False, "$config.base_url 应该报错"
+        assert result.success is False, "$config.base_url 应该报错"
 
 
 # ============================================================================
@@ -290,7 +290,7 @@ step "系统信息":
     log f"配置: {config.base_url}"
 """
         result = parse_v3(source)
-        assert result.success == True, "多个命名空间组合应该正确解析"
+        assert result.success is True, "多个命名空间组合应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -302,7 +302,7 @@ let is_local = page.origin == config.local_origin
 let has_api_key = env.API_KEY != None
 """
         result = parse_v3(source)
-        assert result.success == True, "表达式中的系统变量应该正确解析"
+        assert result.success is True, "表达式中的系统变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -314,7 +314,7 @@ assert page.url == config.expected_url
 assert browser.name == "Chrome"
 """
         result = parse_v3(source)
-        assert result.success == True, "断言中的系统变量应该正确解析"
+        assert result.success is True, "断言中的系统变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -329,7 +329,7 @@ when browser.name:
         log "Firefox 浏览器"
 """
         result = parse_v3(source)
-        assert result.success == True, "when 块中的系统变量应该正确解析"
+        assert result.success is True, "when 块中的系统变量应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -353,7 +353,7 @@ step "环境检查":
     log f"任务: {context.task_id} (执行: {context.execution_id})"
 '''
         result = parse_v3(source)
-        assert result.success == True, "真实使用场景应该正确解析"
+        assert result.success is True, "真实使用场景应该正确解析"
 
 
 # ============================================================================
@@ -375,7 +375,7 @@ log f"Page URL: {page.url}"
 log f"Browser: {browser.name}"
 """
         result = parse_v3(source)
-        assert result.success == True, "系统变量应该像 Python 全局对象一样"
+        assert result.success is True, "系统变量应该像 Python 全局对象一样"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -393,7 +393,7 @@ log f"Browser: {browser.name}"
         """✅ 验证：所有命名空间都无 $ 前缀"""
         source = f"log {namespace}.property"
         result = parse_v3(source)
-        assert result.success == True, f"{namespace} 命名空间应该无 $ 前缀"
+        assert result.success is True, f"{namespace} 命名空间应该无 $ 前缀"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -411,7 +411,7 @@ log f"Browser: {browser.name}"
         """❌ 验证：所有命名空间的 $ 前缀都报错"""
         source = f"log ${namespace}.property"
         result = parse_v3(source)
-        assert result.success == False, f"${namespace} 应该报错"
+        assert result.success is False, f"${namespace} 应该报错"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -424,16 +424,9 @@ log page.url
 log browser.name
 """
 
-        python_equiv = """
-# Python
-import os, sys
-print(os.environ['API_KEY'])
-print(page.url)  # 假设 page 是全局对象
-print(browser.name)  # 假设 browser 是全局对象
-"""
         # DSL 代码应该能解析，且风格与 Python 相似
         result = parse_v3(dsl_code)
-        assert result.success == True, "系统变量风格应该与 Python 全局对象相似"
+        assert result.success is True, "系统变量风格应该与 Python 全局对象相似"
 
 
 # ============================================================================
@@ -460,7 +453,7 @@ class TestV3_SystemVariables_ErrorMessages:
         """❌ 验证：错误提示建议正确语法"""
         source = f"log {wrong_syntax}"
         result = parse_v3(source)
-        assert result.success == False, f"{wrong_syntax} 应该报错"
+        assert result.success is False, f"{wrong_syntax} 应该报错"
 
         # 错误提示应该包含：
         # 1. 提及 $ 前缀错误
