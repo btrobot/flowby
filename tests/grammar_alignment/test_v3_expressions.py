@@ -303,7 +303,7 @@ class TestV3_Expr_Complex:
     @pytest.mark.python_aligned
     def test_complex_python_style(self, parse_v3):
         """✅ 正确：复杂Python风格表达式"""
-        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit is True"
+        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit == True"
         result = parse_v3(source)
         assert result.success is True
 

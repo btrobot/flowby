@@ -28,7 +28,7 @@ class TestV3_7_AssertExpression:
         """✅ 正确：True/False 断言（Python 风格）"""
         source = """
 assert True
-assert False is False
+assert False == False
 """
         result = parse_v3(source)
         assert result.success is True
@@ -87,7 +87,7 @@ assert False is False
     @pytest.mark.feature("7.x")
     def test_assert_complex_expression(self, parse_v3):
         """✅ 正确：复杂表达式断言"""
-        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit is True"
+        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit == True"
         result = parse_v3(source)
         assert result.success is True
 

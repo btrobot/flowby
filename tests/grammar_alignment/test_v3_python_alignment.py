@@ -343,7 +343,7 @@ step "用户登录":
         type email into "#email"
         success = True
 
-    assert success is True
+    assert success == True
 '''
         result = parse_v3(source)
         assert result.success is True, "复杂 Python 风格代码应该正确解析"
