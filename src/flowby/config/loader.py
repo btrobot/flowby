@@ -25,7 +25,7 @@ class ConfigLoader:
     """配置加载器"""
 
     # 环境变量引用模式: ${VAR} 或 ${ENV:VAR} 或 ${ENV:VAR:default}
-    ENV_VAR_PATTERN = re.compile(r'\$\{(?:ENV:)?([^}:]+)(?::([^}]*))?\}')
+    ENV_VAR_PATTERN = re.compile(r"\$\{(?:ENV:)?([^}:]+)(?::([^}]*))?\}")
 
     def __init__(self, config_dir: str = "config"):
         """
@@ -71,17 +71,14 @@ class ConfigLoader:
             raise ConfigError(
                 f"配置文件不存在: {path}",
                 file_path=str(file_path),
-                suggestion=f"请创建配置文件 {file_path}"
+                suggestion=f"请创建配置文件 {file_path}",
             )
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 raw_data = yaml.safe_load(f)
         except yaml.YAMLError as e:
-            raise ConfigError(
-                f"YAML 语法错误: {e}",
-                file_path=str(file_path)
-            )
+            raise ConfigError(f"YAML 语法错误: {e}", file_path=str(file_path))
 
         if raw_data is None:
             raw_data = {}
@@ -113,13 +110,10 @@ class ConfigLoader:
             return {}
 
         try:
-            with open(file_path, 'r', encoding='utf-8') as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 raw_data = yaml.safe_load(f)
         except yaml.YAMLError as e:
-            raise ConfigError(
-                f"YAML 语法错误: {e}",
-                file_path=str(file_path)
-            )
+            raise ConfigError(f"YAML 语法错误: {e}", file_path=str(file_path))
 
         if raw_data is None:
             return {}
@@ -162,6 +156,7 @@ class ConfigLoader:
         Raises:
             ConfigError: 必需的环境变量未设置
         """
+
         def replace_env_var(match):
             var_name = match.group(1)
             default_value = match.group(2)
@@ -177,9 +172,9 @@ class ConfigLoader:
                     f"环境变量 '{var_name}' 未设置",
                     file_path=file_path,
                     suggestion=f"请设置环境变量:\n"
-                               f"  1. export {var_name}=your-value\n"
-                               f"  2. 或在 .env 文件中添加: {var_name}=your-value\n"
-                               f"  3. 或使用默认值: ${{{var_name}:default-value}}"
+                    f"  1. export {var_name}=your-value\n"
+                    f"  2. 或在 .env 文件中添加: {var_name}=your-value\n"
+                    f"  3. 或使用默认值: ${{{var_name}:default-value}}",
                 )
 
         return self.ENV_VAR_PATTERN.sub(replace_env_var, value)
@@ -199,18 +194,18 @@ class ConfigLoader:
             ConfigError: 配置验证失败
         """
         # 解析全局设置
-        settings_data = data.get('settings', {})
+        settings_data = data.get("settings", {})
         settings = GlobalSettings(
-            timeout=settings_data.get('timeout', 30000),
-            retry_count=settings_data.get('retry_count', 3),
-            retry_delay=settings_data.get('retry_delay', 1000)
+            timeout=settings_data.get("timeout", 30000),
+            retry_count=settings_data.get("retry_count", 3),
+            retry_delay=settings_data.get("retry_delay", 1000),
         )
 
         # 验证设置值
         self._validate_settings(settings, file_path)
 
         # 解析提供者配置
-        providers_data = data.get('providers', {})
+        providers_data = data.get("providers", {})
         providers = {}
 
         for name, provider_data in providers_data.items():
@@ -225,33 +220,28 @@ class ConfigLoader:
             raise ConfigError(
                 f"timeout 值 {settings.timeout} 小于最小值 1000",
                 file_path=file_path,
-                suggestion="timeout 应至少为 1000 毫秒"
+                suggestion="timeout 应至少为 1000 毫秒",
             )
 
         if settings.timeout > 300000:
             raise ConfigError(
                 f"timeout 值 {settings.timeout} 大于最大值 300000",
                 file_path=file_path,
-                suggestion="timeout 不应超过 300000 毫秒（5分钟）"
+                suggestion="timeout 不应超过 300000 毫秒（5分钟）",
             )
 
         if settings.retry_count < 0 or settings.retry_count > 10:
             raise ConfigError(
-                f"retry_count 值 {settings.retry_count} 不在有效范围 [0, 10]",
-                file_path=file_path
+                f"retry_count 值 {settings.retry_count} 不在有效范围 [0, 10]", file_path=file_path
             )
 
         if settings.retry_delay < 0:
             raise ConfigError(
-                f"retry_delay 值 {settings.retry_delay} 不能为负数",
-                file_path=file_path
+                f"retry_delay 值 {settings.retry_delay} 不能为负数", file_path=file_path
             )
 
     def _parse_provider_config(
-        self,
-        name: str,
-        data: Dict[str, Any],
-        file_path: str
+        self, name: str, data: Dict[str, Any], file_path: str
     ) -> ProviderConfig:
         """
         解析单个提供者配置
@@ -265,31 +255,25 @@ class ConfigLoader:
             ProviderConfig 对象
         """
         # 验证 type 字段
-        if 'type' not in data:
-            raise ConfigError(
-                f"提供者 '{name}' 缺少 'type' 字段",
-                file_path=file_path
-            )
+        if "type" not in data:
+            raise ConfigError(f"提供者 '{name}' 缺少 'type' 字段", file_path=file_path)
 
-        provider_type = data['type']
+        provider_type = data["type"]
         if provider_type not in SUPPORTED_PROVIDER_TYPES:
             raise ConfigError(
                 f"提供者 '{name}' 的类型 '{provider_type}' 不支持",
                 file_path=file_path,
-                suggestion=f"支持的类型: {', '.join(SUPPORTED_PROVIDER_TYPES)}"
+                suggestion=f"支持的类型: {', '.join(SUPPORTED_PROVIDER_TYPES)}",
             )
 
         # 验证 config 字段
-        if 'config' not in data:
-            raise ConfigError(
-                f"提供者 '{name}' 缺少 'config' 字段",
-                file_path=file_path
-            )
+        if "config" not in data:
+            raise ConfigError(f"提供者 '{name}' 缺少 'config' 字段", file_path=file_path)
 
         return ProviderConfig(
             type=provider_type,
-            config=data['config'],
-            timeout=data.get('timeout'),
-            retry_count=data.get('retry_count'),
-            retry_delay=data.get('retry_delay')
+            config=data["config"],
+            timeout=data.get("timeout"),
+            retry_count=data.get("retry_count"),
+            retry_delay=data.get("retry_delay"),
         )

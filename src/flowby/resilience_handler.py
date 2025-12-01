@@ -12,7 +12,7 @@ Resilience Handler - v4.2 Phase 4
 
 from typing import Dict, Any, Optional, Callable
 from .retry_handler import RetryHandler
-from .circuit_breaker import CircuitBreaker, CircuitBreakerError
+from .circuit_breaker import CircuitBreaker
 
 
 class ResilienceHandler:
@@ -62,24 +62,22 @@ class ResilienceHandler:
             }
         """
         self.config = config or {}
-        self.enabled = self.config.get('enabled', True)
-        self.retry_enabled = self.config.get('retry_enabled', True)
-        self.circuit_breaker_enabled = self.config.get('circuit_breaker_enabled', True)
+        self.enabled = self.config.get("enabled", True)
+        self.retry_enabled = self.config.get("retry_enabled", True)
+        self.circuit_breaker_enabled = self.config.get("circuit_breaker_enabled", True)
 
         # 创建重试处理器
-        retry_config = self.config.get('retry', {})
+        retry_config = self.config.get("retry", {})
         self.retry_handler = RetryHandler(retry_config) if self.retry_enabled else None
 
         # 创建断路器
-        circuit_config = self.config.get('circuit_breaker', {})
-        self.circuit_breaker = CircuitBreaker(circuit_config) if self.circuit_breaker_enabled else None
+        circuit_config = self.config.get("circuit_breaker", {})
+        self.circuit_breaker = (
+            CircuitBreaker(circuit_config) if self.circuit_breaker_enabled else None
+        )
 
     def execute(
-        self,
-        operation_name: str,
-        func: Callable,
-        method: str = "GET",
-        logger: Optional[Any] = None
+        self, operation_name: str, func: Callable, method: str = "GET", logger: Optional[Any] = None
     ) -> Any:
         """
         执行带弹性保护的操作
@@ -118,13 +116,8 @@ class ResilienceHandler:
 
             return self.circuit_breaker.execute(
                 operation_name,
-                lambda: self.retry_handler.execute(
-                    operation_name,
-                    retry_wrapper,
-                    method,
-                    logger
-                ),
-                logger
+                lambda: self.retry_handler.execute(operation_name, retry_wrapper, method, logger),
+                logger,
             )
 
         # 默认：直接执行
@@ -188,7 +181,7 @@ class ResilienceHandler:
 
 
 def create_resilience_handler(
-    config: Optional[Dict[str, Any]] = None
+    config: Optional[Dict[str, Any]] = None,
 ) -> Optional[ResilienceHandler]:
     """
     创建弹性处理器（工厂函数）
@@ -203,9 +196,9 @@ def create_resilience_handler(
         return None
 
     # 检查是否启用了任何弹性功能
-    enabled = config.get('enabled', True)
-    retry_enabled = config.get('retry_enabled', True)
-    circuit_breaker_enabled = config.get('circuit_breaker_enabled', True)
+    enabled = config.get("enabled", True)
+    retry_enabled = config.get("retry_enabled", True)
+    circuit_breaker_enabled = config.get("circuit_breaker_enabled", True)
 
     if not enabled or (not retry_enabled and not circuit_breaker_enabled):
         return None

@@ -11,6 +11,7 @@ v4.3 函数定义和调用测试
 7. 递归检测
 8. 错误处理
 """
+
 import pytest
 import uuid
 from registration_system.dsl.lexer import Lexer

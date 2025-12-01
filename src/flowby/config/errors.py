@@ -14,7 +14,7 @@ class ConfigError(Exception):
         file_path: Optional[str] = None,
         line: Optional[int] = None,
         column: Optional[int] = None,
-        suggestion: Optional[str] = None
+        suggestion: Optional[str] = None,
     ):
         """
         初始化配置错误

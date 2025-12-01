@@ -12,7 +12,7 @@ Authentication Handler - v4.2 Phase 2
 
 import base64
 import requests
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
 
@@ -68,7 +68,7 @@ class AuthHandler:
             }
         """
         self.auth_config = auth_config
-        self.auth_type = auth_config.get('type', 'custom')
+        self.auth_type = auth_config.get("type", "custom")
 
         # OAuth2 token 缓存
         self._oauth2_token = None
@@ -81,18 +81,18 @@ class AuthHandler:
         Returns:
             认证相关的 HTTP headers
         """
-        if self.auth_type == 'bearer':
+        if self.auth_type == "bearer":
             return self._get_bearer_headers()
-        elif self.auth_type == 'apikey':
-            if self.auth_config.get('location') == 'header':
+        elif self.auth_type == "apikey":
+            if self.auth_config.get("location") == "header":
                 return self._get_apikey_headers()
             else:
                 return {}
-        elif self.auth_type == 'basic':
+        elif self.auth_type == "basic":
             return self._get_basic_headers()
-        elif self.auth_type == 'oauth2':
+        elif self.auth_type == "oauth2":
             return self._get_oauth2_headers()
-        elif self.auth_type == 'custom':
+        elif self.auth_type == "custom":
             # Phase 1 简化形式：直接使用配置作为 headers
             return dict(self.auth_config)
         else:
@@ -105,74 +105,62 @@ class AuthHandler:
         Returns:
             认证相关的 query 参数
         """
-        if self.auth_type == 'apikey' and self.auth_config.get('location') == 'query':
+        if self.auth_type == "apikey" and self.auth_config.get("location") == "query":
             return self._get_apikey_params()
         return {}
 
     def _get_bearer_headers(self) -> Dict[str, str]:
         """Bearer Token 认证"""
-        token = self.auth_config.get('token')
+        token = self.auth_config.get("token")
         if not token:
             raise ValueError("Bearer 认证缺少 'token' 配置")
 
-        return {
-            'Authorization': f'Bearer {token}'
-        }
+        return {"Authorization": f"Bearer {token}"}
 
     def _get_apikey_headers(self) -> Dict[str, str]:
         """API Key 认证（header）"""
-        key = self.auth_config.get('key')
-        value = self.auth_config.get('value')
+        key = self.auth_config.get("key")
+        value = self.auth_config.get("value")
 
         if not key or not value:
             raise ValueError("API Key 认证缺少 'key' 或 'value' 配置")
 
-        return {
-            key: value
-        }
+        return {key: value}
 
     def _get_apikey_params(self) -> Dict[str, str]:
         """API Key 认证（query）"""
-        key = self.auth_config.get('key')
-        value = self.auth_config.get('value')
+        key = self.auth_config.get("key")
+        value = self.auth_config.get("value")
 
         if not key or not value:
             raise ValueError("API Key 认证缺少 'key' 或 'value' 配置")
 
-        return {
-            key: value
-        }
+        return {key: value}
 
     def _get_basic_headers(self) -> Dict[str, str]:
         """HTTP Basic Auth"""
-        username = self.auth_config.get('username')
-        password = self.auth_config.get('password')
+        username = self.auth_config.get("username")
+        password = self.auth_config.get("password")
 
         if not username or not password:
             raise ValueError("Basic Auth 认证缺少 'username' 或 'password' 配置")
 
         # 编码为 base64
         credentials = f"{username}:{password}"
-        encoded = base64.b64encode(credentials.encode('utf-8')).decode('utf-8')
+        encoded = base64.b64encode(credentials.encode("utf-8")).decode("utf-8")
 
-        return {
-            'Authorization': f'Basic {encoded}'
-        }
+        return {"Authorization": f"Basic {encoded}"}
 
     def _get_oauth2_headers(self) -> Dict[str, str]:
         """OAuth2 客户端凭证流"""
         # 检查 token 是否有效
         if self._is_oauth2_token_valid():
-            return {
-                'Authorization': f'Bearer {self._oauth2_token}'
-            }
+            return {"Authorization": f"Bearer {self._oauth2_token}"}
 
         # 获取新 token
         token = self._fetch_oauth2_token()
 
-        return {
-            'Authorization': f'Bearer {token}'
-        }
+        return {"Authorization": f"Bearer {token}"}
 
     def _is_oauth2_token_valid(self) -> bool:
         """检查 OAuth2 token 是否有效"""
@@ -184,40 +172,38 @@ class AuthHandler:
 
     def _fetch_oauth2_token(self) -> str:
         """获取 OAuth2 access token"""
-        token_url = self.auth_config.get('token_url')
-        client_id = self.auth_config.get('client_id')
-        client_secret = self.auth_config.get('client_secret')
-        scope = self.auth_config.get('scope', '')
+        token_url = self.auth_config.get("token_url")
+        client_id = self.auth_config.get("client_id")
+        client_secret = self.auth_config.get("client_secret")
+        scope = self.auth_config.get("scope", "")
 
         if not token_url or not client_id or not client_secret:
-            raise ValueError(
-                "OAuth2 认证缺少 'token_url', 'client_id' 或 'client_secret' 配置"
-            )
+            raise ValueError("OAuth2 认证缺少 'token_url', 'client_id' 或 'client_secret' 配置")
 
         # 构建请求
         data = {
-            'grant_type': 'client_credentials',
-            'client_id': client_id,
-            'client_secret': client_secret,
+            "grant_type": "client_credentials",
+            "client_id": client_id,
+            "client_secret": client_secret,
         }
 
         if scope:
-            data['scope'] = scope
+            data["scope"] = scope
 
         # 发送请求
         try:
             response = requests.post(
                 token_url,
                 data=data,
-                headers={'Content-Type': 'application/x-www-form-urlencoded'},
-                timeout=30
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
+                timeout=30,
             )
             response.raise_for_status()
 
             # 解析响应
             token_data = response.json()
-            access_token = token_data.get('access_token')
-            expires_in = token_data.get('expires_in', 3600)  # 默认 1 小时
+            access_token = token_data.get("access_token")
+            expires_in = token_data.get("expires_in", 3600)  # 默认 1 小时
 
             if not access_token:
                 raise ValueError("OAuth2 token 响应中缺少 'access_token'")

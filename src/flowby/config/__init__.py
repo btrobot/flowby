@@ -13,9 +13,9 @@ from .schema import (
 from .errors import ConfigError
 
 __all__ = [
-    'ConfigLoader',
-    'ServicesConfig',
-    'GlobalSettings',
-    'ProviderConfig',
-    'ConfigError',
+    "ConfigLoader",
+    "ServicesConfig",
+    "GlobalSettings",
+    "ProviderConfig",
+    "ConfigError",
 ]

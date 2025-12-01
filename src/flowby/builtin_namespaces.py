@@ -37,8 +37,14 @@ class HttpResponse:
             log "失败: {response.error}"
     """
 
-    def __init__(self, ok: bool, data: Any = None, status_code: int = 0,
-                 headers: Optional[Dict] = None, error: Optional[str] = None):
+    def __init__(
+        self,
+        ok: bool,
+        data: Any = None,
+        status_code: int = 0,
+        headers: Optional[Dict] = None,
+        error: Optional[str] = None,
+    ):
         self.ok = ok
         self.data = data
         self.status_code = status_code
@@ -58,7 +64,7 @@ class HttpResponse:
             response.name -> 'Alice' (等同于 response.data['name'])
         """
         # 避免递归：不要尝试从 data 中获取这些内部属性
-        if name in ('ok', 'data', 'status_code', 'headers', 'error'):
+        if name in ("ok", "data", "status_code", "headers", "error"):
             raise AttributeError(f"对象 HttpResponse 没有属性 '{name}'")
 
         # 尝试从 data 字典中获取属性
@@ -142,6 +148,7 @@ class RandomNamespace:
         """
         try:
             from faker import Faker
+
             fake = Faker()
             return fake.email()
         except ImportError:
@@ -183,7 +190,7 @@ class RandomNamespace:
             chars += string.punctuation
 
         # 生成随机密码
-        return ''.join(py_random.choice(chars) for _ in range(length))
+        return "".join(py_random.choice(chars) for _ in range(length))
 
     @staticmethod
     def username() -> str:
@@ -198,6 +205,7 @@ class RandomNamespace:
         """
         try:
             from faker import Faker
+
             fake = Faker()
             return fake.user_name()
         except ImportError:
@@ -223,6 +231,7 @@ class RandomNamespace:
         """
         try:
             from faker import Faker
+
             fake = Faker(locale)
             return fake.phone_number()
         except ImportError:
@@ -316,14 +325,15 @@ class HttpNamespace:
                 log "失败: {response.error}"
         """
         import requests
+
         response = requests.get(url, timeout=timeout, headers=headers)
 
         # 检查 HTTP 状态码，如果是错误状态（4xx, 5xx）则抛出异常
         response.raise_for_status()
 
         # 根据 Content-Type 返回 JSON 或文本
-        content_type = response.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
+        content_type = response.headers.get("content-type", "").lower()
+        if "application/json" in content_type:
             data = response.json()
         else:
             data = response.text
@@ -333,7 +343,7 @@ class HttpNamespace:
             ok=response.ok,
             data=data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @staticmethod
@@ -341,7 +351,7 @@ class HttpNamespace:
         url: str,
         body: Optional[Any] = None,
         timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ) -> HttpResponse:
         """
         发送 HTTP POST 请求
@@ -366,13 +376,14 @@ class HttpNamespace:
                 log "创建失败: {response.error}"
         """
         import requests
+
         response = requests.post(url, json=body, timeout=timeout, headers=headers)
 
         # 检查 HTTP 状态码
         response.raise_for_status()
 
-        content_type = response.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
+        content_type = response.headers.get("content-type", "").lower()
+        if "application/json" in content_type:
             data = response.json()
         else:
             data = response.text
@@ -381,7 +392,7 @@ class HttpNamespace:
             ok=response.ok,
             data=data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @staticmethod
@@ -389,7 +400,7 @@ class HttpNamespace:
         url: str,
         body: Optional[Any] = None,
         timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ) -> HttpResponse:
         """
         发送 HTTP PUT 请求
@@ -412,13 +423,14 @@ class HttpNamespace:
                 log "更新成功"
         """
         import requests
+
         response = requests.put(url, json=body, timeout=timeout, headers=headers)
 
         # 检查 HTTP 状态码
         response.raise_for_status()
 
-        content_type = response.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
+        content_type = response.headers.get("content-type", "").lower()
+        if "application/json" in content_type:
             data = response.json()
         else:
             data = response.text
@@ -427,14 +439,12 @@ class HttpNamespace:
             ok=response.ok,
             data=data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @staticmethod
     def delete(
-        url: str,
-        timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None
+        url: str, timeout: int = 30, headers: Optional[Dict[str, str]] = None
     ) -> HttpResponse:
         """
         发送 HTTP DELETE 请求
@@ -456,13 +466,14 @@ class HttpNamespace:
                 log "删除成功"
         """
         import requests
+
         response = requests.delete(url, timeout=timeout, headers=headers)
 
         # 检查 HTTP 状态码
         response.raise_for_status()
 
-        content_type = response.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
+        content_type = response.headers.get("content-type", "").lower()
+        if "application/json" in content_type:
             data = response.json()
         else:
             data = response.text
@@ -471,7 +482,7 @@ class HttpNamespace:
             ok=response.ok,
             data=data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
     @staticmethod
@@ -479,7 +490,7 @@ class HttpNamespace:
         url: str,
         body: Optional[Any] = None,
         timeout: int = 30,
-        headers: Optional[Dict[str, str]] = None
+        headers: Optional[Dict[str, str]] = None,
     ) -> HttpResponse:
         """
         发送 HTTP PATCH 请求
@@ -502,13 +513,14 @@ class HttpNamespace:
                 log "更新成功"
         """
         import requests
+
         response = requests.patch(url, json=body, timeout=timeout, headers=headers)
 
         # 检查 HTTP 状态码
         response.raise_for_status()
 
-        content_type = response.headers.get('content-type', '').lower()
-        if 'application/json' in content_type:
+        content_type = response.headers.get("content-type", "").lower()
+        if "application/json" in content_type:
             data = response.json()
         else:
             data = response.text
@@ -517,9 +529,9 @@ class HttpNamespace:
             ok=response.ok,
             data=data,
             status_code=response.status_code,
-            headers=dict(response.headers)
+            headers=dict(response.headers),
         )
 
 
 # 导出命名空间类
-__all__ = ['RandomNamespace', 'HttpNamespace', 'HttpResponse']
+__all__ = ["RandomNamespace", "HttpNamespace", "HttpResponse"]

@@ -37,7 +37,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_comparison(self, parse_v3):
         """✅ 正确：比较表达式断言"""
-        source = 'assert score >= 60'
+        source = "assert score >= 60"
         result = parse_v3(source)
         assert result.success == True
 
@@ -87,7 +87,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_complex_expression(self, parse_v3):
         """✅ 正确：复杂表达式断言"""
-        source = 'assert (score >= 90 and attendance > 80) or extra_credit == True'
+        source = "assert (score >= 90 and attendance > 80) or extra_credit == True"
         result = parse_v3(source)
         assert result.success == True
 

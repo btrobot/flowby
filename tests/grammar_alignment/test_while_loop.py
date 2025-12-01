@@ -32,6 +32,7 @@ from registration_system.dsl.errors import ExecutionError
 # Feature 9.1: While Loop
 # ============================================================================
 
+
 @pytest.mark.feature("9.1")
 @pytest.mark.priority("high")
 class Test9_1_WhileLoopParsing:
@@ -119,6 +120,7 @@ while True:
 # Feature 9.2: Break Statement
 # ============================================================================
 
+
 @pytest.mark.feature("9.2")
 @pytest.mark.priority("high")
 class Test9_2_BreakStatement:
@@ -181,6 +183,7 @@ break
 # Feature 9.3: Continue Statement
 # ============================================================================
 
+
 @pytest.mark.feature("9.3")
 @pytest.mark.priority("high")
 class Test9_3_ContinueStatement:
@@ -230,6 +233,7 @@ continue
 # Feature 9: Execution Validation
 # ============================================================================
 
+
 @pytest.mark.feature("9")
 @pytest.mark.priority("high")
 class Test9_ExecutionValidation:
@@ -268,7 +272,7 @@ while count < 5:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -284,7 +288,7 @@ while count < 5:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -302,7 +306,7 @@ while True:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -322,7 +326,7 @@ while i < 10:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -344,7 +348,7 @@ while i < 100:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -364,7 +368,7 @@ while i < 10:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -388,7 +392,7 @@ while outer_count < 3:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -411,7 +415,7 @@ while count < 3:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -430,7 +434,7 @@ while count < 3:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -451,7 +455,7 @@ while x < 5:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -479,7 +483,7 @@ while outer < 3:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -498,7 +502,7 @@ while "not a boolean":
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(ExecutionError, match="条件必须是布尔值"):
@@ -513,7 +517,7 @@ while x:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(ExecutionError, match="条件必须是布尔值"):
@@ -528,7 +532,7 @@ while True:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(ExecutionError, match="超过最大迭代次数"):
@@ -542,7 +546,7 @@ while True:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(ExecutionError, match="超过最大迭代次数"):
@@ -567,7 +571,7 @@ while i < 10:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -587,7 +591,7 @@ while remaining > 0:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -612,7 +616,7 @@ while i < 100:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -636,7 +640,7 @@ while i < 100:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -650,5 +654,5 @@ while i < 100:
 # 运行测试
 # ============================================================================
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v', '--tb=short'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])

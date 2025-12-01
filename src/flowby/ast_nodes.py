@@ -47,6 +47,7 @@ from enum import Enum
 # 基础节点
 # ============================================================
 
+
 @dataclass
 class ASTNode:
     """
@@ -57,12 +58,14 @@ class ASTNode:
     Attributes:
         line: 节点在源文件中的行号（从 1 开始）
     """
+
     line: int
 
 
 # ============================================================
 # 程序根节点
 # ============================================================
+
 
 @dataclass
 class Program(ASTNode):
@@ -74,12 +77,14 @@ class Program(ASTNode):
     Attributes:
         statements: 顶层语句列表
     """
+
     statements: List[ASTNode] = field(default_factory=list)
 
 
 # ============================================================
 # 导航语句
 # ============================================================
+
 
 @dataclass
 class NavigateToStatement(ASTNode):
@@ -91,6 +96,7 @@ class NavigateToStatement(ASTNode):
     Attributes:
         url: 目标 URL（可能包含变量引用）
     """
+
     url: str
 
 
@@ -101,7 +107,6 @@ class GoBackStatement(ASTNode):
 
     语法: go back
     """
-    pass
 
 
 @dataclass
@@ -111,7 +116,6 @@ class GoForwardStatement(ASTNode):
 
     语法: go forward
     """
-    pass
 
 
 @dataclass
@@ -121,12 +125,12 @@ class ReloadStatement(ASTNode):
 
     语法: reload
     """
-    pass
 
 
 # ============================================================
 # 等待语句
 # ============================================================
+
 
 @dataclass
 class WaitDurationStatement(ASTNode):
@@ -144,6 +148,7 @@ class WaitDurationStatement(ASTNode):
             - 如果是 Expression: 需要在运行时求值
         unit: 时间单位字符串（s, ms等），仅在 duration 为 Expression 时使用
     """
+
     duration: Any  # float (字面量) 或 Expression (表达式)
     unit: Optional[str] = None  # v6.0.2: 时间单位（仅表达式需要）
 
@@ -158,6 +163,7 @@ class WaitForStateStatement(ASTNode):
     Attributes:
         state: 页面状态（networkidle, domcontentloaded, load）
     """
+
     state: str
 
 
@@ -175,6 +181,7 @@ class WaitForElementStatement(ASTNode):
         state: 元素状态（visible, hidden, attached, detached, None）
         timeout: 超时时间（秒，可选）
     """
+
     selector: Any  # str 或 Expression
     state: Optional[str] = None
     timeout: Optional[float] = None
@@ -195,6 +202,7 @@ class WaitForNavigationStatement(ASTNode):
         page_state: 页面状态（networkidle, load, domcontentloaded, None）
         timeout: 超时时间（秒，可选）
     """
+
     url: Optional[Any] = None
     page_state: Optional[str] = None
     timeout: Optional[float] = None
@@ -210,12 +218,14 @@ class WaitUntilStatement(ASTNode):
     Attributes:
         condition: 条件表达式
     """
-    condition: 'Condition'
+
+    condition: "Condition"
 
 
 # ============================================================
 # 选择语句
 # ============================================================
+
 
 @dataclass
 class SelectStatement(ASTNode):
@@ -230,6 +240,7 @@ class SelectStatement(ASTNode):
         conditions: 属性条件列表 [(attribute, operator, value), ...]
                    operator 可以是: "=", "contains", "equals", "matches"
     """
+
     element_type: str
     conditions: List[tuple[str, str, str]] = field(default_factory=list)
 
@@ -237,6 +248,7 @@ class SelectStatement(ASTNode):
 # ============================================================
 # 动作语句
 # ============================================================
+
 
 @dataclass
 class TypeAction(ASTNode):
@@ -258,6 +270,7 @@ class TypeAction(ASTNode):
         selector: 目标选择器（可选，None 表示使用当前选中元素）
         mode: 输入模式（slowly, fast, None）
     """
+
     text: Any  # Expression - 运行时求值
     selector: Optional[Any] = None  # str 或 Expression
     mode: Optional[str] = None
@@ -278,6 +291,7 @@ class ClickAction(ASTNode):
         selector: 选择器（可选，None 表示点击当前选中元素）
         wait_duration: 点击后等待时间（秒，可选）
     """
+
     click_type: str = "click"
     selector: Optional[Any] = None
     wait_duration: Optional[float] = None
@@ -294,6 +308,7 @@ class HoverAction(ASTNode):
     Attributes:
         selector: 选择器（可选，None 表示悬停在当前选中元素）
     """
+
     selector: Optional[str] = None
 
 
@@ -309,6 +324,7 @@ class ClearAction(ASTNode):
     Attributes:
         selector: 元素选择器（可选）
     """
+
     selector: Optional[Any] = None  # str 或 Expression
 
 
@@ -322,6 +338,7 @@ class PressAction(ASTNode):
     Attributes:
         key_name: 按键名称
     """
+
     key_name: str
 
 
@@ -338,6 +355,7 @@ class ScrollAction(ASTNode):
         target: 滚动目标（top, bottom, element）
         selector: 元素选择器（当 target 为 element 时）
     """
+
     target: str
     selector: Optional[str] = None
 
@@ -354,6 +372,7 @@ class SelectOptionAction(ASTNode):
         option_value: 选项值（字符串或表达式）
         selector: 下拉框选择器（字符串或表达式）
     """
+
     option_value: Any  # str 或 Expression
     selector: Any  # str 或 Expression
 
@@ -370,6 +389,7 @@ class CheckAction(ASTNode):
         action: 操作类型（check, uncheck）
         selector: 复选框选择器
     """
+
     action: str
     selector: str
 
@@ -385,6 +405,7 @@ class UploadAction(ASTNode):
         file_path: 文件路径
         selector: 文件上传控件选择器
     """
+
     file_path: str
     selector: str
 
@@ -393,8 +414,10 @@ class UploadAction(ASTNode):
 # 验证语句
 # ============================================================
 
+
 class ConditionOperator(Enum):
     """条件操作符 (v1.0 兼容)"""
+
     CONTAINS = "contains"
     EQUALS = "equals"
     MATCHES = "matches"
@@ -418,6 +441,7 @@ class Condition(ASTNode):
         value: 期望值
         selector: 选择器（可选，用于 element/text/value 条件）
     """
+
     condition_type: str
     operator: str
     value: Optional[str] = None
@@ -442,6 +466,7 @@ class AssertStatement(ASTNode):
         condition: 条件表达式（Expression）
         message: 可选的错误消息（字符串字面量或表达式）v4.3+
     """
+
     condition: Any  # Expression
     message: Optional[Any] = None  # v4.3: 可以是字符串或表达式
 
@@ -463,6 +488,7 @@ class ExitStatement(ASTNode):
         code: 退出码（0=成功，非0=失败），默认0
         message: 可选的退出消息
     """
+
     code: Optional[int] = 0
     message: Optional[str] = None
 
@@ -470,6 +496,7 @@ class ExitStatement(ASTNode):
 # ============================================================
 # 截图语句
 # ============================================================
+
 
 @dataclass
 class ScreenshotStatement(ASTNode):
@@ -489,6 +516,7 @@ class ScreenshotStatement(ASTNode):
         fullpage: 是否全页面截图（滚动截图）
         selector: 元素选择器（可选，None 表示全屏截图，可以是字符串或表达式）
     """
+
     name: Optional[Any] = None  # str 或 Expression 或 None
     fullpage: bool = False
     selector: Optional[Any] = None  # str 或 Expression 或 None
@@ -497,6 +525,7 @@ class ScreenshotStatement(ASTNode):
 # ============================================================
 # 步骤块
 # ============================================================
+
 
 @dataclass
 class StepBlock(ASTNode):
@@ -519,6 +548,7 @@ class StepBlock(ASTNode):
         diagnosis: 诊断级别（可选，如 "detailed", "simple"）
         statements: 步骤内的语句列表
     """
+
     name: str
     statements: List[ASTNode] = field(default_factory=list)
     condition: Optional[Condition] = None
@@ -528,6 +558,7 @@ class StepBlock(ASTNode):
 # ============================================================
 # 条件块
 # ============================================================
+
 
 @dataclass
 class IfBlock(ASTNode):
@@ -556,6 +587,7 @@ class IfBlock(ASTNode):
         elif_clauses: else-if 子句列表 [(condition, statements), ...]
         else_statements: else 块中的语句（可选）
     """
+
     condition: Any  # Condition 或 Expression
     then_statements: List[ASTNode] = field(default_factory=list)
     elif_clauses: List[tuple[Any, List[ASTNode]]] = field(default_factory=list)
@@ -572,6 +604,7 @@ class WhenClause:
         statements: 语句列表
         line: 行号
     """
+
     case_values: List[Any] = field(default_factory=list)  # List[Expression] - OR 模式支持
     statements: List[ASTNode] = field(default_factory=list)
     line: int = 0
@@ -596,6 +629,7 @@ class WhenBlock(ASTNode):
         when_clauses: case 子句列表
         otherwise_statements: otherwise 块中的语句（可选）
     """
+
     value_expression: Any  # Expression - 要匹配的值
     when_clauses: List[WhenClause] = field(default_factory=list)
     otherwise_statements: List[ASTNode] = field(default_factory=list)
@@ -604,6 +638,7 @@ class WhenBlock(ASTNode):
 # ============================================================
 # v2.0 循环语句
 # ============================================================
+
 
 @dataclass
 class EachLoop(ASTNode):
@@ -630,8 +665,9 @@ class EachLoop(ASTNode):
     向后兼容:
         variable_name 属性仍然可用（返回第一个变量名）
     """
+
     variable_names: List[str] = field(default_factory=list)
-    iterable: 'Expression' = None
+    iterable: "Expression" = None
     statements: List[ASTNode] = field(default_factory=list)
 
     @property
@@ -646,10 +682,10 @@ class EachLoop(ASTNode):
             self.variable_names = [self.variable_names]
 
 
-
 # ============================================================
 # v3.0 While 循环语句
 # ============================================================
+
 
 @dataclass
 class WhileLoop(ASTNode):
@@ -692,7 +728,8 @@ class WhileLoop(ASTNode):
         condition: 循环条件表达式 (必须求值为布尔值)
         statements: 循环体语句列表
     """
-    condition: 'Expression'
+
+    condition: "Expression"
     statements: List[ASTNode] = field(default_factory=list)
 
 
@@ -719,7 +756,6 @@ class BreakStatement(ASTNode):
     Attributes:
         无额外属性 (仅继承 line 信息)
     """
-    pass
 
 
 @dataclass
@@ -747,12 +783,12 @@ class ContinueStatement(ASTNode):
     Attributes:
         无额外属性 (仅继承 line 信息)
     """
-    pass
 
 
 # ============================================================
 # v4.3 函数定义
 # ============================================================
+
 
 @dataclass
 class FunctionDefNode(ASTNode):
@@ -810,6 +846,7 @@ class FunctionDefNode(ASTNode):
         params: 参数名列表
         body: 函数体语句列表
     """
+
     name: str
     params: List[str] = field(default_factory=list)
     body: List[ASTNode] = field(default_factory=list)
@@ -845,12 +882,14 @@ class ReturnNode(ASTNode):
     Attributes:
         value: 返回值表达式 (None 表示无返回值)
     """
-    value: Optional['Expression'] = None
+
+    value: Optional["Expression"] = None
 
 
 # ============================================================
 # 变量和数据操作
 # ============================================================
+
 
 @dataclass
 class SetVariableStatement(ASTNode):
@@ -863,6 +902,7 @@ class SetVariableStatement(ASTNode):
         name: 变量名
         value: 变量值
     """
+
     name: str
     value: str
 
@@ -870,6 +910,7 @@ class SetVariableStatement(ASTNode):
 # ============================================================
 # v2.0 变量定义语句
 # ============================================================
+
 
 @dataclass
 class LetStatement(ASTNode):
@@ -882,8 +923,9 @@ class LetStatement(ASTNode):
         name: 变量名
         value: 表达式节点
     """
+
     name: str
-    value: 'Expression'
+    value: "Expression"
 
 
 @dataclass
@@ -897,8 +939,9 @@ class ConstStatement(ASTNode):
         name: 常量名
         value: 表达式节点
     """
+
     name: str
-    value: 'Expression'
+    value: "Expression"
 
 
 @dataclass
@@ -912,13 +955,15 @@ class Assignment(ASTNode):
         name: 变量名
         value: 表达式节点
     """
+
     name: str
-    value: 'Expression'
+    value: "Expression"
 
 
 # ============================================================
 # v2.0 表达式节点
 # ============================================================
+
 
 @dataclass
 class Expression(ASTNode):
@@ -927,7 +972,6 @@ class Expression(ASTNode):
 
     所有表达式节点的基类
     """
-    pass
 
 
 @dataclass
@@ -947,6 +991,7 @@ class BinaryOp(Expression):
         operator: 运算符字符串
         right: 右操作数表达式
     """
+
     left: Expression
     operator: str
     right: Expression
@@ -968,6 +1013,7 @@ class UnaryOp(Expression):
         operator: 运算符字符串
         operand: 操作数表达式
     """
+
     operator: str
     operand: Expression
 
@@ -986,6 +1032,7 @@ class Literal(Expression):
     Attributes:
         value: 字面量值 (str/int/float/bool/None)
     """
+
     value: Any
 
 
@@ -1001,6 +1048,7 @@ class Identifier(Expression):
     Attributes:
         name: 变量名
     """
+
     name: str
 
 
@@ -1023,6 +1071,7 @@ class SystemVariable(Expression):
     Attributes:
         path: 系统变量路径 (不含 $ 前缀)
     """
+
     path: str
 
 
@@ -1041,6 +1090,7 @@ class MemberAccess(Expression):
         object: 对象表达式
         property: 属性名
     """
+
     object: Expression
     property: str
 
@@ -1060,6 +1110,7 @@ class ArrayAccess(Expression):
         array: 数组表达式
         index: 索引表达式
     """
+
     array: Expression
     index: Expression
 
@@ -1091,6 +1142,7 @@ class MethodCall(Expression):
         arguments: 位置参数表达式列表
         kwargs: 命名参数字典 {参数名: 表达式}
     """
+
     object: Expression
     method_name: str
     arguments: List[Expression] = field(default_factory=list)
@@ -1119,6 +1171,7 @@ class FunctionCall(Expression):
         function_name: 函数名
         arguments: 位置参数表达式列表
     """
+
     function_name: str
     arguments: List[Expression] = field(default_factory=list)
 
@@ -1168,6 +1221,7 @@ class LambdaExpression(Expression):
              - List[ASTNode]: 语句块（需要显式 return）
         line: 行号
     """
+
     parameters: List[str] = field(default_factory=list)
     body: Any = None  # Expression or List[ASTNode]
 
@@ -1190,6 +1244,7 @@ class ArrayLiteral(Expression):
     Attributes:
         elements: 元素表达式列表
     """
+
     elements: List[Expression] = field(default_factory=list)
 
 
@@ -1212,6 +1267,7 @@ class ObjectLiteral(Expression):
         pairs: 键值对列表 [(key, value_expr), ...]
                key 是字符串，value_expr 是表达式节点
     """
+
     pairs: List[tuple[str, Expression]] = field(default_factory=list)
 
 
@@ -1231,6 +1287,7 @@ class StringInterpolation(Expression):
         parts: 字符串和表达式的列表
                [str, Expression, str, Expression, ...]
     """
+
     parts: List[Any]  # List[Union[str, Expression]]
 
 
@@ -1252,6 +1309,7 @@ class ExtractStatement(ASTNode):
         attribute_name: 属性名（当 extract_type 为 attr 时）
         pattern: 正则表达式（当 extract_type 为 pattern 时）
     """
+
     extract_type: str
     selector: Any  # 可以是字符串或表达式
     variable_name: str
@@ -1286,6 +1344,7 @@ class LogStatement(ASTNode):
         message: 日志消息（可以是字符串或 StringInterpolation 表达式）
         level: 日志级别（debug, info, success, warning, error）默认 info
     """
+
     message: Any  # str 或 StringInterpolation 或 Expression
     level: str = "info"
 
@@ -1308,12 +1367,14 @@ class ExpressionStatement(ASTNode):
     Attributes:
         expression: 表达式节点
     """
-    expression: 'Expression'
+
+    expression: "Expression"
 
 
 # ============================================================
 # Module System (v5.0)
 # ============================================================
+
 
 @dataclass
 class LibraryDeclaration(ASTNode):
@@ -1333,6 +1394,7 @@ class LibraryDeclaration(ASTNode):
         name: 库名称（必须与文件名匹配）
         line: 行号（继承自 ASTNode）
     """
+
     name: str
 
     def __repr__(self):
@@ -1359,11 +1421,12 @@ class ExportStatement(ASTNode):
         target: 被导出的节点 (ConstStatement 或 FunctionDefNode)
         line: 行号（继承自 ASTNode）
     """
+
     target: ASTNode  # ConstStatement | FunctionDefNode
 
     def __repr__(self):
         target_type = self.target.__class__.__name__
-        target_name = getattr(self.target, 'name', '<unknown>')
+        target_name = getattr(self.target, "name", "<unknown>")
         return f"ExportStatement(target={target_type}:{target_name}, line={self.line})"
 
 
@@ -1390,6 +1453,7 @@ class ImportStatement(ASTNode):
         members: 导入的成员列表 (语法 2) 或 None (语法 1)
         line: 行号（继承自 ASTNode）
     """
+
     module_path: str
     module_alias: Optional[str] = None
     members: Optional[List[str]] = None
@@ -1398,8 +1462,10 @@ class ImportStatement(ASTNode):
         if self.module_alias:
             return f"ImportStatement(import {self.module_alias} from {self.module_path!r}, line={self.line})"
         else:
-            members_str = ', '.join(self.members) if self.members else ''
-            return f"ImportStatement(from {self.module_path!r} import {members_str}, line={self.line})"
+            members_str = ", ".join(self.members) if self.members else ""
+            return (
+                f"ImportStatement(from {self.module_path!r} import {members_str}, line={self.line})"
+            )
 
 
 @dataclass
@@ -1421,6 +1487,7 @@ class MemberAccessExpression(Expression):
         member: 成员名称
         line: 行号（继承自 Expression -> ASTNode）
     """
+
     object: Expression
     member: str
 
@@ -1431,6 +1498,7 @@ class MemberAccessExpression(Expression):
 # ============================================================
 # Input & Interaction (v5.1)
 # ============================================================
+
 
 @dataclass
 class InputExpression(Expression):
@@ -1456,6 +1524,7 @@ class InputExpression(Expression):
         input_type: 输入类型（"text" | "password" | "integer" | "float"）
         line: 行号（继承自 Expression -> ASTNode）
     """
+
     prompt: Expression
     default_value: Optional[Expression] = None
     input_type: str = "text"
@@ -1475,6 +1544,7 @@ class InputExpression(Expression):
 # ============================================================
 # 便捷函数
 # ============================================================
+
 
 def node_to_string(node: ASTNode, indent: int = 0) -> str:
     """

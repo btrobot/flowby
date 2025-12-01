@@ -137,7 +137,7 @@ class TestV3_JSON_Functions:
     @pytest.mark.builtin
     def test_json_stringify(self, parse_v3):
         """✅ 正确：JSON.stringify"""
-        source = "let json_str = JSON.stringify({name: \"Alice\", age: 30})"
+        source = 'let json_str = JSON.stringify({name: "Alice", age: 30})'
         result = parse_v3(source)
         assert result.success == True
 

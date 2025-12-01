@@ -35,10 +35,7 @@ class EnvLoader:
     """
 
     @staticmethod
-    def load(
-        script_path: Optional[str] = None,
-        logger = None
-    ) -> Optional[Path]:
+    def load(script_path: Optional[str] = None, logger=None) -> Optional[Path]:
         """
         智能加载环境变量文件
 
@@ -171,10 +168,7 @@ class EnvLoader:
         return None
 
     @staticmethod
-    def load_with_environments(
-        script_path: Optional[str] = None,
-        logger = None
-    ) -> Optional[Path]:
+    def load_with_environments(script_path: Optional[str] = None, logger=None) -> Optional[Path]:
         """
         加载环境变量，支持多环境配置
 

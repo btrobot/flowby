@@ -23,6 +23,7 @@ import pytest
 # 1. 布尔字面量 Python 对齐测试
 # ============================================================================
 
+
 class TestV3_PythonAlignment_Boolean:
     """布尔字面量：True/False（Python风格）"""
 
@@ -55,8 +56,7 @@ class TestV3_PythonAlignment_Boolean:
         result = parse_v3(source)
         assert result.success == False, "小写 true 应该报错"
         # 错误提示应该一致且清晰
-        assert "True" in result.error or "布尔值" in result.error, \
-            "错误提示应提及 True 或布尔值"
+        assert "True" in result.error or "布尔值" in result.error, "错误提示应提及 True 或布尔值"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -66,13 +66,13 @@ class TestV3_PythonAlignment_Boolean:
         source = "let verified = false"
         result = parse_v3(source)
         assert result.success == False, "小写 false 应该报错"
-        assert "False" in result.error or "布尔值" in result.error, \
-            "错误提示应提及 False 或布尔值"
+        assert "False" in result.error or "布尔值" in result.error, "错误提示应提及 False 或布尔值"
 
 
 # ============================================================================
 # 2. None 字面量 Python 对齐测试
 # ============================================================================
+
 
 class TestV3_PythonAlignment_None:
     """None 字面量：None（Python风格）"""
@@ -94,13 +94,15 @@ class TestV3_PythonAlignment_None:
         source = "let data = null"
         result = parse_v3(source)
         assert result.success == False, "null 应该报错"
-        assert "None" in result.error or "null" in result.error.lower(), \
-            "错误提示应提及 None 或 null"
+        assert (
+            "None" in result.error or "null" in result.error.lower()
+        ), "错误提示应提及 None 或 null"
 
 
 # ============================================================================
 # 3. 系统变量无$前缀 Python 对齐测试
 # ============================================================================
+
 
 class TestV3_PythonAlignment_SystemVariables:
     """系统变量：无$前缀（Python全局对象风格）"""
@@ -119,7 +121,7 @@ class TestV3_PythonAlignment_SystemVariables:
     @pytest.mark.syntax
     def test_env_no_dollar_correct(self, parse_v3):
         """✅ 正确：env.API_KEY（无$前缀）"""
-        source = 'log env.API_KEY'
+        source = "log env.API_KEY"
         result = parse_v3(source)
         assert result.success == True, "env.API_KEY 应该被正确解析"
 
@@ -131,15 +133,14 @@ class TestV3_PythonAlignment_SystemVariables:
         source = 'assert $page.url == "test"'
         result = parse_v3(source)
         assert result.success == False, "$page.url 应该报错"
-        assert "$" in result.error or "page.url" in result.error, \
-            "错误提示应提及 $ 前缀问题"
+        assert "$" in result.error or "page.url" in result.error, "错误提示应提及 $ 前缀问题"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
     @pytest.mark.syntax
     def test_dollar_env_error(self, parse_v3):
         """❌ 错误：$env.API_KEY 应报错"""
-        source = 'log $env.API_KEY'
+        source = "log $env.API_KEY"
         result = parse_v3(source)
         assert result.success == False, "$env.API_KEY 应该报错"
 
@@ -147,6 +148,7 @@ class TestV3_PythonAlignment_SystemVariables:
 # ============================================================================
 # 4. f-string 显式插值 Python 对齐测试
 # ============================================================================
+
 
 class TestV3_PythonAlignment_FString:
     """f-string：显式插值（Python风格）"""
@@ -188,6 +190,7 @@ class TestV3_PythonAlignment_FString:
 # 5. 无 end 关键字 Python 对齐测试
 # ============================================================================
 
+
 class TestV3_PythonAlignment_NoEndKeyword:
     """纯缩进：无 end 关键字（Python风格）"""
 
@@ -227,8 +230,9 @@ end if
 """
         result = parse_v3(source)
         assert result.success == False, "end if 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字或缩进"
+        assert (
+            "end" in result.error.lower() or "缩进" in result.error
+        ), "错误提示应提及 end 关键字或缩进"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -247,6 +251,7 @@ end step
 # ============================================================================
 # 6. 三引号块注释 Python 对齐测试
 # ============================================================================
+
 
 class TestV3_PythonAlignment_BlockComment:
     """块注释：三引号（Python风格）"""
@@ -275,13 +280,15 @@ let x = 1
         result = parse_v3(source)
         assert result.success == False, "C 风格注释应该报错"
         # 错误消息应提到 SLASH 或 / （实际报错："未知的语句开始: SLASH"）
-        assert "SLASH" in result.error or "/" in result.error, \
-            f"错误提示应提及 SLASH 或 /，实际：{result.error}"
+        assert (
+            "SLASH" in result.error or "/" in result.error
+        ), f"错误提示应提及 SLASH 或 /，实际：{result.error}"
 
 
 # ============================================================================
 # 7. 综合 Python 对齐测试
 # ============================================================================
+
 
 class TestV3_PythonAlignment_Comprehensive:
     """综合测试：多个 Python 对齐特性组合"""
@@ -289,30 +296,30 @@ class TestV3_PythonAlignment_Comprehensive:
     @pytest.mark.v3
     @pytest.mark.python_aligned
     @pytest.mark.syntax
-    @pytest.mark.parametrize("source,should_pass", [
-        # ✅ 正确的 Python 风格代码
-        ('let active = True', True),
-        ('let data = None', True),
-        ('log f"User: {user.name}"', True),
-        ('assert page.url == "test"', True),
-        ('if x > 0:\n    let y = 1', True),
-
-        # ❌ v2.0 风格（应报错）
-        ('let active = true', False),  # 小写布尔值
-        ('let data = null', False),  # null 而非 None
-        ('log $page.url', False),  # $ 前缀
-        ('if x > 0:\n    let y = 1\nend if', False),  # end 关键字
-    ])
+    @pytest.mark.parametrize(
+        "source,should_pass",
+        [
+            # ✅ 正确的 Python 风格代码
+            ("let active = True", True),
+            ("let data = None", True),
+            ('log f"User: {user.name}"', True),
+            ('assert page.url == "test"', True),
+            ("if x > 0:\n    let y = 1", True),
+            # ❌ v2.0 风格（应报错）
+            ("let active = true", False),  # 小写布尔值
+            ("let data = null", False),  # null 而非 None
+            ("log $page.url", False),  # $ 前缀
+            ("if x > 0:\n    let y = 1\nend if", False),  # end 关键字
+        ],
+    )
     def test_python_alignment_consistency(self, parse_v3, source, should_pass):
         """验证 Python 对齐的一致性"""
         result = parse_v3(source)
 
         if should_pass:
-            assert result.success == True, \
-                f"Python 风格代码应该解析成功：{source}"
+            assert result.success == True, f"Python 风格代码应该解析成功：{source}"
         else:
-            assert result.success == False, \
-                f"非 Python 风格代码应该报错：{source}"
+            assert result.success == False, f"非 Python 风格代码应该报错：{source}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -344,20 +351,25 @@ step "用户登录":
 # 8. 错误提示一致性测试
 # ============================================================== ==============
 
+
 class TestV3_ErrorConsistency:
     """验证错误提示的一致性"""
 
     @pytest.mark.v3
     @pytest.mark.syntax
-    @pytest.mark.parametrize("source,error_keyword", [
-        ('let x = true', 'True'),  # 应提示使用 True
-        ('let x = null', 'None'),  # 应提示使用 None
-        ('log $page.url', '$'),  # 应提示 $ 前缀错误
-        ('if x:\n    y = 1\nend if', 'end'),  # 应提示 end 关键字错误（使用4空格缩进）
-    ])
+    @pytest.mark.parametrize(
+        "source,error_keyword",
+        [
+            ("let x = true", "True"),  # 应提示使用 True
+            ("let x = null", "None"),  # 应提示使用 None
+            ("log $page.url", "$"),  # 应提示 $ 前缀错误
+            ("if x:\n    y = 1\nend if", "end"),  # 应提示 end 关键字错误（使用4空格缩进）
+        ],
+    )
     def test_error_messages_contain_hint(self, parse_v3, source, error_keyword):
         """验证错误提示包含关键提示词"""
         result = parse_v3(source)
         assert result.success == False, f"代码应该报错：{source}"
-        assert error_keyword in result.error or error_keyword.lower() in result.error.lower(), \
-            f"错误提示应包含 '{error_keyword}'，实际：{result.error}"
+        assert (
+            error_keyword in result.error or error_keyword.lower() in result.error.lower()
+        ), f"错误提示应包含 '{error_keyword}'，实际：{result.error}"

@@ -1,0 +1,126 @@
+# ==================================================
+# Flowby DSL - 循环控制语句示例
+# ==================================================
+#
+# 演示 break 和 continue 语句的使用
+#
+# 运行方式：
+#   flowby examples/loop_control_demo.flow
+#
+
+step "演示 break 语句":
+    log info "=== Break 示例 ==="
+
+    # 示例 1: while True + break
+    let count = 0
+    while True:
+        count = count + 1
+        log f"迭代 {count}"
+
+        if count >= 5:
+            log success "达到目标，退出循环"
+            break
+
+    log f"循环结束，count = {count}"
+    log ""
+
+step "演示 continue 语句":
+    log info "=== Continue 示例 ==="
+
+    # 示例 2: 跳过偶数
+    let i = 0
+    let odd_sum = 0
+
+    while i < 10:
+        i = i + 1
+
+        if i % 2 == 0:
+            continue  # 跳过偶数
+
+        odd_sum = odd_sum + i
+        log f"累加奇数: {i}，当前和: {odd_sum}"
+
+    log success f"1-9 的奇数之和: {odd_sum}"
+    log ""
+
+step "演示 for 循环中的 break/continue":
+    log info "=== For 循环示例 ==="
+
+    let items = ["apple", "", "banana", "invalid", "cherry", None, "date"]
+    let valid_items = []
+
+    for item in items:
+        # 跳过空值
+        if item == "" or item == None:
+            log f"跳过空值"
+            continue
+
+        # 遇到 invalid 停止处理
+        if item == "invalid":
+            log "遇到无效项，停止处理"
+            break
+
+        valid_items = valid_items + [item]
+        log f"处理项: {item}"
+
+    log success f"有效项目: {valid_items}"
+    log ""
+
+step "演示嵌套循环中的 break":
+    log info "=== 嵌套循环示例 ==="
+
+    let outer = 0
+    let found = False
+
+    while outer < 5 and not found:
+        outer = outer + 1
+        log f"外层循环: {outer}"
+
+        let inner = 0
+        while inner < 5:
+            inner = inner + 1
+
+            if outer == 3 and inner == 2:
+                log success f"找到目标: outer={outer}, inner={inner}"
+                found = True
+                break  # 只退出内层循环
+
+            log f"  内层循环: {inner}"
+
+    log ""
+
+step "综合示例：搜索和过滤":
+    log info "=== 综合示例 ==="
+
+    let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    let result = []
+    let target = 7
+
+    for num in numbers:
+        # 跳过小于 3 的数
+        if num < 3:
+            continue
+
+        # 找到目标后停止
+        if num > target:
+            log f"超过目标 {target}，停止搜索"
+            break
+
+        # 只保留奇数
+        if num % 2 == 1:
+            result = result + [num]
+            log f"添加奇数: {num}"
+
+    log success f"结果: {result}"
+    log ""
+
+step "完成":
+    log ""
+    log success "循环控制语句示例执行完成！"
+    log ""
+    log "你已经学会："
+    log "  ✓ break 语句 - 退出循环"
+    log "  ✓ continue 语句 - 跳过当前迭代"
+    log "  ✓ 在 while 和 for 循环中使用"
+    log "  ✓ 嵌套循环中的控制流"
+    log ""

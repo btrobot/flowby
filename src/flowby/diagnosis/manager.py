@@ -42,8 +42,8 @@ class DiagnosisManager:
 
     def capture_diagnosis(
         self,
-        page: 'Page',
-        context: 'ExecutionContext',
+        page: "Page",
+        context: "ExecutionContext",
         error: Exception,
         error_type: str,
         level: DiagnosisLevel = None,
@@ -111,7 +111,7 @@ class DiagnosisManager:
                 )
 
                 # 保存数据
-                if collector_name == 'screenshot':
+                if collector_name == "screenshot":
                     # 截图需要特殊处理
                     filename = collector.save(data, diagnosis_dir, page)
                 else:
@@ -127,7 +127,7 @@ class DiagnosisManager:
         try:
             report_content = self.report_generator.generate(collected_data)
             report_path = diagnosis_dir / "diagnosis_report.md"
-            with open(report_path, 'w', encoding='utf-8') as f:
+            with open(report_path, "w", encoding="utf-8") as f:
                 f.write(report_content)
             collected_data["files"]["report"] = "diagnosis_report.md"
         except Exception as e:
@@ -135,7 +135,7 @@ class DiagnosisManager:
 
         # 保存收集元数据
         meta_path = diagnosis_dir / "diagnosis_meta.json"
-        with open(meta_path, 'w', encoding='utf-8') as f:
+        with open(meta_path, "w", encoding="utf-8") as f:
             # 移除大型数据，只保存元信息
             meta = {
                 "error_info": collected_data["error_info"],

@@ -14,10 +14,7 @@ from ..errors import ExecutionError
 
 
 def execute_screenshot(
-    name: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0,
-    fullpage: bool = False
+    name: Optional[str], context: "ExecutionContext", line: int = 0, fullpage: bool = False
 ):
     """
     截图
@@ -39,9 +36,7 @@ def execute_screenshot(
 
         # 使用截图管理器，传递 fullpage 参数（不传递 line）
         screenshot_path = context.screenshot_manager.capture(
-            page=page,
-            name=resolved_name or f"screenshot_line{line}",
-            fullpage=fullpage
+            page=page, name=resolved_name or f"screenshot_line{line}", fullpage=fullpage
         )
 
         # 记录截图路径
@@ -50,7 +45,7 @@ def execute_screenshot(
         context.add_execution_record(
             record_type="screenshot",
             content=f"screenshot {'fullpage ' if fullpage else ''}{resolved_name or 'auto'}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ {screenshot_type}已保存: {screenshot_path}")
@@ -62,15 +57,12 @@ def execute_screenshot(
             line=line,
             statement=f"screenshot {'fullpage ' if fullpage else ''}{name or ''}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"截图失败: {e}"
+            message=f"截图失败: {e}",
         )
 
 
 def execute_screenshot_element(
-    selector: str,
-    name: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
+    selector: str, name: Optional[str], context: "ExecutionContext", line: int = 0
 ):
     """
     截取元素截图
@@ -96,9 +88,7 @@ def execute_screenshot_element(
 
         # 截取元素截图
         screenshot_path = context.screenshot_manager.capture_element(
-            element=element,
-            name=resolved_name,
-            line=line
+            element=element, name=resolved_name, line=line
         )
 
         # 记录截图路径
@@ -107,7 +97,7 @@ def execute_screenshot_element(
         context.add_execution_record(
             record_type="screenshot",
             content=f"screenshot element {resolved_selector}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 元素截图已保存: {screenshot_path}")
@@ -119,15 +109,11 @@ def execute_screenshot_element(
             line=line,
             statement=f"screenshot element {selector}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"元素截图失败: {e}"
+            message=f"元素截图失败: {e}",
         )
 
 
-def execute_screenshot_fullpage(
-    name: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_screenshot_fullpage(name: Optional[str], context: "ExecutionContext", line: int = 0):
     """
     截取完整页面截图（包括滚动区域）
 
@@ -145,9 +131,7 @@ def execute_screenshot_fullpage(
 
         # 使用截图管理器截取完整页面
         screenshot_path = context.screenshot_manager.capture_fullpage(
-            page=page,
-            name=resolved_name,
-            line=line
+            page=page, name=resolved_name, line=line
         )
 
         # 记录截图路径
@@ -156,7 +140,7 @@ def execute_screenshot_fullpage(
         context.add_execution_record(
             record_type="screenshot",
             content=f"screenshot fullpage {resolved_name or 'auto'}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 完整页面截图已保存: {screenshot_path}")
@@ -168,5 +152,5 @@ def execute_screenshot_fullpage(
             line=line,
             statement=f"screenshot fullpage {name or ''}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"完整页面截图失败: {e}"
+            message=f"完整页面截图失败: {e}",
         )

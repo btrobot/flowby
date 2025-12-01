@@ -71,10 +71,9 @@ class OpenAPISpec:
                 return candidate
 
         # 未找到：生成详细错误信息
-        search_locations = '\n  - '.join(str(c) for c in candidates)
+        search_locations = "\n  - ".join(str(c) for c in candidates)
         raise FileNotFoundError(
-            f"OpenAPI 文件不存在: {self.spec_file}\n"
-            f"已搜索以下位置:\n  - {search_locations}"
+            f"OpenAPI 文件不存在: {self.spec_file}\n" f"已搜索以下位置:\n  - {search_locations}"
         )
 
     def _find_spec_candidates(self, spec_path: Path) -> List[Path]:
@@ -107,8 +106,8 @@ class OpenAPISpec:
         candidates.append(Path.cwd() / spec_path)
 
         # 4. OPENAPI_PATH 环境变量指定的目录
-        if 'OPENAPI_PATH' in os.environ:
-            openapi_dir = Path(os.environ['OPENAPI_PATH'])
+        if "OPENAPI_PATH" in os.environ:
+            openapi_dir = Path(os.environ["OPENAPI_PATH"])
             candidates.append(openapi_dir / spec_path)
 
         return candidates
@@ -124,7 +123,7 @@ class OpenAPISpec:
             项目根目录路径，如果找不到返回 None
         """
         current = Path.cwd()
-        markers = ['.git', 'pyproject.toml', 'setup.py', 'package.json', '.project-root']
+        markers = [".git", "pyproject.toml", "setup.py", "package.json", ".project-root"]
 
         # 向上遍历最多 10 层
         for _ in range(10):
@@ -152,13 +151,15 @@ class OpenAPISpec:
         path = self.resolved_path
 
         try:
-            with open(path, 'r', encoding='utf-8') as f:
-                if path.suffix in ['.yml', '.yaml']:
+            with open(path, "r", encoding="utf-8") as f:
+                if path.suffix in [".yml", ".yaml"]:
                     return yaml.safe_load(f)
-                elif path.suffix == '.json':
+                elif path.suffix == ".json":
                     return json.load(f)
                 else:
-                    raise ValueError(f"不支持的文件格式: {path.suffix}（仅支持 .yml, .yaml, .json）")
+                    raise ValueError(
+                        f"不支持的文件格式: {path.suffix}（仅支持 .yml, .yaml, .json）"
+                    )
         except yaml.YAMLError as e:
             raise ValueError(f"YAML 解析失败: {str(e)}")
         except json.JSONDecodeError as e:
@@ -178,27 +179,36 @@ class OpenAPISpec:
         """
         operations = {}
 
-        if 'paths' not in self.spec:
+        if "paths" not in self.spec:
             raise ValueError(f"OpenAPI 文件缺少 'paths' 字段: {self.spec_file}")
 
-        for path, methods in self.spec['paths'].items():
+        for path, methods in self.spec["paths"].items():
             if not isinstance(methods, dict):
                 continue
 
             for method, operation in methods.items():
                 # 只处理 HTTP 方法（跳过 $ref, parameters 等特殊字段）
-                if method.lower() not in ['get', 'post', 'put', 'delete', 'patch', 'head', 'options', 'trace']:
+                if method.lower() not in [
+                    "get",
+                    "post",
+                    "put",
+                    "delete",
+                    "patch",
+                    "head",
+                    "options",
+                    "trace",
+                ]:
                     continue
 
                 if not isinstance(operation, dict):
                     continue
 
                 # 必须有 operationId
-                if 'operationId' not in operation:
+                if "operationId" not in operation:
                     print(f"[警告] {path} {method.upper()} 缺少 operationId，跳过")
                     continue
 
-                operation_id = operation['operationId']
+                operation_id = operation["operationId"]
 
                 if operation_id in operations:
                     raise ValueError(
@@ -207,15 +217,15 @@ class OpenAPISpec:
                     )
 
                 operations[operation_id] = {
-                    'path': path,
-                    'method': method.upper(),
-                    'parameters': operation.get('parameters', []),
-                    'requestBody': operation.get('requestBody'),
-                    'responses': operation.get('responses', {}),
-                    'summary': operation.get('summary', ''),
-                    'description': operation.get('description', ''),
-                    'tags': operation.get('tags', []),
-                    'deprecated': operation.get('deprecated', False),
+                    "path": path,
+                    "method": method.upper(),
+                    "parameters": operation.get("parameters", []),
+                    "requestBody": operation.get("requestBody"),
+                    "responses": operation.get("responses", {}),
+                    "summary": operation.get("summary", ""),
+                    "description": operation.get("description", ""),
+                    "tags": operation.get("tags", []),
+                    "deprecated": operation.get("deprecated", False),
                 }
 
         return operations
@@ -227,8 +237,8 @@ class OpenAPISpec:
         Returns:
             默认的 server URL，如果没有定义则返回 None
         """
-        if 'servers' in self.spec and len(self.spec['servers']) > 0:
-            return self.spec['servers'][0].get('url')
+        if "servers" in self.spec and len(self.spec["servers"]) > 0:
+            return self.spec["servers"][0].get("url")
         return None
 
     def get_operation(self, operation_id: str) -> Optional[Dict[str, Any]]:
@@ -271,7 +281,7 @@ class OpenAPISpec:
         Returns:
             info 字段内容
         """
-        return self.spec.get('info', {})
+        return self.spec.get("info", {})
 
     def get_security_config(self, env_var: Optional[str] = None) -> Optional[Dict[str, Any]]:
         """
@@ -295,8 +305,8 @@ class OpenAPISpec:
         import os
 
         # 1. 检查是否定义了 security schemes
-        components = self.spec.get('components', {})
-        security_schemes = components.get('securitySchemes', {})
+        components = self.spec.get("components", {})
+        security_schemes = components.get("securitySchemes", {})
 
         if not security_schemes:
             return None
@@ -307,14 +317,14 @@ class OpenAPISpec:
             return None
 
         scheme = security_schemes[scheme_name]
-        scheme_type = scheme.get('type', '').lower()
+        scheme_type = scheme.get("type", "").lower()
 
         # 3. 根据类型构建认证配置
-        if scheme_type == 'http':
-            http_scheme = scheme.get('scheme', '').lower()
+        if scheme_type == "http":
+            http_scheme = scheme.get("scheme", "").lower()
 
             # Bearer Token
-            if http_scheme == 'bearer':
+            if http_scheme == "bearer":
                 # 从环境变量读取 token
                 token = None
                 if env_var:
@@ -325,26 +335,23 @@ class OpenAPISpec:
                     default_env = f"{scheme_name.upper()}_TOKEN"
                     token = os.environ.get(default_env)
 
-                return {
-                    'type': 'bearer',
-                    'token': token
-                } if token else None
+                return {"type": "bearer", "token": token} if token else None
 
             # Basic Auth
-            elif http_scheme == 'basic':
+            elif http_scheme == "basic":
                 username = os.environ.get(f"{scheme_name.upper()}_USERNAME")
                 password = os.environ.get(f"{scheme_name.upper()}_PASSWORD")
 
-                return {
-                    'type': 'basic',
-                    'username': username,
-                    'password': password
-                } if username and password else None
+                return (
+                    {"type": "basic", "username": username, "password": password}
+                    if username and password
+                    else None
+                )
 
         # API Key
-        elif scheme_type == 'apikey':
-            key_name = scheme.get('name')
-            location = scheme.get('in', 'header')  # header or query
+        elif scheme_type == "apikey":
+            key_name = scheme.get("name")
+            location = scheme.get("in", "header")  # header or query
 
             # 从环境变量读取 API key
             api_key = None
@@ -355,40 +362,43 @@ class OpenAPISpec:
                 default_env = f"{scheme_name.upper()}_KEY"
                 api_key = os.environ.get(default_env)
 
-            return {
-                'type': 'apikey',
-                'key': key_name,
-                'value': api_key,
-                'location': location
-            } if api_key else None
+            return (
+                {"type": "apikey", "key": key_name, "value": api_key, "location": location}
+                if api_key
+                else None
+            )
 
         # OAuth2
-        elif scheme_type == 'oauth2':
-            flows = scheme.get('flows', {})
+        elif scheme_type == "oauth2":
+            flows = scheme.get("flows", {})
             # 支持 clientCredentials flow
-            if 'clientCredentials' in flows:
-                flow = flows['clientCredentials']
-                token_url = flow.get('tokenUrl')
+            if "clientCredentials" in flows:
+                flow = flows["clientCredentials"]
+                token_url = flow.get("tokenUrl")
 
                 client_id = os.environ.get(f"{scheme_name.upper()}_CLIENT_ID")
                 client_secret = os.environ.get(f"{scheme_name.upper()}_CLIENT_SECRET")
-                scope = flow.get('scopes', {})
-                scope_str = ' '.join(scope.keys()) if scope else ''
+                scope = flow.get("scopes", {})
+                scope_str = " ".join(scope.keys()) if scope else ""
 
-                return {
-                    'type': 'oauth2',
-                    'token_url': token_url,
-                    'client_id': client_id,
-                    'client_secret': client_secret,
-                    'scope': scope_str
-                } if client_id and client_secret else None
+                return (
+                    {
+                        "type": "oauth2",
+                        "token_url": token_url,
+                        "client_id": client_id,
+                        "client_secret": client_secret,
+                        "scope": scope_str,
+                    }
+                    if client_id and client_secret
+                    else None
+                )
 
         return None
 
     def __repr__(self) -> str:
         """字符串表示"""
         info = self.get_info()
-        title = info.get('title', 'Unknown API')
-        version = info.get('version', 'unknown')
+        title = info.get("title", "Unknown API")
+        version = info.get("version", "unknown")
         op_count = len(self.operations)
         return f"<OpenAPISpec '{title}' v{version} ({op_count} operations)>"

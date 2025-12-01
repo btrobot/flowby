@@ -35,9 +35,7 @@ class ServiceRegistry:
             self._provider_classes[type_name] = provider_class
 
     def register_provider_class(
-        self,
-        type_name: str,
-        provider_class: Type[ServiceProvider]
+        self, type_name: str, provider_class: Type[ServiceProvider]
     ) -> None:
         """
         注册自定义提供者类
@@ -59,10 +57,7 @@ class ServiceRegistry:
             provider_type = provider_config.type
 
             if provider_type not in self._provider_classes:
-                raise ServiceError(
-                    f"未知的提供者类型: {provider_type}",
-                    provider=name
-                )
+                raise ServiceError(f"未知的提供者类型: {provider_type}", provider=name)
 
             provider_class = self._provider_classes[provider_type]
 
@@ -74,7 +69,7 @@ class ServiceRegistry:
                     settings=self.config.settings,
                     timeout=provider_config.timeout,
                     retry_count=provider_config.retry_count,
-                    retry_delay=provider_config.retry_delay
+                    retry_delay=provider_config.retry_delay,
                 )
 
                 # 初始化提供者
@@ -85,11 +80,7 @@ class ServiceRegistry:
             except ServiceError:
                 raise
             except Exception as e:
-                raise ServiceError(
-                    f"初始化提供者 '{name}' 失败: {e}",
-                    provider=name,
-                    cause=e
-                )
+                raise ServiceError(f"初始化提供者 '{name}' 失败: {e}", provider=name, cause=e)
 
     def get_provider(self, name: str) -> ServiceProvider:
         """
@@ -105,10 +96,7 @@ class ServiceRegistry:
             ServiceError: 提供者不存在
         """
         if name not in self.providers:
-            raise ServiceError(
-                f"提供者 '{name}' 不存在",
-                provider=name
-            )
+            raise ServiceError(f"提供者 '{name}' 不存在", provider=name)
 
         return self.providers[name]
 
@@ -133,9 +121,7 @@ class ServiceRegistry:
         # 解析路径
         parts = service_path.split(".")
         if len(parts) != 2:
-            raise ServiceError(
-                f"无效的服务路径: {service_path}，格式应为 'provider.method'"
-            )
+            raise ServiceError(f"无效的服务路径: {service_path}，格式应为 'provider.method'")
 
         provider_name, method_name = parts
 
@@ -145,12 +131,7 @@ class ServiceRegistry:
         # 调用方法（带重试）
         return self._call_with_retry(provider, method_name, **kwargs)
 
-    def _call_with_retry(
-        self,
-        provider: ServiceProvider,
-        method: str,
-        **kwargs
-    ) -> Any:
+    def _call_with_retry(self, provider: ServiceProvider, method: str, **kwargs) -> Any:
         """
         带重试的方法调用
 
@@ -196,7 +177,7 @@ class ServiceRegistry:
         # 目前简单处理：网络相关错误重试
         if error.cause:
             error_type = type(error.cause).__name__
-            return error_type in ['TimeoutError', 'ConnectionError', 'OSError']
+            return error_type in ["TimeoutError", "ConnectionError", "OSError"]
 
         return False
 

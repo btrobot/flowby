@@ -4,7 +4,6 @@
 自动清理旧的诊断包
 """
 
-import os
 import shutil
 from datetime import datetime, timedelta
 from pathlib import Path

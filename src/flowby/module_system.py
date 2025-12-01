@@ -40,6 +40,7 @@ class ModuleInfo:
         ...     ast=program_node
         ... )
     """
+
     path: Path
     library_name: str
     exports: Dict[str, Any] = field(default_factory=dict)
@@ -111,11 +112,11 @@ class ModuleLoader:
             raise ValueError(f"不支持绝对路径: {relative_path}（只允许相对路径）")
 
         # 检查是否包含驱动器号 (Windows)
-        if len(relative_path) >= 2 and relative_path[1] == ':':
+        if len(relative_path) >= 2 and relative_path[1] == ":":
             raise ValueError(f"不支持绝对路径: {relative_path}（只允许相对路径）")
 
         # 检查是否以 / 开头 (Unix 绝对路径)
-        if relative_path.startswith('/'):
+        if relative_path.startswith("/"):
             raise ValueError(f"不支持绝对路径: {relative_path}（只允许相对路径）")
 
         # 获取当前文件所在目录
@@ -131,7 +132,7 @@ class ModuleLoader:
 
         # 如果没有扩展名，自动添加 .flow
         if not resolved_path.suffix:
-            resolved_path = resolved_path.with_suffix('.flow')
+            resolved_path = resolved_path.with_suffix(".flow")
 
         return resolved_path
 

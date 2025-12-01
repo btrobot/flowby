@@ -12,13 +12,17 @@ Resource Namespace - v4.2
 """
 
 import requests
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from .openapi_loader import OpenAPISpec
 from .errors import ExecutionError
-from .auth_handler import create_auth_handler, AuthHandler
-from .response_handler import create_response_handler, ResponseHandler, ValidationError
-from .resilience_handler import create_resilience_handler, ResilienceHandler
-from .mock_handler import create_mock_handler, MockHandler
+from .auth_handler import create_auth_handler
+from .response_handler import create_response_handler, ValidationError
+from .resilience_handler import create_resilience_handler
+from .mock_handler import create_mock_handler
+
+# 类型检查时导入（避免循环导入）
+if TYPE_CHECKING:
+    from .context import ExecutionContext
 
 
 class ResourceNamespace:
@@ -41,7 +45,7 @@ class ResourceNamespace:
         validate_response: bool = True,
         resilience: Optional[Dict] = None,
         mock: Optional[Dict] = None,
-        context: Optional['ExecutionContext'] = None
+        context: Optional["ExecutionContext"] = None,
     ):
         """
         初始化资源命名空间
@@ -166,10 +170,7 @@ class ResourceNamespace:
             可调用的方法
         """
         # 提取路径参数列表（按照定义顺序）
-        path_params = [
-            p['name'] for p in operation.get('parameters', [])
-            if p.get('in') == 'path'
-        ]
+        path_params = [p["name"] for p in operation.get("parameters", []) if p.get("in") == "path"]
 
         def method(*args, **kwargs):
             """动态生成的 API 方法"""
@@ -197,15 +198,16 @@ class ResourceNamespace:
 
         # 设置方法元数据
         method.__name__ = operation_id
-        method.__doc__ = operation.get('summary') or operation.get('description') or f"API operation: {operation_id}"
+        method.__doc__ = (
+            operation.get("summary")
+            or operation.get("description")
+            or f"API operation: {operation_id}"
+        )
 
         return method
 
     def _execute_operation(
-        self,
-        operation_id: str,
-        operation: Dict[str, Any],
-        kwargs: Dict[str, Any]
+        self, operation_id: str, operation: Dict[str, Any], kwargs: Dict[str, Any]
     ) -> Any:
         """
         执行 OpenAPI 操作
@@ -227,9 +229,7 @@ class ResourceNamespace:
                 try:
                     # 获取 mock 响应
                     mock_response = self.mock_handler.get_mock_response(
-                        operation_id,
-                        kwargs,
-                        logger=self.context.logger if self.context else None
+                        operation_id, kwargs, logger=self.context.logger if self.context else None
                     )
 
                     # 记录调用
@@ -248,7 +248,7 @@ class ResourceNamespace:
                         line=0,
                         statement=f"{self.name}.{operation_id}()",
                         error_type="MOCK_ERROR",
-                        message=error_msg
+                        message=error_msg,
                     )
 
         # 定义实际的 HTTP 请求函数
@@ -262,8 +262,8 @@ class ResourceNamespace:
                 return self.resilience_handler.execute(
                     operation_name=f"{self.name}.{operation_id}",
                     func=execute_http_request,
-                    method=operation['method'],
-                    logger=self.context.logger if self.context else None
+                    method=operation["method"],
+                    logger=self.context.logger if self.context else None,
                 )
             else:
                 # 否则直接执行
@@ -282,14 +282,11 @@ class ResourceNamespace:
                 line=0,
                 statement=f"{self.name}.{operation_id}()",
                 error_type="RUNTIME_ERROR",
-                message=error_msg
+                message=error_msg,
             )
 
     def _execute_http_request(
-        self,
-        operation_id: str,
-        operation: Dict[str, Any],
-        kwargs: Dict[str, Any]
+        self, operation_id: str, operation: Dict[str, Any], kwargs: Dict[str, Any]
     ) -> Any:
         """
         执行实际的 HTTP 请求（由 _execute_operation 或弹性处理器调用）
@@ -307,10 +304,10 @@ class ResourceNamespace:
         """
         try:
             # 1. 构建 URL（替换路径参数）
-            url = self._build_url(operation['path'], operation['parameters'], kwargs)
+            url = self._build_url(operation["path"], operation["parameters"], kwargs)
 
             # 2. 提取 query 参数
-            params = self._extract_query_params(operation['parameters'], kwargs)
+            params = self._extract_query_params(operation["parameters"], kwargs)
 
             # 2.5. 添加认证 query 参数（Phase 2）
             if self.auth_handler:
@@ -318,7 +315,9 @@ class ResourceNamespace:
                 params.update(auth_params)
 
             # 3. 构建 request body
-            json_body = self._build_request_body(operation.get('requestBody'), kwargs, operation['parameters'])
+            json_body = self._build_request_body(
+                operation.get("requestBody"), kwargs, operation["parameters"]
+            )
 
             # 4. 构建 headers
             headers = dict(self.default_headers)
@@ -334,22 +333,22 @@ class ResourceNamespace:
                 )
 
             # 6. 发送请求
-            method_name = operation['method'].lower()
+            method_name = operation["method"].lower()
             response = requests.request(
                 method=method_name,
                 url=url,
                 params=params,
                 json=json_body if json_body else None,
                 headers=headers,
-                timeout=self.timeout
+                timeout=self.timeout,
             )
 
             # 7. 检查 HTTP 错误（4xx/5xx 抛异常）
             response.raise_for_status()
 
             # 8. 解析响应（自动识别 JSON）
-            content_type = response.headers.get('content-type', '').lower()
-            if 'application/json' in content_type:
+            content_type = response.headers.get("content-type", "").lower()
+            if "application/json" in content_type:
                 data = response.json()
             else:
                 data = response.text
@@ -360,8 +359,13 @@ class ResourceNamespace:
             if isinstance(data, str) and response.status_code == 200:
                 # 检测常见的错误模式
                 error_indicators = [
-                    'error', 'fail', 'invalid', 'not found',
-                    'no free', 'unavailable', 'forbidden'
+                    "error",
+                    "fail",
+                    "invalid",
+                    "not found",
+                    "no free",
+                    "unavailable",
+                    "forbidden",
                 ]
                 data_lower = data.lower()
 
@@ -382,7 +386,7 @@ class ResourceNamespace:
                         line=0,
                         statement=f"{self.name}.{operation_id}()",
                         error_type="API_ERROR",
-                        message=error_msg
+                        message=error_msg,
                     )
 
             # 9. 响应数据验证和映射（Phase 3）
@@ -390,9 +394,7 @@ class ResourceNamespace:
                 try:
                     # 创建响应处理器
                     response_handler = create_response_handler(
-                        operation,
-                        self.response_mapping,
-                        self.validate_response
+                        operation, self.response_mapping, self.validate_response
                     )
 
                     # 处理响应数据
@@ -419,7 +421,7 @@ class ResourceNamespace:
                         line=0,
                         statement=f"{self.name}.{operation_id}()",
                         error_type="VALIDATION_ERROR",
-                        message=error_msg
+                        message=error_msg,
                     )
 
             return data
@@ -432,7 +434,7 @@ class ResourceNamespace:
             try:
                 error_detail = e.response.json()
                 error_msg += f"错误详情: {error_detail}"
-            except:
+            except Exception:
                 error_msg += f"错误详情: {e.response.text}"
 
             # 🔥 记录详细错误日志（v4.2.1 改进）
@@ -446,7 +448,7 @@ class ResourceNamespace:
                 try:
                     error_detail = e.response.json()
                     self.context.logger.error(f"[API ERROR] 响应详情: {error_detail}")
-                except:
+                except Exception:
                     error_text = e.response.text[:500]  # 限制长度
                     if error_text:
                         self.context.logger.error(f"[API ERROR] 响应内容: {error_text}")
@@ -455,7 +457,7 @@ class ResourceNamespace:
                 line=0,
                 statement=f"{self.name}.{operation_id}()",
                 error_type="API_ERROR",
-                message=error_msg
+                message=error_msg,
             )
 
         except requests.exceptions.Timeout:
@@ -476,7 +478,7 @@ class ResourceNamespace:
                 line=0,
                 statement=f"{self.name}.{operation_id}()",
                 error_type="TIMEOUT",
-                message=error_msg
+                message=error_msg,
             )
 
         except requests.exceptions.RequestException as e:
@@ -497,7 +499,7 @@ class ResourceNamespace:
                 line=0,
                 statement=f"{self.name}.{operation_id}()",
                 error_type="NETWORK_ERROR",
-                message=error_msg
+                message=error_msg,
             )
 
         except Exception as e:
@@ -518,15 +520,10 @@ class ResourceNamespace:
                 line=0,
                 statement=f"{self.name}.{operation_id}()",
                 error_type="RUNTIME_ERROR",
-                message=error_msg
+                message=error_msg,
             )
 
-    def _build_url(
-        self,
-        path_template: str,
-        parameters: List[Dict],
-        kwargs: Dict[str, Any]
-    ) -> str:
+    def _build_url(self, path_template: str, parameters: List[Dict], kwargs: Dict[str, Any]) -> str:
         """
         构建 URL，替换路径参数
 
@@ -544,17 +541,14 @@ class ResourceNamespace:
         url = self.base_url + path_template
 
         # 提取路径参数
-        path_params = [
-            p for p in parameters
-            if p.get('in') == 'path'
-        ]
+        path_params = [p for p in parameters if p.get("in") == "path"]
 
         # 替换路径参数
         for param in path_params:
-            param_name = param['name']
+            param_name = param["name"]
 
             if param_name not in kwargs:
-                if param.get('required', False):
+                if param.get("required", False):
                     raise ValueError(f"缺少必需的路径参数: {param_name}")
                 continue
 
@@ -564,9 +558,7 @@ class ResourceNamespace:
         return url
 
     def _extract_query_params(
-        self,
-        parameters: List[Dict],
-        kwargs: Dict[str, Any]
+        self, parameters: List[Dict], kwargs: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         提取 query 参数
@@ -585,23 +577,20 @@ class ResourceNamespace:
 
         # 提取声明为 query 的参数
         for param in parameters:
-            if param.get('in') != 'query':
+            if param.get("in") != "query":
                 continue
 
-            param_name = param['name']
+            param_name = param["name"]
 
             if param_name in kwargs:
                 query_params[param_name] = kwargs[param_name]
-            elif param.get('required', False):
+            elif param.get("required", False):
                 raise ValueError(f"缺少必需的 query 参数: {param_name}")
 
         return query_params
 
     def _build_request_body(
-        self,
-        request_body_spec: Optional[Dict],
-        kwargs: Dict[str, Any],
-        parameters: List[Dict]
+        self, request_body_spec: Optional[Dict], kwargs: Dict[str, Any], parameters: List[Dict]
     ) -> Optional[Dict]:
         """
         构建请求体（JSON）
@@ -620,7 +609,7 @@ class ResourceNamespace:
         # 提取已知的路径和查询参数名称
         known_param_names = set()
         for param in parameters:
-            known_param_names.add(param['name'])
+            known_param_names.add(param["name"])
 
         # 剩余的参数作为 body
         body = {}

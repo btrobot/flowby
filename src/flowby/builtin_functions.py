@@ -26,11 +26,16 @@ import json
 import builtins
 import os
 from datetime import datetime
-from typing import Any, List
+from typing import Any, List, TYPE_CHECKING
 from pathlib import Path
 
 # v3.1: 导入服务命名空间
 from .builtin_namespaces import RandomNamespace, HttpNamespace
+
+# 类型检查时导入（避免循环导入）
+if TYPE_CHECKING:
+    from .context import ExecutionContext
+    from .resource_namespace import ResourceNamespace
 
 
 class Math:
@@ -74,6 +79,7 @@ class Math:
     def random() -> float:
         """0-1 随机数"""
         import random
+
         return random.random()
 
     @staticmethod
@@ -176,17 +182,17 @@ class Hash:
     @staticmethod
     def md5(text: str) -> str:
         """计算 MD5 哈希"""
-        return hashlib.md5(text.encode('utf-8')).hexdigest()
+        return hashlib.md5(text.encode("utf-8")).hexdigest()
 
     @staticmethod
     def sha1(text: str) -> str:
         """计算 SHA1 哈希"""
-        return hashlib.sha1(text.encode('utf-8')).hexdigest()
+        return hashlib.sha1(text.encode("utf-8")).hexdigest()
 
     @staticmethod
     def sha256(text: str) -> str:
         """计算 SHA256 哈希"""
-        return hashlib.sha256(text.encode('utf-8')).hexdigest()
+        return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
 class Base64:
@@ -195,13 +201,13 @@ class Base64:
     @staticmethod
     def encode(text: str) -> str:
         """Base64 编码"""
-        return base64.b64encode(text.encode('utf-8')).decode('utf-8')
+        return base64.b64encode(text.encode("utf-8")).decode("utf-8")
 
     @staticmethod
     def decode(encoded: str) -> str:
         """Base64 解码"""
         try:
-            return base64.b64decode(encoded.encode('utf-8')).decode('utf-8')
+            return base64.b64decode(encoded.encode("utf-8")).decode("utf-8")
         except Exception as e:
             raise ValueError(f"无效的 Base64 字符串: {e}")
 
@@ -212,7 +218,7 @@ def Number(value: Any) -> float:
     try:
         return float(value)
     except (ValueError, TypeError):
-        return float('nan')
+        return float("nan")
 
 
 def String(value: Any) -> str:
@@ -437,15 +443,15 @@ def _load_env_file():
     2. 脚本所在目录的 .env
     3. 项目根目录的 .env
     """
-    global _ENV_CACHE, _ENV_LOADED
+    global _ENV_CACHE, _ENV_LOADED  # noqa: F824
 
     if _ENV_LOADED:
         return
 
     # 查找 .env 文件
     search_paths = [
-        Path.cwd() / '.env',                          # 当前目录
-        Path(__file__).parent.parent.parent / '.env', # 项目根目录
+        Path.cwd() / ".env",  # 当前目录
+        Path(__file__).parent.parent.parent / ".env",  # 项目根目录
     ]
 
     env_file = None
@@ -460,17 +466,17 @@ def _load_env_file():
 
     # 解析 .env 文件
     try:
-        with open(env_file, 'r', encoding='utf-8') as f:
+        with open(env_file, "r", encoding="utf-8") as f:
             for line in f:
                 line = line.strip()
 
                 # 跳过空行和注释
-                if not line or line.startswith('#'):
+                if not line or line.startswith("#"):
                     continue
 
                 # 解析 KEY=VALUE 格式
-                if '=' in line:
-                    key, value = line.split('=', 1)
+                if "=" in line:
+                    key, value = line.split("=", 1)
                     key = key.strip()
                     value = value.strip()
 
@@ -537,16 +543,17 @@ def env(key: str, default: Any = None) -> Any:
 # 导出所有内置函数命名空间
 BUILTIN_NAMESPACES = {
     # v1.0 内置函数
-    'Math': Math,
-    'Date': Date,
-    'JSON': JSON,
-    'UUID': UUID,
-    'Hash': Hash,
-    'Base64': Base64,
+    "Math": Math,
+    "Date": Date,
+    "JSON": JSON,
+    "UUID": UUID,
+    "Hash": Hash,
+    "Base64": Base64,
     # v3.1 服务命名空间 (支持 Python-style 调用)
-    'random': RandomNamespace,
-    'http': HttpNamespace,
+    "random": RandomNamespace,
+    "http": HttpNamespace,
 }
+
 
 # ==================== 字符串处理函数 (Python-style, v4.3+) ====================
 def upper(text: str) -> str:
@@ -754,7 +761,7 @@ def find(text: str, sub: str, start: int = 0) -> int:
 
 
 # ==================== Resource 构造函数 (v6.0+) ====================
-def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'ResourceNamespace':
+def Resource(spec_file: str, context: "ExecutionContext" = None, **kwargs) -> "ResourceNamespace":
     """
     创建基于 OpenAPI 规范的 API 客户端 (v6.0+)
 
@@ -815,7 +822,7 @@ def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'R
             line=0,
             statement="Resource()",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message="Resource() 函数需要执行上下文，但未提供。这通常是内部错误。"
+            message="Resource() 函数需要执行上下文，但未提供。这通常是内部错误。",
         )
 
     # 验证 spec_file
@@ -824,7 +831,7 @@ def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'R
             line=0,
             statement=f"Resource({spec_file!r})",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"spec_file 必须是非空字符串，得到 {type(spec_file).__name__}"
+            message=f"spec_file 必须是非空字符串，得到 {type(spec_file).__name__}",
         )
 
     try:
@@ -835,35 +842,36 @@ def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'R
         return ResourceNamespace(
             name=f"Resource({spec_file})",
             spec=spec,
-            base_url=kwargs.get('base_url'),
-            auth=kwargs.get('auth'),
-            timeout=kwargs.get('timeout'),
-            headers=kwargs.get('headers'),
-            response_mapping=kwargs.get('response_mapping'),
-            validate_response=kwargs.get('validate_response', True),
-            resilience=kwargs.get('resilience'),
-            mock=kwargs.get('mock'),
-            context=context
+            base_url=kwargs.get("base_url"),
+            auth=kwargs.get("auth"),
+            timeout=kwargs.get("timeout"),
+            headers=kwargs.get("headers"),
+            response_mapping=kwargs.get("response_mapping"),
+            validate_response=kwargs.get("validate_response", True),
+            resilience=kwargs.get("resilience"),
+            mock=kwargs.get("mock"),
+            context=context,
         )
     except FileNotFoundError as e:
         raise ExecutionError(
             line=0,
             statement=f"Resource({spec_file!r})",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"OpenAPI 规范文件未找到: {e}"
+            message=f"OpenAPI 规范文件未找到: {e}",
         )
     except Exception as e:
         raise ExecutionError(
             line=0,
             statement=f"Resource({spec_file!r})",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"创建 Resource 失败: {e}"
+            message=f"创建 Resource 失败: {e}",
         )
 
 
 # ============================================================
 # v6.6: 实用工具函数
 # ============================================================
+
 
 def sleep(seconds: float) -> None:
     """
@@ -876,23 +884,27 @@ def sleep(seconds: float) -> None:
         sleep(1.5)  # 暂停 1.5 秒
     """
     import time
+
     # 使用 builtins 中的 int 和 float 类型
     import builtins
+
     if not isinstance(seconds, (builtins.int, builtins.float)):
         from .errors import ExecutionError
+
         raise ExecutionError(
             line=0,
             statement="sleep",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"sleep() 需要数字参数，但得到 {type(seconds).__name__}"
+            message=f"sleep() 需要数字参数，但得到 {type(seconds).__name__}",
         )
     if seconds < 0:
         from .errors import ExecutionError
+
         raise ExecutionError(
             line=0,
             statement="sleep",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"sleep() 时间不能为负数，但得到 {seconds}"
+            message=f"sleep() 时间不能为负数，但得到 {seconds}",
         )
     time.sleep(seconds)
 
@@ -917,11 +929,12 @@ def zip(*arrays) -> list:
     for i, arr in enumerate(arrays):
         if not isinstance(arr, list):
             from .errors import ExecutionError
+
             raise ExecutionError(
                 line=0,
                 statement="zip",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"zip() 的第 {i+1} 个参数必须是数组，但得到 {type(arr).__name__}"
+                message=f"zip() 的第 {i + 1} 个参数必须是数组，但得到 {type(arr).__name__}",
             )
 
     # 使用最短数组的长度
@@ -936,34 +949,34 @@ def zip(*arrays) -> list:
 
 # 导出全局函数
 BUILTIN_FUNCTIONS = {
-    'Number': Number,
-    'String': String,
-    'Boolean': Boolean,
-    'isNaN': isNaN,
-    'isFinite': isFinite,
+    "Number": Number,
+    "String": String,
+    "Boolean": Boolean,
+    "isNaN": isNaN,
+    "isFinite": isFinite,
     # v3.4: 添加 len() 和 range() 支持字符串遍历
-    'len': len,
-    'range': range,
+    "len": len,
+    "range": range,
     # v4.0: Python-style 类型转换函数和enumerate
-    'int': int,
-    'float': float,
-    'enumerate': enumerate,
+    "int": int,
+    "float": float,
+    "enumerate": enumerate,
     # v4.2.1: 环境变量函数
-    'env': env,
+    "env": env,
     # v4.3: Python-style 字符串处理函数
-    'upper': upper,
-    'lower': lower,
-    'strip': strip,
-    'split': split,
-    'join': join,
-    'replace': replace,
-    'substring': substring,
-    'startswith': startswith,
-    'endswith': endswith,
-    'find': find,
+    "upper": upper,
+    "lower": lower,
+    "strip": strip,
+    "split": split,
+    "join": join,
+    "replace": replace,
+    "substring": substring,
+    "startswith": startswith,
+    "endswith": endswith,
+    "find": find,
     # v6.0: Resource 构造函数（替代 resource 语句）
-    'Resource': Resource,
+    "Resource": Resource,
     # v6.6: 实用工具函数
-    'sleep': sleep,
-    'zip': zip,
+    "sleep": sleep,
+    "zip": zip,
 }

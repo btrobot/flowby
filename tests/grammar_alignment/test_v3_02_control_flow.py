@@ -26,6 +26,7 @@ from registration_system.dsl.context import ExecutionContext
 # 2.1 Step Block 测试（无 end step）
 # ============================================================================
 
+
 class TestV3_2_1_StepBlock:
     """Step 块测试（纯缩进，无 end step）"""
 
@@ -126,8 +127,9 @@ end step
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end step 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字或缩进"
+        assert (
+            "end" in result.error.lower() or "缩进" in result.error
+        ), "错误提示应提及 end 关键字或缩进"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -139,13 +141,15 @@ step "test":
 """
         result = parse_v3(source)
         assert result.success == False, "空 step 块应该报错"
-        assert "块" in result.error or "body" in result.error.lower() or "语句" in result.error, \
-            "错误提示应提及空块"
+        assert (
+            "块" in result.error or "body" in result.error.lower() or "语句" in result.error
+        ), "错误提示应提及空块"
 
 
 # ============================================================================
 # 2.2 If-Else 测试（无 end if）
 # ============================================================================
+
 
 class TestV3_2_2_IfElse:
     """If-Else 块测试（纯缩进，无 end if）"""
@@ -265,8 +269,7 @@ end if
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end if 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -279,13 +282,13 @@ if x > 0
 """
         result = parse_v3(source)
         assert result.success == False, "if 缺少冒号应该报错"
-        assert ":" in result.error or "冒号" in result.error, \
-            "错误提示应提及冒号"
+        assert ":" in result.error or "冒号" in result.error, "错误提示应提及冒号"
 
 
 # ============================================================================
 # 2.3 When-Otherwise 测试（无 end when）
 # ============================================================================
+
 
 class TestV3_2_3_WhenOtherwise:
     """When-Otherwise 块测试（纯缩进，无 end when）"""
@@ -372,8 +375,7 @@ end when
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end when 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -465,6 +467,7 @@ when priority:
 # 2.4 For-Each Loop 测试（无 end for）
 # ============================================================================
 
+
 class TestV3_2_4_ForEachLoop:
     """For-Each 循环测试（纯缩进，无 end for）"""
 
@@ -549,8 +552,7 @@ end for
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end for 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -568,6 +570,7 @@ for item in items
 # ============================================================================
 # 综合测试：控制流组合
 # ============================================================================
+
 
 class TestV3_ControlFlow_Complex:
     """控制流复杂组合测试"""
@@ -618,8 +621,7 @@ step "用户验证":
             log "用户未激活"
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "Python 风格的控制流应该正确解析"
+        assert result.success == True, "Python 风格的控制流应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -643,31 +645,25 @@ step "level1":
 # Python 对齐验证
 # ============================================================================
 
+
 class TestV3_ControlFlow_PythonAlignment:
     """控制流 Python 对齐验证"""
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("dsl_code,python_equiv", [
-        (
-            "if x > 0:\n    let y = 1",
-            "if x > 0:\n    y = 1"
-        ),
-        (
-            "for item in items:\n    log item",
-            "for item in items:\n    print(item)"
-        ),
-        (
-            "if x:\n    let a = 1\nelse:\n    let a = 2",
-            "if x:\n    a = 1\nelse:\n    a = 2"
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "dsl_code,python_equiv",
+        [
+            ("if x > 0:\n    let y = 1", "if x > 0:\n    y = 1"),
+            ("for item in items:\n    log item", "for item in items:\n    print(item)"),
+            ("if x:\n    let a = 1\nelse:\n    let a = 2", "if x:\n    a = 1\nelse:\n    a = 2"),
+        ],
+    )
     def test_structure_matches_python(self, parse_v3, dsl_code, python_equiv):
         """✅ 验证：结构与 Python 匹配"""
         # DSL 代码应该能解析
         result = parse_v3(dsl_code)
-        assert result.success == True, \
-            f"DSL 代码应该像 Python 一样解析：{dsl_code}"
+        assert result.success == True, f"DSL 代码应该像 Python 一样解析：{dsl_code}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -680,8 +676,7 @@ for user in users:
         log f"Active user: {user.name}"
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "Python 程序员的直觉写法应该能正确解析"
+        assert result.success == True, "Python 程序员的直觉写法应该能正确解析"
 
 
 # ============================================================================
@@ -742,6 +737,7 @@ for user in users:
 # ============================================================================
 # v4.0 enumerate() 和多变量循环测试
 # ============================================================================
+
 
 class TestV4_Enumerate:
     """v4.0: enumerate() 函数和多变量循环测试"""
@@ -826,7 +822,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -845,7 +841,7 @@ for index, item in enumerate(items, start=1):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -866,7 +862,7 @@ for key, value in pairs:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -889,7 +885,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -910,7 +906,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -928,7 +924,7 @@ for key, value in pairs:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(Exception, match="解包值数量不匹配"):
@@ -945,7 +941,7 @@ for key, value in items:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(Exception, match="无法解包类型"):
@@ -963,10 +959,9 @@ for item in items:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         result = interpreter.symbol_table.get("result", [])
         assert result == [1, 2, 3]
-

@@ -80,7 +80,7 @@ class SystemVariables:
             >>> sys_vars.get("env.API_TOKEN")
             "secret_token_12345"
         """
-        parts = path.split('.', 1)  # 最多分割一次
+        parts = path.split(".", 1)  # 最多分割一次
         namespace = parts[0]
 
         if len(parts) == 1:
@@ -203,11 +203,11 @@ class SystemVariables:
         elif property_name == "width":
             # 视口宽度
             size = page.viewport_size
-            return size['width'] if size else 0
+            return size["width"] if size else 0
         elif property_name == "height":
             # 视口高度
             size = page.viewport_size
-            return size['height'] if size else 0
+            return size["height"] if size else 0
         else:
             raise RuntimeError(
                 f"未知的页面属性: $page.{property_name} (line {line_number})\n"
@@ -237,7 +237,7 @@ class SystemVariables:
 
         if property_name == "name":
             # 从 context 获取浏览器名称
-            browser_name = getattr(self.context, 'browser_name', 'chromium')
+            browser_name = getattr(self.context, "browser_name", "chromium")
             return browser_name
         elif property_name == "version":
             # 通过 JavaScript 获取浏览器版本
@@ -274,7 +274,7 @@ class SystemVariables:
             "myValue"
         """
         # 嵌套路径访问
-        parts = var_path.split('.')
+        parts = var_path.split(".")
         current = self.data_store
 
         for part in parts:
@@ -386,7 +386,7 @@ class SystemVariables:
             "secret"
         """
         # 嵌套路径访问
-        parts = var_path.split('.')
+        parts = var_path.split(".")
         current = self.config_vars
 
         for part in parts:
@@ -414,7 +414,7 @@ class SystemVariables:
             >>> sys_vars.set_data("myKey", "myValue")
             >>> sys_vars.set_data("user.name", "Alice")
         """
-        parts = key.split('.')
+        parts = key.split(".")
 
         if len(parts) == 1:
             # 简单键

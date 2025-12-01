@@ -14,7 +14,7 @@ Retry Handler - v4.2 Phase 4
 
 import time
 import random
-from typing import Dict, Any, Optional, List, Callable
+from typing import Dict, Any, Optional, Callable
 from abc import ABC, abstractmethod
 
 
@@ -32,7 +32,6 @@ class RetryStrategy(ABC):
         Returns:
             延迟时间（秒）
         """
-        pass
 
 
 class ExponentialBackoff(RetryStrategy):
@@ -44,7 +43,7 @@ class ExponentialBackoff(RetryStrategy):
         max_delay: float = 60.0,
         multiplier: float = 2.0,
         jitter: bool = False,
-        jitter_factor: float = 0.3
+        jitter_factor: float = 0.3,
     ):
         """
         初始化指数退避策略
@@ -100,12 +99,7 @@ class FixedDelay(RetryStrategy):
 class LinearBackoff(RetryStrategy):
     """线性退避策略"""
 
-    def __init__(
-        self,
-        base_delay: float = 1.0,
-        increment: float = 1.0,
-        max_delay: float = 60.0
-    ):
+    def __init__(self, base_delay: float = 1.0, increment: float = 1.0, max_delay: float = 60.0):
         """
         初始化线性退避策略
 
@@ -157,16 +151,15 @@ class RetryHandler:
             }
         """
         self.config = config or {}
-        self.max_retries = self.config.get('max_retries', 0)
-        self.retry_on_status = set(self.config.get('retry_on_status', [429, 503, 504]))
-        self.retry_on_exceptions = set(self.config.get('retry_on_exceptions', [
-            'ConnectionError', 'Timeout', 'ReadTimeout'
-        ]))
-        self.only_idempotent = self.config.get('only_idempotent', True)
-        self.idempotent_methods = set(self.config.get(
-            'idempotent_methods',
-            self.IDEMPOTENT_METHODS
-        ))
+        self.max_retries = self.config.get("max_retries", 0)
+        self.retry_on_status = set(self.config.get("retry_on_status", [429, 503, 504]))
+        self.retry_on_exceptions = set(
+            self.config.get("retry_on_exceptions", ["ConnectionError", "Timeout", "ReadTimeout"])
+        )
+        self.only_idempotent = self.config.get("only_idempotent", True)
+        self.idempotent_methods = set(
+            self.config.get("idempotent_methods", self.IDEMPOTENT_METHODS)
+        )
 
         # 创建重试策略
         self.strategy = self._create_strategy()
@@ -178,25 +171,23 @@ class RetryHandler:
 
     def _create_strategy(self) -> RetryStrategy:
         """创建重试策略"""
-        strategy_type = self.config.get('strategy', 'exponential')
+        strategy_type = self.config.get("strategy", "exponential")
 
-        if strategy_type == 'exponential':
+        if strategy_type == "exponential":
             return ExponentialBackoff(
-                base_delay=self.config.get('base_delay', 1.0),
-                max_delay=self.config.get('max_delay', 60.0),
-                multiplier=self.config.get('multiplier', 2.0),
-                jitter=self.config.get('jitter', False),
-                jitter_factor=self.config.get('jitter_factor', 0.3)
+                base_delay=self.config.get("base_delay", 1.0),
+                max_delay=self.config.get("max_delay", 60.0),
+                multiplier=self.config.get("multiplier", 2.0),
+                jitter=self.config.get("jitter", False),
+                jitter_factor=self.config.get("jitter_factor", 0.3),
             )
-        elif strategy_type == 'fixed':
-            return FixedDelay(
-                delay=self.config.get('delay', 2.0)
-            )
-        elif strategy_type == 'linear':
+        elif strategy_type == "fixed":
+            return FixedDelay(delay=self.config.get("delay", 2.0))
+        elif strategy_type == "linear":
             return LinearBackoff(
-                base_delay=self.config.get('base_delay', 1.0),
-                increment=self.config.get('increment', 1.0),
-                max_delay=self.config.get('max_delay', 60.0)
+                base_delay=self.config.get("base_delay", 1.0),
+                increment=self.config.get("increment", 1.0),
+                max_delay=self.config.get("max_delay", 60.0),
             )
         else:
             raise ValueError(f"不支持的重试策略: {strategy_type}")
@@ -205,7 +196,7 @@ class RetryHandler:
         self,
         exception: Optional[Exception] = None,
         response: Optional[Any] = None,
-        method: str = "GET"
+        method: str = "GET",
     ) -> bool:
         """
         判断是否应该重试
@@ -229,18 +220,14 @@ class RetryHandler:
                 return True
 
         # 检查 HTTP 状态码
-        if response and hasattr(response, 'status_code'):
+        if response and hasattr(response, "status_code"):
             if response.status_code in self.retry_on_status:
                 return True
 
         return False
 
     def execute(
-        self,
-        operation_name: str,
-        func: Callable,
-        method: str = "GET",
-        logger: Optional[Any] = None
+        self, operation_name: str, func: Callable, method: str = "GET", logger: Optional[Any] = None
     ) -> Any:
         """
         执行带重试的操作
@@ -283,7 +270,7 @@ class RetryHandler:
                 # 检查是否应该重试
                 if attempt < self.max_retries:
                     # 判断是否可重试
-                    response = getattr(e, 'response', None)
+                    response = getattr(e, "response", None)
                     if not self.should_retry(e, response, method):
                         # 不可重试的错误，直接抛出
                         raise
@@ -295,7 +282,7 @@ class RetryHandler:
                     self.total_retries += 1
                     if logger:
                         error_msg = str(e)
-                        if response and hasattr(response, 'status_code'):
+                        if response and hasattr(response, "status_code"):
                             error_msg = f"{response.status_code} {error_msg}"
 
                         logger.warning(
