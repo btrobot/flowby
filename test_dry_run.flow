@@ -1,0 +1,59 @@
+# Dry-Run 测试脚本
+# 这个脚本用于测试 dry-run 功能
+
+# 常量定义
+const MAX_RETRY = 3
+const API_URL = "https://api.example.com"
+
+# 变量定义
+let count = 0
+let username = "testuser"
+let result = None
+
+# 函数定义
+function validate_input(user_input):
+    if len(user_input) < 3:
+        return False
+    return True
+
+function retry_operation(max_retries):
+    let attempt = 0
+    while attempt < max_retries:
+        log f"尝试第 {attempt + 1} 次"
+        attempt = attempt + 1
+        if attempt >= 2:
+            break
+    return True
+
+# 主流程
+step "初始化":
+    log info "开始执行测试脚本"
+    let is_valid = validate_input(username)
+    
+    if is_valid:
+        log success "输入验证通过"
+    else:
+        log error "输入验证失败"
+
+step "执行操作":
+    let success = retry_operation(MAX_RETRY)
+    
+    when success:
+        True:
+            log "操作成功"
+        False:
+            log "操作失败"
+        otherwise:
+            log "未知状态"
+
+step "数据处理":
+    let items = [1, 2, 3, 4, 5]
+    let sum = 0
+    
+    for num in items:
+        sum = sum + num
+    
+    log f"总和: {sum}"
+
+step "完成":
+    log success "脚本执行完成"

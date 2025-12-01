@@ -1,0 +1,14 @@
+# 测试主文件 - 检查 import 后的行号
+from "test_lib.flow" import test_error
+
+log "Line 3"
+log "Line 4"
+log "Line 5"
+log "Line 6"
+log "Line 7"
+log "Line 8"
+log "Line 9"
+log "Line 10"
+
+# 调用会出错的函数（应该报错为 test_lib.flow 第 6 行）
+test_error()

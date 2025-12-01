@@ -1,0 +1,556 @@
+openapi: 3.1.0
+info:
+  title: 5sim Phone Verification Service
+  description: 5sim 临时手机号码验证服务 - 支持购买临时号码并接收短信验证码
+  version: 1.0.0
+  contact:
+    name: 5sim.net
+    url: https://5sim.net
+
+servers:
+  - url: https://5sim.net
+    description: 5sim 主服务器
+
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/user/profile:
+    get:
+      operationId: getBalance
+      summary: 获取用户余额和资料
+      description: 查询用户账户信息，包括余额、评分、默认国家等
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+              example:
+                id: 3637186
+                email: "user@example.com"
+                balance: 143.25
+                rating: 96
+                frozen_balance: 0
+                default_country:
+                  name: "england"
+                  iso: "gb"
+                  prefix: "+44"
+                default_operator:
+                  name: "virtual60"
+        '401':
+          description: 认证失败 - Token 无效或过期
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/guest/prices:
+    get:
+      operationId: getPrices
+      summary: 查询号码价格
+      description: 查询指定国家和服务的号码价格、可用数量和成功率
+      tags:
+        - Prices
+      security: []  # 此端点不需要认证
+      parameters:
+        - name: country
+          in: query
+          required: false
+          description: 国家名称（如 england, china）
+          schema:
+            type: string
+            example: england
+        - name: product
+          in: query
+          required: false
+          description: 服务名称（如 factoryai, telegram, whatsapp）
+          schema:
+            type: string
+            example: factoryai
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                type: object
+                description: 价格信息，按国家 -> 服务 -> 运营商组织
+                additionalProperties:
+                  type: object
+                  additionalProperties:
+                    type: object
+                    additionalProperties:
+                      $ref: '#/components/schemas/PriceInfo'
+              example:
+                england:
+                  factoryai:
+                    virtual60:
+                      cost: 7
+                      count: 1000
+                      rate: 95.6
+        '400':
+          description: 参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/user/buy/activation/{country}/{operator}/{product}:
+    get:
+      operationId: buyNumber
+      summary: 购买临时号码
+      description: 购买指定国家、运营商和服务的临时号码，返回订单信息和手机号
+      tags:
+        - Purchase
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: country
+          in: path
+          required: true
+          description: 国家名称（如 england, china）
+          schema:
+            type: string
+            example: england
+        - name: operator
+          in: path
+          required: true
+          description: 运营商名称（如 virtual60, vodafone）
+          schema:
+            type: string
+            example: virtual60
+        - name: product
+          in: path
+          required: true
+          description: 服务名称（如 factoryai, telegram）
+          schema:
+            type: string
+            example: factoryai
+      responses:
+        '200':
+          description: 购买成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                id: 914134218
+                phone: "+447868211483"
+                operator: "virtual60"
+                product: "factoryai"
+                price: 7
+                status: "PENDING"
+                expires: "2025-11-29 12:30:00"
+                sms: []
+        '400':
+          description: 购买失败 - 余额不足或参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/user/check/{order_id}:
+    get:
+      operationId: checkOrder
+      summary: 查询订单状态
+      description: |
+        查询订单当前状态和短信列表
+
+        **轮询机制**: 此接口需要定期调用（建议每 5 秒一次），直到收到短信或订单结束
+        - 最大轮询次数: 60 次
+        - 轮询间隔: 5 秒
+        - 最长等待时间: 5 分钟
+
+        **订单状态**:
+        - PENDING: 等待短信
+        - RECEIVED: 已收到短信
+        - FINISHED: 已完成
+        - CANCELED: 已取消
+        - TIMEOUT: 已超时
+        - BANNED: 号码被禁
+      tags:
+        - Order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: 订单 ID（购买号码时返回）
+          schema:
+            type: integer
+            format: int64
+            example: 914134218
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              examples:
+                pending:
+                  summary: 等待短信
+                  value:
+                    id: 914134218
+                    phone: "+447868211483"
+                    status: "PENDING"
+                    sms: []
+                received:
+                  summary: 已收到短信
+                  value:
+                    id: 914134218
+                    phone: "+447868211483"
+                    status: "RECEIVED"
+                    sms:
+                      - code: "123456"
+                        text: "Your verification code is 123456"
+                        sender: "FactoryAI"
+                        date: "2025-11-29 12:15:30"
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 订单不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/user/finish/{order_id}:
+    get:
+      operationId: finishOrder
+      summary: 完成订单
+      description: |
+        标记订单为已完成状态
+
+        **使用场景**: 成功收到验证码并完成验证后调用
+        **效果**:
+        - 订单状态变更为 FINISHED
+        - 释放号码资源
+        - 确认已使用验证码
+      tags:
+        - Order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: 订单 ID
+          schema:
+            type: integer
+            format: int64
+            example: 914134218
+      responses:
+        '200':
+          description: 完成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                id: 914134218
+                status: "FINISHED"
+                phone: "+447868211483"
+                price: 7
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 订单不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /v1/user/cancel/{order_id}:
+    get:
+      operationId: cancelOrder
+      summary: 取消订单
+      description: |
+        取消订单并退回费用
+
+        **使用场景**:
+        - 长时间未收到短信，需要重新购买
+        - 发生错误，需要中止流程
+
+        **效果**:
+        - 订单状态变更为 CANCELED
+        - 退回已支付的费用
+        - 释放号码资源
+
+        **注意**: 部分情况下可能无法完全退款（如已收到短信）
+      tags:
+        - Order
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: order_id
+          in: path
+          required: true
+          description: 订单 ID
+          schema:
+            type: integer
+            format: int64
+            example: 914134218
+      responses:
+        '200':
+          description: 取消成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+              example:
+                id: 914134218
+                status: "CANCELED"
+                phone: "+447868211483"
+        '401':
+          description: 认证失败
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: 订单不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        5sim API Token 认证
+
+        **获取方式**: 登录 5sim.net 后台获取 API Token
+        **环境变量**: FIVESIM_API_TOKEN
+        **使用方式**: Authorization: Bearer {token}
+
+  schemas:
+    UserProfile:
+      type: object
+      description: 用户资料信息
+      properties:
+        id:
+          type: integer
+          description: 用户 ID
+          example: 3637186
+        email:
+          type: string
+          format: email
+          description: 用户邮箱
+          example: "user@example.com"
+        balance:
+          type: number
+          format: double
+          description: 账户余额（美元）
+          example: 143.25
+        rating:
+          type: integer
+          description: 用户评分（0-100）
+          example: 96
+        frozen_balance:
+          type: number
+          format: double
+          description: 冻结余额
+          example: 0
+        default_country:
+          type: object
+          description: 默认国家设置
+          properties:
+            name:
+              type: string
+              description: 国家名称
+              example: "england"
+            iso:
+              type: string
+              description: ISO 国家代码
+              example: "gb"
+            prefix:
+              type: string
+              description: 国际区号
+              example: "+44"
+        default_operator:
+          type: object
+          description: 默认运营商设置
+          properties:
+            name:
+              type: string
+              description: 运营商名称
+              example: "virtual60"
+      required:
+        - id
+        - email
+        - balance
+        - rating
+
+    PriceInfo:
+      type: object
+      description: 价格信息
+      properties:
+        cost:
+          type: number
+          format: double
+          description: 号码价格（美元，两位小数）
+          example: 7.0
+        count:
+          type: integer
+          description: 可用数量
+          example: 1000
+        rate:
+          type: number
+          format: double
+          description: 成功率（百分比，两位小数）
+          example: 95.6
+      required:
+        - cost
+        - count
+
+    Order:
+      type: object
+      description: 订单信息
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: 订单 ID
+          example: 914134218
+        phone:
+          type: string
+          description: 手机号码（国际格式）
+          example: "+447868211483"
+        operator:
+          type: string
+          description: 运营商名称
+          example: "virtual60"
+        product:
+          type: string
+          description: 服务名称
+          example: "factoryai"
+        price:
+          type: number
+          format: double
+          description: 价格（美元）
+          example: 7.0
+        status:
+          type: string
+          description: |
+            订单状态
+            - PENDING: 等待短信
+            - RECEIVED: 已收到短信
+            - FINISHED: 已完成
+            - CANCELED: 已取消
+            - TIMEOUT: 已超时
+            - BANNED: 号码被禁
+          enum:
+            - PENDING
+            - RECEIVED
+            - FINISHED
+            - CANCELED
+            - TIMEOUT
+            - BANNED
+          example: "PENDING"
+        expires:
+          type: string
+          format: date-time
+          description: 过期时间
+          nullable: true
+          example: "2025-11-29 12:30:00"
+        sms:
+          type: array
+          description: 短信列表
+          items:
+            $ref: '#/components/schemas/SMS'
+          default: []
+        created_at:
+          type: string
+          format: date-time
+          description: 创建时间
+          nullable: true
+          example: "2025-11-29 12:00:00"
+        country:
+          type: string
+          description: 国家名称
+          nullable: true
+          example: "england"
+      required:
+        - id
+        - phone
+        - status
+
+    SMS:
+      type: object
+      description: 短信信息
+      properties:
+        code:
+          type: string
+          description: 验证码
+          example: "123456"
+        text:
+          type: string
+          description: 短信完整内容
+          example: "Your verification code is 123456"
+        sender:
+          type: string
+          description: 发送者
+          example: "FactoryAI"
+        date:
+          type: string
+          format: date-time
+          description: 接收时间
+          example: "2025-11-29 12:15:30"
+      required:
+        - code
+        - text
+
+    Error:
+      type: object
+      description: 错误响应
+      properties:
+        error:
+          type: string
+          description: 错误消息
+          example: "Insufficient balance"
+        code:
+          type: string
+          description: 错误代码
+          example: "INSUFFICIENT_BALANCE"
+        details:
+          type: object
+          description: 错误详细信息
+          additionalProperties: true
+      required:
+        - error
+
+tags:
+  - name: User
+    description: 用户信息管理
+  - name: Prices
+    description: 价格查询
+  - name: Purchase
+    description: 号码购买
+  - name: Order
+    description: 订单管理

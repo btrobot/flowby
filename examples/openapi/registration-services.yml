@@ -1,0 +1,363 @@
+openapi: 3.0.0
+info:
+  title: Registration Services API
+  version: 1.0.0
+  description: |
+    注册服务集成 API
+
+    整合了用户注册流程所需的各种服务，包括：
+    - 用户验证
+    - 邮箱验证
+    - 手机验证
+    - 日志记录
+
+servers:
+  - url: https://services.example.com/api
+    description: 注册服务
+
+paths:
+  /validate/email:
+    post:
+      operationId: validateEmail
+      summary: 验证邮箱格式
+      description: 验证邮箱地址的格式和可用性
+      tags:
+        - validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+              properties:
+                email:
+                  type: string
+                  format: email
+                checkDns:
+                  type: boolean
+                  default: true
+                  description: 是否检查 DNS MX 记录
+      responses:
+        '200':
+          description: 验证结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  reason:
+                    type: string
+                    description: 如果无效，说明原因
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    description: 可能的修正建议
+
+  /validate/phone:
+    post:
+      operationId: validatePhone
+      summary: 验证手机号
+      description: 验证手机号码的格式和有效性
+      tags:
+        - validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - phone
+              properties:
+                phone:
+                  type: string
+                  description: 手机号码
+                country:
+                  type: string
+                  description: 国家代码（ISO 3166-1 alpha-2）
+                  default: "CN"
+      responses:
+        '200':
+          description: 验证结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  formatted:
+                    type: string
+                    description: 格式化后的手机号
+                  carrier:
+                    type: string
+                    description: 运营商
+                  region:
+                    type: string
+                    description: 地区
+
+  /validate/password:
+    post:
+      operationId: validatePassword
+      summary: 验证密码强度
+      description: 检查密码是否符合安全要求
+      tags:
+        - validation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - password
+              properties:
+                password:
+                  type: string
+                  format: password
+      responses:
+        '200':
+          description: 验证结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+                  strength:
+                    type: string
+                    enum: [weak, medium, strong]
+                  issues:
+                    type: array
+                    items:
+                      type: string
+                    description: 密码问题列表
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    description: 改进建议
+
+  /check/username:
+    get:
+      operationId: checkUsername
+      summary: 检查用户名是否可用
+      description: 检查用户名是否已被注册
+      tags:
+        - availability
+      parameters:
+        - name: username
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 检查结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  available:
+                    type: boolean
+                  suggestions:
+                    type: array
+                    items:
+                      type: string
+                    description: 如果不可用，提供建议
+
+  /check/email:
+    get:
+      operationId: checkEmail
+      summary: 检查邮箱是否已注册
+      description: 检查邮箱地址是否已被注册
+      tags:
+        - availability
+      parameters:
+        - name: email
+          in: query
+          required: true
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: 检查结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registered:
+                    type: boolean
+
+  /captcha/generate:
+    post:
+      operationId: generateCaptcha
+      summary: 生成验证码图片
+      description: 生成图形验证码
+      tags:
+        - captcha
+      responses:
+        '200':
+          description: 验证码已生成
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  captchaId:
+                    type: string
+                    description: 验证码 ID
+                  imageBase64:
+                    type: string
+                    description: Base64 编码的图片
+                  expiresIn:
+                    type: integer
+                    description: 有效期（秒）
+
+  /captcha/verify:
+    post:
+      operationId: verifyCaptcha
+      summary: 验证图形验证码
+      description: 验证用户输入的验证码是否正确
+      tags:
+        - captcha
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - captchaId
+                - answer
+              properties:
+                captchaId:
+                  type: string
+                answer:
+                  type: string
+                  description: 用户输入的验证码
+      responses:
+        '200':
+          description: 验证结果
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  valid:
+                    type: boolean
+
+  /logs/registration:
+    post:
+      operationId: logRegistration
+      summary: 记录注册事件
+      description: 记录用户注册过程中的事件
+      tags:
+        - logging
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - event
+              properties:
+                event:
+                  type: string
+                  enum: [started, email_verified, form_submitted, completed, failed]
+                  description: 事件类型
+                userId:
+                  type: integer
+                  description: 用户 ID（如果已创建）
+                email:
+                  type: string
+                  format: email
+                  description: 用户邮箱
+                metadata:
+                  type: object
+                  description: 额外的元数据
+                  additionalProperties: true
+      responses:
+        '200':
+          description: 日志已记录
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  logged:
+                    type: boolean
+                  logId:
+                    type: string
+
+  /session/create:
+    post:
+      operationId: createSession
+      summary: 创建会话
+      description: 为新注册用户创建登录会话
+      tags:
+        - session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+              properties:
+                userId:
+                  type: integer
+                rememberMe:
+                  type: boolean
+                  default: false
+      responses:
+        '200':
+          description: 会话已创建
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessionId:
+                    type: string
+                  token:
+                    type: string
+                    description: 会话令牌
+                  expiresAt:
+                    type: string
+                    format: date-time
+
+components:
+  schemas:
+    ValidationResult:
+      type: object
+      properties:
+        valid:
+          type: boolean
+        reason:
+          type: string
+        suggestions:
+          type: array
+          items:
+            type: string
+
+    AvailabilityCheck:
+      type: object
+      properties:
+        available:
+          type: boolean
+        suggestions:
+          type: array
+          items:
+            type: string

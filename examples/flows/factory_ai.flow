@@ -1,0 +1,957 @@
+# ============================================================
+# Factory.ai 自动化注册流程 - v5.1 模块化版本（含电话验证）
+# ============================================================
+#
+# 改进点（相比 v5.0）：
+#   ✅ 新增电话验证阶段（Phase 4）
+#   ✅ 集成 5sim SMS 验证服务
+#   ✅ 自动购买临时手机号并接收验证码
+#   ✅ 完整的 5 阶段注册流程
+#   ✅ 利用 v5.1 闭包机制简化 SMS 函数调用
+#
+# 改进点（相比 v4.3）：
+#   ✅ 使用 v5.0 Module System 模块化代码
+#   ✅ 工具函数库独立维护，跨项目复用
+#   ✅ 配置集中管理，易于修改
+#   ✅ 主流程代码更简洁清晰
+#   ✅ 符合关注点分离原则（SoC）
+#   ✅ 更易测试和维护
+#
+# v5.1 特性应用：
+#   - 函数闭包：导出的函数可以调用库内私有函数
+#   - from import：简洁的选择性导入（无需 namespace 前缀）
+#   - library: 定义可复用库
+#   - export: 导出公共 API
+#   - import: 命名空间导入（适用于大量函数）
+#
+# 架构设计：
+#   ┌─────────────────────────────────────────┐
+#   │ factory_ai_registration_v5.1.flow       │  ← 主流程（业务逻辑）
+#   │ (~550行, 包含完整电话验证)               │
+#   └──────────────┬──────────────────────────┘
+#                  │
+#        ┌─────────┴─────────┬─────────────┐
+#        ▼                   ▼             ▼
+#   ┌─────────────┐   ┌─────────────┐   ┌──────────────┐
+#   │ automation_ │   │ factory_ai_ │   │ sms_service_ │
+#   │ utils.flow  │   │ config.flow │   │ utils.flow   │
+#   │             │   │             │   │              │
+#   │ 12个工具函数│   │ 15个配置项  │   │ 5个SMS函数   │
+#   └─────────────┘   └─────────────┘   └──────────────┘
+#   可跨项目复用       可跨流程复用       SMS验证专用
+#                                      │
+#                                      ▼
+#                              ┌──────────────┐
+#                              │ sms_config.  │
+#                              │ flow         │
+#                              │ 27个SMS配置  │
+#                              └──────────────┘
+#
+# 注册流程（5个阶段）：
+#   Phase 1: 账号准备（创建临时邮箱）
+#   Phase 2: 表单填写（填写注册信息）
+#   Phase 3: 邮箱验证（输入邮箱验证码）
+#   Phase 4: 电话验证（购买临时号码 + 输入短信验证码）✨ 新增
+#   Phase 5: 结果确认（验证注册成功）
+#
+# 环境变量要求：
+#   FIVESIM_API_TOKEN - 5sim API Token（必需，用于电话验证）
+#
+# 使用方法：
+#   export FIVESIM_API_TOKEN="your_5sim_api_token"
+#   regflow --browser <PROFILE_ID> flows/factory_ai_registration_v5.0_modularized.flow
+#
+
+# ============================================================
+# 模块导入（v5.0 新特性）
+# ============================================================
+
+# 导入通用工具库（完整命名空间）
+import utils from "../libs/automation_utils.flow"
+
+# 导入配置库（选择性导入常用项）
+from "../libs/factory_ai_config.flow" import API_BASE_URL, TARGET_URL, EXPECTED_DOMAIN, MAX_API_RETRIES, API_RETRY_DELAY, MAX_CODE_POLL_ATTEMPTS, CODE_POLL_INTERVAL, FIELD_FIRST_NAME, FIELD_LAST_NAME, FIELD_EMAIL, BUTTON_SUBMIT, PROGRESS_TOTAL
+
+# 导入 SMS 服务工具库和配置（v5.1: 利用闭包机制使用 from import）
+from "../libs/sms_service_utils.flow" import check_balance, buy_phone_number, wait_for_verification_code, cleanup_order
+from "../libs/sms_config.flow" import DEFAULT_COUNTRY, DEFAULT_OPERATOR, PRODUCT_FACTORY_AI, MAX_WAIT_MINUTES
+
+# ============================================================
+# 初始化
+# ============================================================
+
+log "========================================================================"
+log "Factory.ai 自动化注册机器人 - v5.0 模块化版本"
+log "========================================================================"
+
+# 会话信息
+let session_id = context.task_id
+log "会话 ID: {session_id}"
+log "API 服务器: {API_BASE_URL}"
+log ""
+
+# 导入 OpenAPI 规范 (v6.0: 使用 Resource() 构造函数)
+let email_api = Resource("E:/cf/ads/registration-system/examples/openapi/email-service.yml")
+log "✓ 已导入 Email Service API 规范"
+log "  可用操作: createAccount, getAccountByEmail"
+log ""
+
+# 导入 5sim SMS Service API (v6.0: 使用 Resource() 构造函数)
+let fivesim = Resource("../openapi/fivesim-service.yml",
+    auth = {
+        type: "bearer",
+        token: env("FIVESIM_API_TOKEN")
+    }
+)
+
+log "✓ 已导入 5sim SMS Service API 规范"
+log "  可用操作: getBalance, getPrices, buyNumber, checkOrder, finishOrder, cancelOrder"
+log ""
+
+# 用户数据（使用 random.fullname() 生成随机英语名字）
+"""
+let generated_fullname = random.fullname()  # 生成英语全名，如 "John Smith"
+let name_parts = generated_fullname.split(" ")  # 拆分为名字和姓氏
+let user_first_name = name_parts[0]  # 名字（First Name）
+let user_last_name = name_parts[len(name_parts) - 1]  # 姓氏（Last Name）
+"""
+
+let user_first_name = "平安"
+let user_last_name = "陆"
+
+log "随机生成用户姓名:"
+#log "  完整名字: {generated_fullname}"
+log "  名字: {user_first_name}"
+log "  姓氏: {user_last_name}"
+log ""
+let user_email = ""
+let user_password = ""
+let verification_code = ""
+
+# 电话验证相关
+let phone_order_id = None
+let phone_number = ""
+let phone_local = ""
+let country_code = ""
+let phone_verification_code = ""
+
+# 流程控制
+let progress_stage = 0
+
+# ============================================================
+# 第一阶段：账号准备
+# ============================================================
+
+step "Phase 1: Account Preparation":
+    progress_stage = 1
+    utils.log_phase_start(progress_stage, "账号准备", PROGRESS_TOTAL)
+
+    # ========== 子任务 1.1: 创建临时邮箱 ==========
+    utils.log_subtask("1.1", "创建临时邮箱账号（使用 Resource API）")
+
+    let retry = 0
+    let account_created = False
+
+    # 重试循环
+    while not account_created and retry < MAX_API_RETRIES:
+        retry = retry + 1
+
+        if retry > 1:
+            log info "      第 {retry}/{MAX_API_RETRIES} 次重试..."
+            wait 3 s  # API_RETRY_DELAY 默认值
+        else:
+            log info "      正在调用 API..."
+
+        # Resource API 调用
+        let response = email_api.createAccount(
+            body: {
+                email_format: "realistic"
+            }
+        )
+
+        # 处理响应
+        if response:
+            user_email = response.email
+            user_password = response.password
+            account_created = True
+
+            log success "      账号创建成功！"
+            log info "      邮箱: {user_email}"
+            log info "      密码: {user_password}"
+            log info "      尝试次数: {retry}"
+            break
+        else:
+            log error "      创建失败"
+
+    # 验证结果
+    if not account_created:
+        utils.abort_workflow("邮箱账号创建失败（已重试 {MAX_API_RETRIES} 次）")
+
+    # Assert 验证
+    utils.validate_and_assert(
+        account_created,
+        "账号创建成功，邮箱格式有效",
+        "Phase 1 Failed: Email account creation failed"
+    )
+    utils.validate_and_assert(
+        utils.validate_email_format(user_email),
+        "邮箱格式验证通过",
+        "Phase 1 Failed: Invalid email format"
+    )
+
+    log ""
+
+# ============================================================
+# 第二阶段：表单填写
+# ============================================================
+
+step "Phase 2: Form Filling":
+    progress_stage = 2
+    utils.log_phase_start(progress_stage, "表单填写", PROGRESS_TOTAL)
+
+    # ========== 子任务 2.1: 导航到注册页面 ==========
+    utils.log_subtask("2.1", "导航到注册页面")
+    log info "      目标: {TARGET_URL}"
+
+    navigate to TARGET_URL
+    utils.settle_page()
+
+    let current_url = page.url
+    let page_title = page.title
+
+    log success "      页面已加载"
+    log info "      URL: {current_url}"
+    log info "      标题: {page_title}"
+
+    # 验证 URL
+    if not utils.validate_url_domain(current_url, EXPECTED_DOMAIN):
+        utils.abort_workflow("页面 URL 不正确（期望包含: {EXPECTED_DOMAIN}）")
+
+    # Assert 验证
+    utils.validate_and_assert(
+        utils.validate_url_domain(current_url, EXPECTED_DOMAIN),
+        "页面 URL 验证成功",
+        "Phase 2.1 Failed: Wrong page domain"
+    )
+
+    utils.take_screenshot("v5_01_page_loaded")
+    log ""
+
+    # ========== 子任务 2.2: 填写姓名字段 ==========
+    utils.log_subtask("2.2", "填写姓名")
+
+    utils.fill_form_field(FIELD_FIRST_NAME, user_first_name, "First Name")
+    utils.fill_form_field(FIELD_LAST_NAME, user_last_name, "Last Name")
+
+    log success "      姓名已填写"
+    log ""
+
+    # ========== 子任务 2.3: 填写邮箱字段 ==========
+    utils.log_subtask("2.3", "填写邮箱地址")
+
+    # 验证邮箱格式
+    if not utils.validate_email_format(user_email):
+        utils.abort_workflow("邮箱格式无效（缺少 @ 符号）")
+
+    utils.fill_form_field(FIELD_EMAIL, user_email, "Email")
+    log success "      邮箱已填写"
+
+    utils.take_screenshot("v5_02_form_filled")
+    log ""
+
+    # ========== 子任务 2.4: 提交表单 ==========
+    utils.log_subtask("2.4", "提交注册表单")
+
+    let url_before = utils.get_and_log_current_url("提交前 URL")
+    utils.take_fullpage_screenshot("v5_03_before_submit")
+
+    select button where xpath=BUTTON_SUBMIT
+    click
+    log success "      提交按钮已点击"
+
+    wait 3 s
+    wait for networkidle
+
+    let url_after = utils.get_and_log_current_url("提交后 URL")
+    utils.check_url_change(url_before, url_after)
+
+    utils.take_fullpage_screenshot("v5_04_after_submit")
+    log ""
+
+# ============================================================
+# 第三阶段：验证码处理
+# ============================================================
+
+step "Phase 3: Verification Code Processing":
+    progress_stage = 3
+    utils.log_phase_start(progress_stage, "验证码处理", PROGRESS_TOTAL)
+
+    # ========== 子任务 3.1: 轮询验证码 ==========
+    utils.log_subtask("3.1", "等待并获取验证码（使用 Resource API）")
+    log info "      策略: 每 {CODE_POLL_INTERVAL} 秒轮询一次，最多 {MAX_CODE_POLL_ATTEMPTS} 次"
+
+    # 初始等待
+    log info "      初始等待 10 秒..."
+    wait 10 s
+
+    # 轮询循环
+    let code_received = False
+    let attempt = 0
+
+    log info "      开始轮询验证码..."
+
+    while not code_received and attempt < MAX_CODE_POLL_ATTEMPTS:
+        attempt = attempt + 1
+        log info "      [{attempt}/{MAX_CODE_POLL_ATTEMPTS}] 查询中..."
+
+        # Resource API 调用
+        let response = email_api.getAccountByEmail(
+            email: user_email
+        )
+
+        # 处理响应
+        if response:
+            let code = response.verification_code
+            log info "      响应状态: ok"
+            log info "      验证码字段: {code}"
+
+            # 检查验证码是否已到达
+            if code:
+                verification_code = code
+                code_received = True
+
+                log success "      验证码已获取: {verification_code}"
+                log info "      总查询次数: {attempt}"
+                break
+            else:
+                log warning "      验证码尚未到达（字段为空）"
+                if attempt < MAX_CODE_POLL_ATTEMPTS:
+                    log info "      等待 {CODE_POLL_INTERVAL} 秒后重试..."
+                    wait 10 s  # CODE_POLL_INTERVAL 默认值
+        else:
+            log error "      查询失败"
+            wait 5 s
+
+    # 检查最终结果
+    if not code_received:
+        utils.abort_workflow("验证码未在预期时间内到达（已尝试 {attempt} 次）")
+
+    # Assert 验证
+    utils.validate_and_assert(
+        code_received,
+        "验证码获取成功",
+        "Phase 3.1 Failed: Failed to receive verification code"
+    )
+    utils.validate_and_assert(
+        verification_code,
+        "验证码非空",
+        "Phase 3.1 Failed: Verification code is empty"
+    )
+
+    log ""
+
+    # ========== 子任务 3.2: 输入验证码 ==========
+    utils.log_subtask("3.2", "输入验证码（OTP 6 位数字）")
+    log info "      验证码: {verification_code}"
+
+    # 验证码长度
+    let code_length = len(verification_code)
+    log info "      验证码长度: {code_length}"
+
+    # 验证长度是否为 6
+    if code_length != 6:
+        utils.abort_workflow("验证码长度不正确（期望 6 位，实际 {code_length} 位）")
+
+    # Assert 验证
+    utils.validate_and_assert(
+        code_length == 6,
+        "验证码长度正确（6 位）",
+        "Phase 3.2 Failed: Invalid verification code length"
+    )
+
+    # 逐个输入验证码
+    log info "      开始逐个输入验证码..."
+
+    for i in range(code_length):
+        let digit = verification_code[i]
+        let position = i + 1
+        let selector = f".ak-OtpInput .rt-TextFieldInput[data-index=\"{i}\"]"
+
+        log info "      输入第 {position} 位: '{digit}' (selector: {selector})"
+
+        select input where css=selector
+        type digit
+        wait 200 ms
+
+    log success "      全部 6 位验证码已输入完成"
+
+    utils.take_screenshot("v5_05_code_entered")
+
+    # 注意：输入完6位验证码后，页面会自动提交表单并跳转
+    # 不存在"验证"或"继续"按钮，无需手动点击
+    log info "      等待自动提交和页面跳转..."
+
+    wait 3 s
+    wait for networkidle
+
+    # 再次等待确保跳转完成
+    wait 5 s
+    wait for networkidle
+
+    let verified_url = utils.get_and_log_current_url("验证后 URL")
+    log success "      页面已自动跳转"
+    utils.take_fullpage_screenshot("v5_06_verified")
+    log ""
+
+# ============================================================
+# 第四阶段：电话验证
+# ============================================================
+
+step "Phase 4: Phone Number Verification":
+    progress_stage = 4
+    utils.log_phase_start(progress_stage, "电话号码验证", 5)  # 更新总阶段数为5
+
+    # ========== 子任务 4.1: 等待进入手机号输入页面 ==========
+    utils.log_subtask("4.1", "等待手机号输入页面加载")
+
+    log info "      等待从邮箱验证页跳转到手机号输入页..."
+
+    # 等待手机号输入页面的特征元素出现（根据 reg-step-4.html 分析）
+    wait for element "input[name='country_code']"
+    wait 2 s
+    utils.settle_page()
+
+    let phone_page_url = utils.get_and_log_current_url("手机号输入页 URL")
+    log success "      已进入手机号输入页面"
+
+    utils.take_screenshot("v5_07_phone_input_page")
+    log ""
+
+    # ========== 子任务 4.2: 购买临时手机号 ==========
+    utils.log_subtask("4.2", "购买临时手机号码")
+
+    let buy_result = buy_phone_number(
+        fivesim,
+        DEFAULT_COUNTRY,
+        DEFAULT_OPERATOR,
+        PRODUCT_FACTORY_AI
+    )
+
+    if !buy_result.success:
+        utils.abort_workflow("购买手机号失败: {buy_result.message}")
+
+    # 保存手机号信息
+    phone_order_id = buy_result.order_id
+    phone_number = buy_result.phone
+    phone_local = buy_result.phone_local
+    country_code = buy_result.country_code
+
+    log warning "      已购买临时手机号:"
+    log warning "        完整号码: {phone_number}"
+    log warning "        国家码: {country_code}"
+    log warning "        本地号码: {phone_local}"
+    log warning "        订单 ID: {phone_order_id}"
+    log ""
+
+    utils.take_screenshot("v5_07_phone_purchased")
+
+    # ========== 子任务 4.3: 在网页输入手机号 ==========
+    utils.log_subtask("4.3", "在网页输入手机号码")
+
+    utils.get_and_log_current_url("电话验证页面")
+    log ""
+
+    # 定位并填写区号输入框（使用 name 属性，比 placeholder 更稳定）
+    log info "      输入区号: {country_code}"
+    select input where css="input[name='country_code']"
+    clear
+    type country_code
+
+    wait 1 s
+
+    # 定位并填写电话号码输入框（使用 name 属性，比 placeholder 更稳定）
+    log info "      输入电话号码: {phone_local}"
+    select input where css="input[name='local_number']"
+    clear
+    type phone_local
+
+    wait 1 s
+
+    utils.take_screenshot("v5_08_phone_entered")
+
+    # 提交表单（根据 step-4.md: 此页面无提交按钮，通过按 Enter 键提交）
+    log info "      提交表单（按 Enter 键）..."
+    press Enter
+
+    log success "      表单已提交"
+    log ""
+
+    # 等待页面跳转到验证码输入页
+    log info "      等待页面跳转到验证码输入页..."
+    wait 3 s
+    wait for networkidle
+
+    utils.take_screenshot("v5_09_sms_code_page")
+
+    let sms_code_url = utils.get_and_log_current_url("短信验证码页 URL")
+    log success "      页面已跳转到短信验证码输入页"
+    log ""
+
+    # ========== 子任务 4.4: 等待接收短信验证码 ==========
+    utils.log_subtask("4.4", "等待接收短信验证码")
+
+    log info "      开始轮询查询验证码..."
+    log info "        订单 ID: {phone_order_id}"
+    log info "        最大等待: {MAX_WAIT_MINUTES} 分钟"
+    log ""
+
+    let code_result = wait_for_verification_code(
+        fivesim,
+        phone_order_id,
+        MAX_WAIT_MINUTES
+    )
+
+    if !code_result.success:
+        log error "      短信验证码接收失败: {code_result.message}"
+        log warning "      正在取消订单..."
+        cleanup_order(fivesim, phone_order_id, False)
+        utils.abort_workflow("短信验证码接收超时")
+
+    phone_verification_code = code_result.code
+
+    log success "      短信验证码接收成功: {phone_verification_code}"
+    log success "      短信内容: {code_result.sms_text}"
+    log success "      发送者: {code_result.sender}"
+    log ""
+
+    # ========== 子任务 4.5: 输入短信验证码 ==========
+    utils.log_subtask("4.5", "输入短信验证码")
+
+    log info "      验证码: {phone_verification_code}"
+
+    # 验证码长度
+    let code_length = len(phone_verification_code)
+    log info "      验证码长度: {code_length}"
+
+    # 验证长度是否为 6
+    if code_length != 6:
+        utils.abort_workflow("验证码长度不正确（期望 6 位，实际 {code_length} 位）")
+
+    # 逐个输入验证码（与邮箱验证码相同的逻辑）
+    log info "      开始逐个输入验证码..."
+
+    for i in range(code_length):
+        let digit = phone_verification_code[i]
+        let position = i + 1
+        let selector = f"input[data-index=\"{i}\"]"
+
+        log info "      输入第 {position} 位: '{digit}' (selector: {selector})"
+
+        select input where css=selector
+        type digit
+        wait 200 ms
+
+    log success "      全部 6 位验证码已输入完成"
+
+    utils.take_screenshot("v5_10_sms_code_entered")
+
+    # 注意：输入完6位验证码后，页面会自动提交表单并跳转
+    # 不存在"验证"或"继续"按钮，无需手动点击
+    log info "      等待自动提交和页面跳转..."
+
+    wait 3 s
+    wait for networkidle
+
+    # 再次等待确保跳转完成
+    wait 20 s
+    wait for networkidle
+
+    input("press any key......")
+
+    let phone_verified_url = utils.get_and_log_current_url("电话验证后 URL")
+    log success "      页面已自动跳转"
+    utils.take_fullpage_screenshot("v5_11_phone_verified_first")
+    log ""
+
+    # ========================================
+    # 第二次手机验证（复用同一个手机号）
+    # ========================================
+
+    log warning "=== 注意：Factory.ai 需要进行第二次手机验证 ==="
+    log ""
+
+    # ========== 子任务 4.6: 等待第二次手机号输入页面 ==========
+    utils.log_subtask("4.6", "等待第二次手机号输入页面")
+
+    log info "      等待页面跳转到第二次手机号输入页..."
+    log info "      注意：该页面加载较慢，可能需要 30 秒..."
+    wait 40 s
+
+    # 等待手机号输入页面的特征元素再次出现（使用 placeholder 选择器）
+    wait for element "input[placeholder='1234567890']"
+    wait 2 s
+    utils.settle_page()
+
+    let phone_page_url_2 = utils.get_and_log_current_url("第二次手机号输入页 URL")
+    log success "      已进入第二次手机号输入页面"
+
+    utils.take_screenshot("v5_12_phone_input_page_second")
+    log ""
+
+    # ========== 子任务 4.7: 再次输入手机号（复用） ==========
+    utils.log_subtask("4.7", "再次输入手机号码（复用同一号码）")
+
+    log info "      复用之前购买的手机号:"
+    log info "        完整号码: {phone_number}"
+    log info "        国家码: {country_code}"
+    log info "        本地号码: {phone_local}"
+    log ""
+
+    # 定位并填写区号输入框（使用 placeholder 选择器）
+    log info "      输入区号: {country_code}"
+    select input where css="input[placeholder='1']"
+    clear
+    type country_code
+
+    wait 1 s
+
+    # 定位并填写电话号码输入框（使用 placeholder 选择器）
+    log info "      输入电话号码: {phone_local}"
+    select input where css="input[placeholder='1234567890']"
+    clear
+    type phone_local
+
+    wait 1 s
+
+    utils.take_screenshot("v5_13_phone_entered_second")
+
+    # 提交表单
+    log info "      提交表单（按 Enter 键）..."
+    press Enter
+
+    log success "      表单已提交"
+    log ""
+
+    # 等待页面跳转到验证码输入页
+    log info "      等待页面跳转到验证码输入页..."
+    wait 40 s
+    wait for networkidle
+
+    utils.take_screenshot("v5_14_sms_code_page_second")
+
+    let sms_code_url_2 = utils.get_and_log_current_url("第二次短信验证码页 URL")
+    log success "      页面已跳转到短信验证码输入页"
+    log ""
+
+    # ========== 子任务 4.8: 等待接收第二次短信验证码 ==========
+    utils.log_subtask("4.8", "等待接收第二次短信验证码")
+
+    log info "      开始轮询查询第二次验证码..."
+    log info "        订单 ID: {phone_order_id}"
+    log info "        最大等待: {MAX_WAIT_MINUTES} 分钟"
+    log ""
+
+    let code_result_2 = wait_for_verification_code(
+        fivesim,
+        phone_order_id,
+        MAX_WAIT_MINUTES
+    )
+
+    if !code_result_2.success:
+        log error "      第二次短信验证码接收失败: {code_result_2.message}"
+        log warning "      正在取消订单..."
+        cleanup_order(fivesim, phone_order_id, False)
+        utils.abort_workflow("第二次短信验证码接收超时")
+
+    let phone_verification_code_2 = code_result_2.code
+
+    log success "      第二次短信验证码接收成功: {phone_verification_code_2}"
+    log success "      短信内容: {code_result_2.sms_text}"
+    log success "      发送者: {code_result_2.sender}"
+    log ""
+
+    # ========== 子任务 4.9: 输入第二次短信验证码 ==========
+    utils.log_subtask("4.9", "输入第二次短信验证码")
+
+    log info "      验证码: {phone_verification_code_2}"
+
+    # 验证码长度
+    let code_length_2 = len(phone_verification_code_2)
+    log info "      验证码长度: {code_length_2}"
+
+    # 验证长度是否为 6
+    if code_length_2 != 6:
+        utils.abort_workflow("第二次验证码长度不正确（期望 6 位，实际 {code_length_2} 位）")
+
+    # 等待验证码输入页面加载（单个输入框）
+    log info "      等待验证码输入框..."
+    wait for element "input[placeholder='000000']"
+    wait 2 s
+    utils.settle_page()
+
+    # 选择单个输入框并清空
+    log info "      定位验证码输入框..."
+    select input where css="input[placeholder='000000']"
+    clear
+    log success "      输入框已清空"
+
+    # 完整输入 6 位验证码
+    log info "      输入验证码: {phone_verification_code_2}"
+    type phone_verification_code_2
+
+    log success "      验证码已输入完成"
+    utils.take_screenshot("v5_15_sms_code_entered_second")
+
+    # 按 Enter 提交
+    log info "      按 Enter 提交验证码..."
+    press Enter
+
+    # 等待页面跳转
+    log info "      等待页面跳转..."
+    wait 3 s
+    wait for networkidle
+
+    let phone_verified_url_2 = utils.get_and_log_current_url("第二次电话验证后 URL")
+    log success "      第二次电话验证完成，页面已跳转"
+
+    utils.take_fullpage_screenshot("v5_16_phone_verified_second")
+
+    log ""
+
+    # ========== 子任务 4.10: 完成 5sim 订单 ==========
+    utils.log_subtask("4.10", "完成 5sim 订单")
+
+    log info "      验证成功，正在完成订单..."
+
+    let cleanup_result = cleanup_order(fivesim, phone_order_id, True)
+
+    if cleanup_result.success:
+        log success "      订单已完成"
+        log success "        订单 ID: {phone_order_id}"
+        log success "        最终状态: {cleanup_result.status}"
+    else:
+        log warning "      完成订单失败（不影响注册流程）: {cleanup_result.message}"
+
+    log ""
+
+# ============================================================
+# 第五阶段：结果确认
+# ============================================================
+
+step "Phase 5: Result Confirmation":
+    progress_stage = 5
+    utils.log_phase_start(progress_stage, "结果确认", 5)  # 更新总阶段数为5
+
+    utils.log_subtask("5.1", "验证最终状态")
+
+    let final_url = page.url
+    let final_title = page.title
+
+    log info "      最终 URL: {final_url}"
+    log info "      页面标题: {final_title}"
+
+    # 验证域名
+    if utils.validate_url_domain(final_url, EXPECTED_DOMAIN):
+        log success "      域名验证通过"
+    else:
+        log error "      域名验证失败"
+
+    # Assert 验证
+    utils.validate_and_assert(
+        utils.validate_url_domain(final_url, EXPECTED_DOMAIN),
+        "最终页面域名验证成功",
+        "Phase 4 Failed: Final page domain mismatch"
+    )
+
+    utils.take_fullpage_screenshot("v5_12_final")
+    log ""
+
+    input("=============> ")
+
+    # 输出完整报告
+    let completion_percent = 100
+
+    log "========================================================================"
+    log "注册流程完成 ✓"
+    log "========================================================================"
+    log "会话信息:"
+    log "  会话 ID: {session_id}"
+    log "  完成率: {completion_percent}%"
+    log ""
+    log "用户信息:"
+    log "  姓名: {user_first_name} {user_last_name}"
+    log "  邮箱: {user_email}"
+    log "  密码: {user_password}"
+    log "  邮箱验证码: {verification_code}"
+    log ""
+    log "电话验证信息:"
+    log "  手机号: {phone_number}"
+    log "  国家码: {country_code}"
+    log "  本地号码: {phone_local}"
+    log "  短信验证码: {phone_verification_code}"
+    log "  5sim订单ID: {phone_order_id}"
+    log ""
+    log "页面信息:"
+    log "  最终 URL: {final_url}"
+    log "  页面标题: {final_title}"
+    log ""
+    log "架构信息:"
+    log "  版本: v5.1 模块化（新增电话验证）"
+    log "  工具库: automation_utils.flow (12个函数)"
+    log "  配置库: factory_ai_config.flow (15个常量)"
+    log "  SMS工具库: sms_service_utils.flow (5个函数)"
+    log "  SMS配置库: sms_config.flow (27个常量)"
+    log "  主流程: ~550行 (包含完整电话验证流程)"
+    log ""
+    log "API 配置:"
+    log "  Email Service: {API_BASE_URL}"
+    log "  5sim Service: https://5sim.net"
+    log "  调用方式: Resource (OpenAPI)"
+    log ""
+    log "截图记录:"
+    log "  v5_01_page_loaded.png       - 注册页面加载完成"
+    log "  v5_02_form_filled.png       - 表单填写完成"
+    log "  v5_03_before_submit.png     - 提交前状态"
+    log "  v5_04_after_submit.png      - 提交后状态"
+    log "  v5_05_code_entered.png      - 邮箱验证码输入完成"
+    log "  v5_06_verified.png          - 邮箱验证完成"
+    log "  v5_07_phone_purchased.png   - 临时手机号已购买"
+    log "  v5_08_phone_entered.png     - 手机号输入完成"
+    log "  v5_09_sms_code_page.png     - 短信验证码页面"
+    log "  v5_10_sms_code_entered.png  - 短信验证码输入完成"
+    log "  v5_11_phone_verified.png    - 电话验证完成"
+    log "  v5_12_final.png             - 最终状态"
+    log "========================================================================"
+
+# ============================================================
+# v5.0 模块化重构设计说明
+# ============================================================
+#
+# 【核心改进】
+#
+# 1. ✨ 代码模块化（v5.0 Module System）
+#    v4.3版本:
+#      - 所有代码在一个文件（651行）
+#      - 工具函数（87行）与业务逻辑混在一起
+#      - 配置常量（35行）分散在代码中
+#      - 难以跨项目复用
+#
+#    v5.0重构:
+#      automation_utils.flow      87行（12个工具函数）
+#      factory_ai_config.flow     65行（15个配置常量）
+#      主流程                     ~250行（纯业务逻辑）
+#      ──────────────────────────────────────
+#      总计                       ~402行
+#      代码减少                   38%
+#
+#    改进:
+#      ✅ 关注点分离（工具/配置/业务）
+#      ✅ 工具库可跨项目复用
+#      ✅ 配置独立，易于维护
+#      ✅ 主流程更清晰专注
+#
+# 2. ✨ 导入语法灵活性
+#    完整命名空间导入:
+#      import utils from "../libs/automation_utils.flow"
+#      utils.take_screenshot("page")
+#      → 清晰的命名空间，避免冲突
+#
+#    选择性导入:
+#      from "../libs/factory_ai_config.flow" import TARGET_URL, FIELD_EMAIL
+#      navigate to TARGET_URL
+#      → 简洁的调用，代码更易读
+#
+# 3. ✨ 维护性提升
+#    场景1：需要修改截图日志格式
+#      v4.3: 需要修改主流程文件中的 7 处
+#      v5.0: 只需修改 automation_utils.flow 的 2 个函数
+#
+#    场景2：需要更新元素定位器
+#      v4.3: 在主流程的配置区修改
+#      v5.0: 在 factory_ai_config.flow 统一修改
+#
+#    场景3：新项目需要复用工具函数
+#      v4.3: 复制粘贴 87 行代码
+#      v5.0: import utils from "../libs/automation_utils.flow"
+#
+# 4. ✨ 测试性提升
+#    v4.3: 工具函数嵌入在主流程中，难以单独测试
+#    v5.0: 每个库文件可独立测试
+#      - test_automation_utils.flow（测试12个工具函数）
+#      - test_factory_ai_config.flow（验证15个配置）
+#      - test_main_flow.flow（测试业务逻辑）
+#
+# 【代码统计对比】
+#
+# v4.3 函数重构版:
+#   总行数: 651 行
+#   工具函数: 87 行 (13%)
+#   配置常量: 35 行 (5%)
+#   业务逻辑: 332 行 (51%)
+#   注释文档: 197 行 (30%)
+#
+# v5.0 模块化版:
+#   automation_utils.flow:  87 行（可复用）
+#   factory_ai_config.flow: 65 行（可复用）
+#   主流程文件:             ~250 行（纯业务）
+#   ─────────────────────────────────────
+#   总计:                   ~402 行
+#   代码减少:               38% ✅
+#   可复用代码:             152 行（38%）✅✅
+#
+# 【模块化价值】
+#
+# 1. 关注点分离（SoC）:
+#    - 工具 → automation_utils.flow
+#    - 配置 → factory_ai_config.flow
+#    - 业务 → 主流程文件
+#
+# 2. 单一职责原则（SRP）:
+#    - 每个库有明确的职责边界
+#    - 函数功能单一且聚焦
+#
+# 3. 开闭原则（OCP）:
+#    - 扩展新工具函数：在库中添加并export
+#    - 无需修改现有代码
+#
+# 4. 依赖倒置原则（DIP）:
+#    - 业务逻辑依赖抽象的工具接口
+#    - 不依赖具体实现细节
+#
+# 【最佳实践】
+#
+# 1. 库文件设计:
+#    - library 声明库名
+#    - export 导出公共API
+#    - 私有辅助函数不导出
+#    - 完整的文档注释
+#
+# 2. 导入策略:
+#    - 工具函数 → 完整命名空间（import utils）
+#    - 配置常量 → 选择性导入（from...import）
+#    - 避免 import * （显式优于隐式）
+#
+# 3. 命名规范:
+#    - 库名: snake_case（automation_utils）
+#    - 函数: snake_case（take_screenshot）
+#    - 常量: UPPER_CASE（MAX_RETRIES）
+#
+# 4. 文件组织:
+#    libs/              # 库文件目录
+#      automation_utils.flow    # 通用工具
+#      factory_ai_config.flow   # 项目配置
+#    flows/             # 流程文件目录
+#      main.flow        # 主流程
+#
+# 【总结】
+#
+# v5.0 Module System 使代码：
+# - 更模块化（38%可复用代码独立维护）
+# - 更简洁（主流程减少60%代码量）
+# - 更易读（业务逻辑清晰可见）
+# - 更易维护（修改集中，影响可控）
+# - 更易测试（模块独立测试）
+# - 更专业（符合SOLID原则）
+#
+# 从 v4.3 → v5.0: 函数化 → 模块化 ✨
+#

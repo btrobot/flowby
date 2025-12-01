@@ -24,6 +24,14 @@ from .errors import ParserError
 from .symbol_table import SymbolTableStack, SymbolType
 
 
+# v6.3: 系统变量列表（运行时隐式可用，无需声明）
+SYSTEM_VARIABLES = {
+    "page",      # 页面对象
+    "env",       # 环境变量
+    "response",  # HTTP响应对象
+}
+
+
 @dataclass
 class Violation:
     """
@@ -2545,6 +2553,24 @@ class Parser:
                 expr = ArrayAccess(array=expr, index=index, line=line)
             else:
                 break
+
+        # v6.3: VR-001 检查 - 变量使用前必须声明
+        # 如果最终表达式是 Identifier（即未被转换为函数调用或成员访问的左侧）
+        # 则检查该标识符是否已定义
+        if isinstance(expr, Identifier):
+            var_name = expr.name
+            # 跳过系统变量（运行时隐式可用）
+            if var_name not in SYSTEM_VARIABLES:
+                # 检查符号表中是否存在该变量
+                if not self.symbol_table_stack.exists(var_name):
+                    raise ParserError(
+                        expr.line,
+                        0,  # 列号暂不可用
+                        "IDENTIFIER",
+                        var_name,
+                        f"未定义的变量 '{var_name}'（VR-001 违规）",
+                        f"在使用前先用 'let' 或 'const' 声明变量"
+                    )
 
         return expr
 

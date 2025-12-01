@@ -1,0 +1,304 @@
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                      FLOWBY WAIT STATEMENT SYNTAX DIAGRAM                      ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           WAIT STATEMENT (5 MODES)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │ 1. WAIT DURATION (等待固定时间)                              │
+    └─────────────────────────────────────────────────────────────┘
+    
+    wait <number>[<unit>]
+         └──┬──┘ └──┬──┘
+            │       └──── 可选单位: s | ms | sec | second(s)
+            └──────────── 整数或浮点数
+    
+    wait [for] <number>[<unit>]
+         └─┬─┘
+           └──────────── for 关键字可选
+    
+    示例:
+        wait 2s
+        wait 1.5s
+        wait 500ms
+        wait for 3seconds
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │ 2. WAIT FOR STATE (等待页面状态)                            │
+    └─────────────────────────────────────────────────────────────┘
+    
+    wait for <state>
+             └──┬──┘
+                └──── networkidle | load | domcontentloaded
+    
+    示例:
+        wait for networkidle
+        wait for load
+        wait for domcontentloaded
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │ 3. WAIT FOR ELEMENT (等待元素)                              │
+    └─────────────────────────────────────────────────────────────┘
+    
+    wait for element <selector> [to be <state>] [timeout <duration>]
+                     └────┬────┘        └──┬──┘          └─────┬─────┘
+                          │                │                    │
+                      CSS/XPath          可选状态          可选超时时间
+                      (支持表达式)
+    
+    元素状态: visible | hidden | attached | detached
+    
+    示例:
+        wait for element "#loading"
+        wait for element ".modal" to be visible
+        wait for element "#spinner" to be hidden timeout 10s
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │ 4. WAIT FOR NAVIGATION (等待导航)                           │
+    └─────────────────────────────────────────────────────────────┘
+    
+    wait for navigation [to <url>] [wait for <state>] [timeout <duration>]
+                        └────┬────┘  └──────┬──────┘  └─────┬─────┘
+                             │               │                │
+                        可选目标URL    可选页面状态      可选超时时间
+                        (支持表达式)
+    
+    示例:
+        wait for navigation
+        wait for navigation to "https://success.com"
+        wait for navigation wait for networkidle
+        wait for navigation to url_var wait for load timeout 10s
+
+    ┌─────────────────────────────────────────────────────────────┐
+    │ 5. WAIT UNTIL (等待条件)                                    │
+    └─────────────────────────────────────────────────────────────┘
+    
+    wait until <expression>
+               └─────┬─────┘
+                     └──── 任意布尔表达式 (v2.0+)
+    
+    支持的表达式:
+        • 比较: ==, !=, >, <, >=, <=
+        • 逻辑: and, or, not
+        • 字符串: contains, matches
+        • 成员访问: obj.property
+        • 函数调用: len(arr) > 0
+    
+    示例:
+        wait until page_loaded == True
+        wait until item_count > 0
+        wait until page.url contains "success"
+        wait until len(items) > 0 and items[0].visible
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                              PARSING FLOWCHART                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    WAIT
+      │
+      ├─── FOR? ────────────────────────────────────────┐
+      │                                                   │
+      │                                                   ▼
+      ├─── UNTIL? ──────> _parse_expression() ──> WaitUntilStatement
+      │                                                   
+      │                                                   
+      ├─── NUMBER/INTEGER? ──> parse_time_value() ──> WaitDurationStatement
+      │                                                   
+      │                                                   
+      └─── ERROR: 期望 'for', 'until' 或时间值
+    
+    
+    WAIT FOR (called by _parse_wait_for)
+      │
+      ├─── NAVIGATION? ────────────────────────────────┐
+      │                                                  │
+      │         ┌─────────────────────────────────────┘
+      │         │
+      │         ├─ [TO url]?
+      │         ├─ [WAIT FOR state]?
+      │         ├─ [TIMEOUT duration]?
+      │         └──> WaitForNavigationStatement
+      │
+      ├─── ELEMENT? ──────────────────────────────────┐
+      │                                                 │
+      │         ┌────────────────────────────────────┘
+      │         │
+      │         ├─ selector (expression)
+      │         ├─ [TO BE state]?
+      │         ├─ [TIMEOUT duration]?
+      │         └──> WaitForElementStatement
+      │
+      ├─── NETWORKIDLE/LOAD/DOMCONTENTLOADED? ──> WaitForStateStatement
+      │
+      ├─── NUMBER? ──> parse_time_value() ──> WaitDurationStatement
+      │
+      └─── ERROR: 期望 'navigation', 'element', 页面状态 或时间值
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                            AST NODE DEFINITIONS                                ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    ┌───────────────────────────────────────┐
+    │ WaitDurationStatement                 │
+    ├───────────────────────────────────────┤
+    │ duration: float                       │  ← 统一转换为秒
+    │ line: int                             │
+    └───────────────────────────────────────┘
+
+    ┌───────────────────────────────────────┐
+    │ WaitForStateStatement                 │
+    ├───────────────────────────────────────┤
+    │ state: str                            │  ← "networkidle" | "load" | ...
+    │ line: int                             │
+    └───────────────────────────────────────┘
+
+    ┌───────────────────────────────────────┐
+    │ WaitForElementStatement               │
+    ├───────────────────────────────────────┤
+    │ selector: Any                         │  ← str or Expression
+    │ state: Optional[str]                  │  ← "visible" | "hidden" | ...
+    │ timeout: Optional[float]              │  ← 秒
+    │ line: int                             │
+    └───────────────────────────────────────┘
+
+    ┌───────────────────────────────────────┐
+    │ WaitForNavigationStatement            │
+    ├───────────────────────────────────────┤
+    │ url: Optional[Any]                    │  ← str or Expression or None
+    │ page_state: Optional[str]             │  ← "networkidle" | "load" | ...
+    │ timeout: Optional[float]              │  ← 秒
+    │ line: int                             │
+    └───────────────────────────────────────┘
+
+    ┌───────────────────────────────────────┐
+    │ WaitUntilStatement                    │
+    ├───────────────────────────────────────┤
+    │ condition: Expression                 │  ← 任意表达式
+    │ line: int                             │
+    └───────────────────────────────────────┘
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                          EXECUTION PARAMETERS                                  ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    ┌─────────────────────────┬──────────────┬──────────────┬────────────────┐
+    │ Wait Type               │ Default      │ Configurable │ Poll Interval  │
+    │                         │ Timeout      │ Timeout      │                │
+    ├─────────────────────────┼──────────────┼──────────────┼────────────────┤
+    │ wait DURATION           │ N/A          │ N/A          │ N/A            │
+    │ wait for STATE          │ 30s          │ ❌            │ N/A            │
+    │ wait for element        │ 10s          │ ✅ timeout N  │ Playwright     │
+    │ wait for navigation     │ 30s          │ ✅ timeout N  │ Playwright     │
+    │ wait until              │ 30s          │ ❌            │ 500ms          │
+    └─────────────────────────┴──────────────┴──────────────┴────────────────┘
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                            TIME UNIT CONVERSION                                ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    输入格式                    解析结果（秒）        示例
+    ─────────────────────────  ──────────────────   ─────────────────
+    <number>                    → <number>          wait 3      → 3.0s
+    <number>s                   → <number>          wait 2s     → 2.0s
+    <number>sec                 → <number>          wait 5sec   → 5.0s
+    <number>second              → <number>          wait 1second → 1.0s
+    <number>seconds             → <number>          wait 3seconds → 3.0s
+    <number>ms                  → <number>/1000     wait 500ms  → 0.5s
+    
+    注意: 所有时间值最终统一转换为秒（float）
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                             VERSION HISTORY                                    ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    v1.0  ── 基础 wait 语法（固定时间、页面状态、元素、导航）
+              └─ wait 2s, wait for element, wait for navigation
+    
+    v2.0  ── 支持表达式系统
+              └─ wait until <expression>
+              └─ 条件表达式: 比较、逻辑、成员访问
+    
+    v3.0  ── 选择器支持表达式
+              └─ wait for element selector_var to be visible
+              └─ 变量、成员访问、f-string 插值
+    
+    v4.0  ── 支持整数和浮点数时间值
+              └─ wait 1.5s, wait 0.5seconds
+              └─ 区分 INTEGER 和 NUMBER token
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                           BEST PRACTICES                                       ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+    ✅ 推荐:
+    
+    1. 使用 wait for networkidle 而非固定时间
+       └─ 更可靠，适应不同网络环境
+    
+    2. 使用 wait for element 等待元素出现
+       └─ 比 wait until 更高效（Playwright 内部优化）
+    
+    3. 为慢速操作设置合理的 timeout
+       └─ wait for element "#result" to be visible timeout 30s
+    
+    4. 使用元素状态而非盲目等待
+       └─ wait for element "#spinner" to be hidden
+       └─ 而非: wait 5s
+    
+    ❌ 避免:
+    
+    1. 过度使用固定时间等待
+       └─ wait 10s  ← 不精确且浪费时间
+    
+    2. 使用 wait until 检查元素存在
+       └─ wait until element_exists("#el")  ← 效率低
+       └─ 改用: wait for element "#el"
+    
+    3. 设置过短的 timeout
+       └─ wait for element "#slow" timeout 1s  ← 容易超时
+
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                        COMPLETE EXAMPLE SCRIPT                                 ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+step "登录流程":
+    # 导航并等待页面加载
+    navigate to "https://app.example.com/login"
+    wait for networkidle
+    
+    # 等待表单出现
+    wait for element "#login-form" to be visible
+    
+    # 填写表单
+    type "user@example.com" into "#email"
+    type "password123" into "#password"
+    
+    # 提交并等待加载
+    click "#submit"
+    wait for element "#loading-spinner" to be visible
+    wait for element "#loading-spinner" to be hidden timeout 30s
+    
+    # 等待导航到仪表板
+    wait for navigation to "https://app.example.com/dashboard"
+    wait for networkidle
+    
+    # 等待数据加载完成
+    wait until page.url contains "dashboard"
+    wait for element "#user-profile" to be visible
+    
+    log success "登录成功！"
+
+
+═══════════════════════════════════════════════════════════════════════════════
+                            Last Updated: 2025-11-30
+                         Corresponding Version: v6.0+
+═══════════════════════════════════════════════════════════════════════════════

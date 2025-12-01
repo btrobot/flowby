@@ -1,0 +1,48 @@
+/**meta
+title: While Loop Basic Test
+desc: 快速验证 while 循环基本功能
+grammar-version: 3.0.0
+*/
+
+# Test 1: 基本 while 循环
+log "=== Test 1: 基本 while 循环 ==="
+let count = 0
+while count < 3:
+    log f"Count: {count}"
+    count = count + 1
+log f"循环结束，count = {count}"
+
+# Test 2: While + break
+log "\n=== Test 2: While + break ==="
+let i = 0
+while i < 100:
+    log f"i = {i}"
+    if i == 5:
+        log "遇到 break，退出"
+        break
+    i = i + 1
+log f"循环结束，i = {i}"
+
+# Test 3: While + continue
+log "\n=== Test 3: While + continue ==="
+let j = 0
+let sum = 0
+while j < 10:
+    j = j + 1
+    if j % 2 == 0:
+        continue  # 跳过偶数
+    log f"处理奇数: {j}"
+    sum = sum + j
+log f"奇数之和: {sum}"
+
+# Test 4: While True + break
+log "\n=== Test 4: While True + break ==="
+let counter = 0
+while True:
+    counter = counter + 1
+    log f"Iteration {counter}"
+    if counter >= 3:
+        break
+log "无限循环测试完成"
+
+log "\n✅ 所有测试完成！"

@@ -1,0 +1,270 @@
+# ============================================================
+# 自动化测试通用工具库 v1.0
+# ============================================================
+#
+# 用途：提供自动化测试流程中常用的工具函数
+#
+# 功能模块：
+#   - 日志工具：统一日志格式
+#   - 流程控制：中止流程、验证断言
+#   - 验证工具：邮箱、URL格式验证
+#   - 截图工具：截图 + 自动日志
+#   - 表单操作：填写字段、等待稳定
+#   - URL工具：获取URL、检查变化
+#
+# 使用方式：
+#   import automation_utils from "../libs/automation_utils.flow"
+#   automation_utils.take_screenshot("page_loaded")
+#
+# 或：
+#   from "../libs/automation_utils.flow" import take_screenshot
+#   take_screenshot("page_loaded")
+#
+# 版本：v1.0
+# 作者：Registration System Team
+# 日期：2025-11-29
+#
+
+library automation_utils
+
+# ============================================================
+# 日志工具函数
+# ============================================================
+
+export function log_phase_start(phase_num, phase_name, progress_total):
+    """
+    记录阶段开始
+
+    Args:
+        phase_num: 当前阶段编号
+        phase_name: 阶段名称
+        progress_total: 总阶段数
+
+    Example:
+        log_phase_start(1, "账号准备", 4)
+        # 输出: 阶段 [1/4]: 账号准备
+    """
+    log "阶段 [{phase_num}/{progress_total}]: {phase_name}"
+    log ""
+
+export function log_subtask(task_id, task_name):
+    """
+    记录子任务开始
+
+    Args:
+        task_id: 子任务编号（如 "1.1"）
+        task_name: 子任务名称
+
+    Example:
+        log_subtask("1.1", "创建临时邮箱")
+        # 输出: [1.1] 创建临时邮箱
+    """
+    log "[{task_id}] {task_name}"
+
+# ============================================================
+# 流程控制函数
+# ============================================================
+
+export function abort_workflow(reason):
+    """
+    中止流程并记录原因
+
+    注意：由于 exit 语句的限制，先记录错误日志，然后通过 exit 1 中止流程
+
+    Args:
+        reason: 中止原因
+
+    Example:
+        abort_workflow("邮箱创建失败（已重试3次）")
+    """
+    log error "      [致命错误] {reason}"
+    log error "      流程将中止"
+    exit 1
+
+export function validate_and_assert(condition, success_msg, error_msg):
+    """
+    验证条件并 assert（失败会自动中止流程）
+
+    Args:
+        condition: 验证条件（True/False）
+        success_msg: 成功时的日志消息
+        error_msg: 失败时的错误消息（assert message）
+
+    Returns:
+        True（条件通过时）
+
+    Example:
+        validate_and_assert(
+            email contains "@",
+            "邮箱格式验证通过",
+            "Invalid email format"
+        )
+    """
+    assert condition, error_msg
+    log success "      Assert 通过: {success_msg}"
+    return True
+
+# ============================================================
+# 验证工具函数
+# ============================================================
+
+export function validate_email_format(email):
+    """
+    验证邮箱格式（简单检查）
+
+    Args:
+        email: 邮箱地址字符串
+
+    Returns:
+        True: 包含 @ 符号
+        False: 不包含 @ 符号
+
+    Example:
+        if validate_email_format("test@example.com"):
+            log "邮箱格式正确"
+    """
+    return email contains "@"
+
+export function validate_url_domain(url, expected_domain):
+    """
+    验证 URL 包含期望的域名
+
+    Args:
+        url: 完整URL字符串
+        expected_domain: 期望的域名（如 "example.com"）
+
+    Returns:
+        True: URL包含期望域名
+        False: URL不包含期望域名
+
+    Example:
+        if validate_url_domain(page.url, "factory.ai"):
+            log "域名验证通过"
+    """
+    return url contains expected_domain
+
+# ============================================================
+# 截图工具函数
+# ============================================================
+
+export function take_screenshot(name):
+    """
+    截图并自动记录日志
+
+    Args:
+        name: 截图文件名（不含扩展名）
+
+    Example:
+        take_screenshot("page_loaded")
+        # 执行: screenshot as "page_loaded"
+        # 日志: 📸 截图: page_loaded.png
+    """
+    screenshot as name
+    log "      📸 截图: {name}.png"
+
+export function take_fullpage_screenshot(name):
+    """
+    全屏截图并自动记录日志
+
+    Args:
+        name: 截图文件名（不含扩展名）
+
+    Example:
+        take_fullpage_screenshot("full_page")
+        # 执行: screenshot fullpage as "full_page"
+        # 日志: 📸 全屏截图: full_page.png
+    """
+    screenshot fullpage as name
+    log "      📸 全屏截图: {name}.png"
+
+# ============================================================
+# 表单操作函数
+# ============================================================
+
+export function fill_form_field(xpath, value, field_name):
+    """
+    填写表单字段：选择 + 输入 + 等待 + 日志
+
+    Args:
+        xpath: 字段的 XPath 定位器
+        value: 要输入的值
+        field_name: 字段名称（用于日志）
+
+    Example:
+        fill_form_field(
+            "//input[@id='email']",
+            "test@example.com",
+            "Email"
+        )
+        # 输出日志: Email: test@example.com
+    """
+    log info "      {field_name}: {value}"
+    select input where xpath=xpath
+    type value
+    wait 500 ms
+
+export function settle_page():
+    """
+    等待页面稳定（网络空闲 + 固定等待）
+
+    Example:
+        settle_page()
+        # 等待网络空闲 + 3秒固定等待
+    """
+    wait for networkidle
+    wait 3 s
+
+# ============================================================
+# URL 工具函数
+# ============================================================
+
+export function get_and_log_current_url(label):
+    """
+    获取当前 URL 并记录日志
+
+    Args:
+        label: 日志标签（描述此URL的用途）
+
+    Returns:
+        当前页面URL字符串
+
+    Example:
+        let url = get_and_log_current_url("提交前URL")
+        # 日志: 提交前URL: https://example.com/page
+    """
+    let url = page.url
+    log info "      {label}: {url}"
+    return url
+
+export function check_url_change(url_before, url_after):
+    """
+    检查 URL 是否变化
+
+    Args:
+        url_before: 变化前的URL
+        url_after: 变化后的URL
+
+    Returns:
+        True: URL已变化
+        False: URL未变化
+
+    Example:
+        let changed = check_url_change(old_url, new_url)
+        if changed:
+            log "页面已跳转"
+    """
+    if url_after != url_before:
+        log success "      URL 已变化"
+        return True
+    else:
+        log warning "      URL 未变化，可能需要人工检查"
+        return False
+
+# ============================================================
+# 库元数据
+# ============================================================
+# 导出函数总数: 12
+# 分类: 日志(2) + 流程控制(2) + 验证(2) + 截图(2) + 表单(2) + URL(2)
+# 复用性: ⭐⭐⭐⭐⭐ 高度可复用
+# 依赖: 无外部依赖，只依赖DSL内置功能
+# ============================================================

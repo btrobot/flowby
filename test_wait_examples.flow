@@ -1,0 +1,121 @@
+# Wait 语句完整示例
+# 演示所有 5 种 wait 模式
+
+const BASE_URL = "https://example.com"
+
+step "1. 等待固定时间 (Wait Duration)":
+    log "=== Wait Duration 示例 ==="
+    
+    # 基本用法
+    wait 2s
+    wait 1.5s
+    wait 500ms
+    
+    # 可选的 for 关键字
+    wait for 3s
+    wait for 100ms
+    
+    # 不同的时间单位
+    wait 1second
+    wait 2seconds
+    wait 3sec
+
+step "2. 等待页面状态 (Wait For State)":
+    log "=== Wait For State 示例 ==="
+    
+    # 等待网络空闲（最常用）
+    navigate to BASE_URL
+    wait for networkidle
+    
+    # 等待页面加载完成
+    wait for load
+    
+    # 等待 DOM 加载
+    wait for domcontentloaded
+
+step "3. 等待元素 (Wait For Element)":
+    log "=== Wait For Element 示例 ==="
+    
+    # 等待元素存在（默认：attached）
+    wait for element "#loading"
+    
+    # 等待元素可见
+    wait for element ".modal" to be visible
+    
+    # 等待元素隐藏
+    wait for element "#spinner" to be hidden
+    
+    # 等待元素从 DOM 移除
+    wait for element "#temp" to be detached
+    
+    # 带超时的等待
+    wait for element "#result" to be visible timeout 10s
+    
+    # 使用变量（v3.0+）
+    let modal_selector = "#dynamic-modal"
+    wait for element modal_selector to be visible
+
+step "4. 等待导航 (Wait For Navigation)":
+    log "=== Wait For Navigation 示例 ==="
+    
+    # 基本用法
+    click "#link"
+    wait for navigation
+    
+    # 等待导航到特定 URL
+    wait for navigation to "https://success.com"
+    
+    # 等待导航后等待页面状态
+    wait for navigation wait for networkidle
+    
+    # 完整语法（带超时）
+    wait for navigation to BASE_URL wait for load timeout 10s
+
+step "5. 等待条件 (Wait Until)":
+    log "=== Wait Until 示例 ==="
+    
+    # 等待变量条件
+    let page_loaded = False
+    let item_count = 0
+    
+    wait until page_loaded == True
+    wait until item_count > 0
+    
+    # 等待系统变量
+    wait until page.url contains "success"
+    
+    # 复合条件
+    let retry = 0
+    wait until retry >= 3 or page.url contains "done"
+
+step "6. 实际应用场景":
+    log "=== 实际应用场景 ==="
+    
+    # 场景1: 提交表单并等待结果
+    click "#submit-btn"
+    wait for element "#loading-spinner" to be visible
+    wait for element "#loading-spinner" to be hidden timeout 30s
+    wait for element "#success-message" to be visible
+    
+    # 场景2: 分页加载
+    let page_num = 1
+    while page_num <= 3:
+        click f"#page-{page_num}"
+        wait for navigation
+        wait for networkidle
+        wait 1s  # 额外等待确保加载完成
+        page_num = page_num + 1
+    
+    # 场景3: 轮询检查状态
+    let status = "pending"
+    let check_count = 0
+    
+    while status == "pending" and check_count < 10:
+        wait 2s
+        # 这里假设有 API 调用更新 status
+        check_count = check_count + 1
+    
+    wait until status == "completed" or check_count >= 10
+
+step "完成":
+    log success "所有 wait 示例执行完成！"

@@ -1,0 +1,15 @@
+"""
+循环导入测试 - 模块 B (v5.0)
+
+这个文件导入 module_a，形成循环依赖
+"""
+
+library module_b
+
+# 导入 module_a，形成循环
+import module_a from "module_a.flow"
+
+export const VALUE_B = "from_b"
+
+export function func_b():
+    return "Function B"

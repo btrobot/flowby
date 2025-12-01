@@ -1,0 +1,152 @@
+# ============================================================
+# 5sim 服务配置库 v1.0
+# ============================================================
+#
+# 用途：集中管理 5sim 服务的所有配置参数
+#
+# 包含内容：
+#   - API 服务配置
+#   - 国家和运营商配置
+#   - 轮询策略配置
+#   - 默认参数
+#
+# 使用方式：
+#   import sms_config from "../libs/sms_config.flow"
+#   let country = sms_config.DEFAULT_COUNTRY
+#
+# 或：
+#   from "../libs/sms_config.flow" import DEFAULT_COUNTRY, DEFAULT_OPERATOR
+#   let result = buy_and_wait_for_sms(fivesim, DEFAULT_COUNTRY, DEFAULT_OPERATOR, "factoryai", MAX_WAIT_MINUTES)
+#
+# 版本：v1.0
+# 日期：2025-11-29
+#
+# ============================================================
+
+library sms_config
+
+# ============================================================
+# API 服务配置
+# ============================================================
+
+# OpenAPI 规范文件路径（相对于流程文件）
+export const OPENAPI_SPEC_PATH = "../openapi/fivesim-service.yml"
+
+# API Token 环境变量名
+export const API_TOKEN_ENV = "FIVESIM_API_TOKEN"
+
+# ============================================================
+# 国家配置
+# ============================================================
+
+# 常用国家代码
+export const COUNTRY_ENGLAND = "england"
+export const COUNTRY_USA = "usa"
+export const COUNTRY_CHINA = "china"
+export const COUNTRY_RUSSIA = "russia"
+export const COUNTRY_INDIA = "india"
+
+# 默认国家（可通过环境变量覆盖）
+export const DEFAULT_COUNTRY = env("FIVESIM_DEFAULT_COUNTRY", "england")
+
+# ============================================================
+# 运营商配置
+# ============================================================
+
+# 常用运营商（虚拟运营商通常价格较低）
+export const OPERATOR_VIRTUAL60 = "virtual60"
+export const OPERATOR_VIRTUAL52 = "virtual52"
+export const OPERATOR_VODAFONE = "vodafone"
+export const OPERATOR_O2 = "o2"
+export const OPERATOR_EE = "ee"
+
+# 默认运营商（可通过环境变量覆盖）
+export const DEFAULT_OPERATOR = env("FIVESIM_DEFAULT_OPERATOR", "virtual60")
+
+# ============================================================
+# 服务配置
+# ============================================================
+
+# 常用服务名称
+export const PRODUCT_FACTORY_AI = "factoryai"
+export const PRODUCT_TELEGRAM = "telegram"
+export const PRODUCT_WHATSAPP = "whatsapp"
+export const PRODUCT_FACEBOOK = "facebook"
+export const PRODUCT_GOOGLE = "google"
+export const PRODUCT_TWITTER = "twitter"
+
+# ============================================================
+# 轮询策略配置
+# ============================================================
+
+# 最大等待时间（分钟）
+export const MAX_WAIT_MINUTES = int(env("FIVESIM_MAX_WAIT_MINUTES", "5"))
+
+# 轮询间隔（秒）- 固定 5 秒（DSL 限制，必须用字面量）
+export const POLL_INTERVAL_SECONDS = 5
+
+# 最大轮询次数（计算值：MAX_WAIT_MINUTES * 60 / POLL_INTERVAL_SECONDS）
+export const MAX_POLL_ATTEMPTS = MAX_WAIT_MINUTES * 60 / POLL_INTERVAL_SECONDS
+
+# ============================================================
+# 余额配置
+# ============================================================
+
+# 最低余额要求（美元）
+export const MIN_BALANCE = int(env("FIVESIM_MIN_BALANCE", "10"))
+
+# 余额警告阈值（美元）
+export const BALANCE_WARNING_THRESHOLD = int(env("FIVESIM_BALANCE_WARNING", "20"))
+
+# ============================================================
+# 订单状态常量
+# ============================================================
+
+# 订单状态枚举
+export const STATUS_PENDING = "PENDING"
+export const STATUS_RECEIVED = "RECEIVED"
+export const STATUS_FINISHED = "FINISHED"
+export const STATUS_CANCELED = "CANCELED"
+export const STATUS_TIMEOUT = "TIMEOUT"
+export const STATUS_BANNED = "BANNED"
+
+# ============================================================
+# 流程控制配置
+# ============================================================
+
+# 是否自动完成订单（收到验证码后）
+export const AUTO_FINISH_ORDER = env("FIVESIM_AUTO_FINISH", "True") == "True"
+
+# 是否自动取消失败订单
+export const AUTO_CANCEL_ON_FAILURE = env("FIVESIM_AUTO_CANCEL", "True") == "True"
+
+# 购买前是否需要用户确认
+export const REQUIRE_CONFIRMATION = env("FIVESIM_REQUIRE_CONFIRM", "False") == "True"
+
+# ============================================================
+# 日志配置
+# ============================================================
+
+# 是否显示详细日志
+export const VERBOSE_LOGGING = env("FIVESIM_VERBOSE", "True") == "True"
+
+# 是否记录 API 请求详情
+export const LOG_API_REQUESTS = env("FIVESIM_LOG_API", "False") == "True"
+
+# ============================================================
+# 库元数据
+# ============================================================
+# 导出常量总数: 27
+# 分类:
+#   - API 配置(2)
+#   - 国家配置(6)
+#   - 运营商配置(6)
+#   - 服务配置(6)
+#   - 轮询配置(3)
+#   - 余额配置(2)
+#   - 状态常量(6)
+#   - 流程控制(3)
+#   - 日志配置(2)
+# 复用性: ⭐⭐⭐⭐⭐ 5sim 相关流程可复用
+# 环境变量支持: 是（11 个可配置参数）
+# ============================================================

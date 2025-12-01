@@ -1,0 +1,14 @@
+# 测试三引号注释和行号
+let x = 10
+log "Line 3"
+
+"""
+这是三引号注释
+let y = random.fullname()  # 这一行应该被跳过
+log "This should not execute"
+"""
+
+log "Line 10"
+
+# 测试错误行号
+let z = nonexistent_variable  # 这应该报错在第 13 行

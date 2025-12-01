@@ -1,0 +1,148 @@
+openapi: 3.1.0
+info:
+  title: Email Service
+  description: 临时邮箱账号管理服务
+  version: 1.0.0
+
+servers:
+  - url: http://175.178.17.101:8080/api
+    description: 邮箱服务主服务器
+
+paths:
+  /account/internal/accounts:
+    post:
+      operationId: createAccount
+      summary: 创建临时邮箱账号
+      description: 创建一个新的临时邮箱账号，支持真实格式的邮箱地址
+      tags:
+        - Account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email_format:
+                  type: string
+                  description: 邮箱格式类型
+                  enum:
+                    - realistic
+                    - simple
+                  default: realistic
+                  example: realistic
+              required:
+                - email_format
+      responses:
+        '200':
+          description: 账号创建成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: 邮箱地址
+                    example: user123@temp.com
+                  password:
+                    type: string
+                    description: 邮箱密码
+                    example: SecurePass123!
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: 创建时间
+                required:
+                  - email
+                  - password
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /account/internal/accounts/{email}:
+    get:
+      operationId: getAccountByEmail
+      summary: 查询邮箱账号信息
+      description: 根据邮箱地址查询账号信息，包括验证码
+      tags:
+        - Account
+      parameters:
+        - name: email
+          in: path
+          required: true
+          description: 邮箱地址
+          schema:
+            type: string
+            format: email
+            example: user123@temp.com
+      responses:
+        '200':
+          description: 查询成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  email:
+                    type: string
+                    format: email
+                    description: 邮箱地址
+                  password:
+                    type: string
+                    description: 邮箱密码
+                  verification_code:
+                    type: string
+                    description: 验证码（如果有）
+                    nullable: true
+                    example: "123456"
+                  last_email_at:
+                    type: string
+                    format: date-time
+                    description: 最后收到邮件的时间
+                    nullable: true
+                required:
+                  - email
+                  - password
+        '404':
+          description: 账号不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 服务器内部错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: 错误消息
+          example: Invalid email format
+        code:
+          type: string
+          description: 错误代码
+          example: INVALID_REQUEST
+        details:
+          type: object
+          description: 错误详细信息
+          additionalProperties: true
+      required:
+        - error

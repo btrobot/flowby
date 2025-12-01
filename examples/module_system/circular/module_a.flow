@@ -1,0 +1,16 @@
+"""
+循环导入测试 - 模块 A (v5.0)
+
+这个文件故意创建循环导入来测试检测机制
+"""
+
+library module_a
+
+# 导入 module_b，而 module_b 也会导入 module_a
+# 这会触发循环导入错误
+import module_b from "module_b.flow"
+
+export const VALUE_A = "from_a"
+
+export function func_a():
+    return "Function A"

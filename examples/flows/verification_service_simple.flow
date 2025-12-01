@@ -1,0 +1,172 @@
+# Verification Service API - 简化演示版
+#
+# 演示三个核心功能:
+#   1. 创建邮箱账号
+#   2. 查询验证码
+#   3. 更新账号状态
+#
+# 使用方法:
+#   python run_dsl.py flows/verification_service_simple.flow
+
+# ============================================================
+# 配置
+# ============================================================
+
+const BASE_URL = "http://8.138.175.157:8888"
+const API_PREFIX = "/api/account/internal/accounts"
+
+# 声明全局变量（将在 step 中赋值）
+let response = null
+let email = ""
+let password = ""
+let verification_code = ""
+
+log "========================================"
+log "Verification Service API 演示"
+log "API地址: {BASE_URL}"
+log "========================================"
+log ""
+
+# ============================================================
+# 1. 创建邮箱账号
+# ============================================================
+
+step "创建邮箱账号"
+    log "[1/3] 创建邮箱账号"
+    log ""
+
+    # POST /api/account/internal/accounts
+    # Body: {"email_format": "realistic"}
+    call "http.post" with url=BASE_URL + API_PREFIX, json={email_format: "realistic"} into create_response
+
+    # 更新全局变量
+    response = create_response
+
+    if response.ok:
+        let data = response.data
+        email = data.email
+        password = data.password
+        let status = data.status
+
+        log "✓ 账号创建成功"
+        log "  邮箱: {email}"
+        log "  密码: {password}"
+        log "  状态: {status}"
+    else:
+        log "✗ 创建失败: {response.error}"
+    end if
+
+    log ""
+end step
+
+# ============================================================
+# 2. 查询验证码
+# ============================================================
+
+step "查询验证码"
+    if response.ok:
+        log "[2/3] 查询验证码"
+        log ""
+
+        # GET /api/account/internal/accounts/{email}
+        let query_url = BASE_URL + API_PREFIX + "/" + email
+        call "http.get" with url=query_url into code_response
+
+        if code_response.ok:
+            let code_data = code_response.data
+            let code_value = code_data.verification_code
+
+            if code_value:
+                verification_code = code_value
+                log "✓ 验证码: {verification_code}"
+            else:
+                log "ℹ 验证码尚未到达"
+
+                # 手动设置一个测试验证码
+                const TEST_CODE = "123456"
+                let set_url = BASE_URL + API_PREFIX + "/" + email + "/verification-code"
+
+                log "  正在设置测试验证码: {TEST_CODE}"
+                call "http.post" with url=set_url, json={verification_code: TEST_CODE} into set_response
+
+                if set_response.ok:
+                    verification_code = TEST_CODE
+                    log "✓ 验证码设置成功: {verification_code}"
+                else:
+                    log "✗ 设置失败: {set_response.error}"
+                end if
+            end if
+        else:
+            log "✗ 查询失败: {code_response.error}"
+        end if
+
+        log ""
+    else:
+        log "[SKIP] 跳过验证码查询 - 账号创建失败"
+        log ""
+    end if
+end step
+
+# ============================================================
+# 3. 更新账号状态
+# ============================================================
+
+step "更新账号状态"
+    if response.ok:
+        log "[3/3] 更新账号状态"
+        log ""
+
+        # POST /api/account/internal/accounts/{email}/mark-registered
+        let mark_url = BASE_URL + API_PREFIX + "/" + email + "/mark-registered"
+        call "http.post" with url=mark_url into register_response
+
+        if register_response.ok:
+            let register_data = register_response.data
+            let final_status = register_data.status
+
+            log "✓ 账号已标记为已注册"
+            log "  最终状态: {final_status}"
+
+            # 查询最终账号信息
+            log ""
+            log "查询账号完整信息:"
+            call "http.get" with url=BASE_URL + API_PREFIX + "/" + email into final_response
+
+            if final_response.ok:
+                let final_data = final_response.data
+                log "  ID: {final_data.id}"
+                log "  邮箱: {final_data.email}"
+                log "  密码: {final_data.password}"
+                log "  状态: {final_data.status}"
+                log "  验证码: {final_data.verification_code}"
+                log "  创建时间: {final_data.created_at}"
+            else:
+                log "✗ 查询失败: {final_response.error}"
+            end if
+        else:
+            log "✗ 更新失败: {register_response.error}"
+        end if
+
+        log ""
+    else:
+        log "[SKIP] 跳过账号更新 - 账号创建失败"
+        log ""
+    end if
+end step
+
+# ============================================================
+# 总结
+# ============================================================
+
+log "========================================"
+if response.ok:
+    log "✓ 流程执行成功"
+    log ""
+    log "最终账号信息:"
+    log "  邮箱: {email}"
+    log "  密码: {password}"
+    log "  验证码: {verification_code}"
+else:
+    log "✗ 流程执行失败"
+end if
+log "========================================"

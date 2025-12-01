@@ -1,0 +1,46 @@
+"""
+模块系统示例 - 用户注册流程 (v5.0)
+
+演示如何使用 library、export、import 功能
+"""
+
+# ========== 语法 1: 模块导入（命名空间）==========
+import logging from "libs/logging.flow"
+
+# ========== 语法 2: From-Import（直接导入成员）==========
+from "libs/validation.flow" import validate_email, validate_username, validate_password, MIN_PASSWORD_LENGTH
+
+# ========== 主流程 ==========
+
+# 使用模块命名空间调用函数
+logging.log_phase_start(1, "用户注册验证")
+
+# 测试数据
+let test_email = "user@example.com"
+let test_username = "johndoe"
+let test_password = "SecurePass123"
+
+# 使用直接导入的函数
+logging.log_step("验证邮箱")
+let email_valid = validate_email(test_email)
+logging.log_result("邮箱格式: {test_email}", email_valid)
+
+logging.log_step("验证用户名")
+let username_valid = validate_username(test_username)
+logging.log_result("用户名: {test_username}", username_valid)
+
+logging.log_step("验证密码")
+let password_valid = validate_password(test_password)
+logging.log_result("密码强度（最小 {MIN_PASSWORD_LENGTH} 位）", password_valid)
+
+# 综合验证
+logging.log_step("综合验证结果")
+if email_valid and username_valid and password_valid:
+    logging.log_result("用户注册数据验证通过", True)
+else:
+    logging.log_result("用户注册数据验证失败", False)
+
+# 使用导出的常量
+log info "使用日志库版本: {logging.VERSION}"
+
+logging.log_phase_end(1)

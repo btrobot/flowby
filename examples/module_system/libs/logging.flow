@@ -1,0 +1,46 @@
+"""
+日志工具库 (v5.0 Module System 示例)
+
+提供统一的日志功能，包括不同级别的日志输出和格式化
+"""
+
+library logging
+
+# ========== 导出常量 ==========
+
+export const VERSION = "1.0.0"
+export const LOG_PREFIX = "[LOG]"
+
+# ========== 内部常量（不导出）==========
+
+const SEPARATOR = "=================================================="
+
+# ========== 导出函数 ==========
+
+export function log_phase_start(phase_num, phase_name):
+    """记录阶段开始"""
+    log info "=================================================="
+    log info "阶段 [{phase_num}]: {phase_name}"
+    log info "=================================================="
+
+export function log_phase_end(phase_num):
+    """记录阶段结束"""
+    log info "阶段 [{phase_num}] 完成"
+    log info ""
+
+export function log_step(step_name):
+    """记录步骤"""
+    log info "  → {step_name}"
+
+export function log_result(message, success):
+    """记录结果"""
+    if success:
+        log success "✓ {message}"
+    else:
+        log error "✗ {message}"
+
+# ========== 内部辅助函数（不导出）==========
+
+function _format_timestamp():
+    """获取当前时间戳（内部函数）"""
+    return "2025-11-29"

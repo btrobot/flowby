@@ -1,0 +1,15 @@
+# 测试 Dry-Run 错误检测
+
+# 这个脚本有意包含错误
+
+const MAX_VALUE = 100
+
+step "测试错误检测":
+    # 错误1: 重复声明常量
+    const MAX_VALUE = 200
+    
+    # 错误2: 修改常量
+    MAX_VALUE = 300
+    
+    # 错误3: 使用未声明的变量
+    log unknown_variable

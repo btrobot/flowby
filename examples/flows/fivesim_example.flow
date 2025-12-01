@@ -1,0 +1,297 @@
+# ============================================================
+# 5sim 服务使用示例 - v1.0
+# ============================================================
+#
+# 用途：演示如何使用 5sim 服务购买临时手机号并接收验证码
+#
+# 前置条件：
+#   1. 设置环境变量 FIVESIM_API_TOKEN="your_5sim_api_token"
+#   2. 5sim 账户余额充足
+#
+# 流程：
+#   1. 检查账户余额
+#   2. 查询号码价格
+#   3. 购买临时号码
+#   4. 轮询查询验证码（最多 60 次，每 5 秒一次）
+#   5. 完成或取消订单
+#
+# 版本：v1.0
+# 日期：2025-11-29
+#
+# ============================================================
+
+# 加载 5sim 服务（使用 Resource() 构造函数）
+# 认证信息通过 auth 参数指定
+# Token 从环境变量 FIVESIM_API_TOKEN 读取
+let fivesim = Resource("../openapi/fivesim-service.yml",
+    auth = {
+        type: "bearer",
+        token: env("FIVESIM_API_TOKEN")
+    }
+)
+
+# ============================================================
+# 配置参数
+# ============================================================
+
+# 目标国家和服务
+let COUNTRY = "england"
+let OPERATOR = "virtual60"
+let PRODUCT = "factoryai"
+
+# 轮询配置
+let MAX_POLL_ATTEMPTS = 60  # 最多轮询次数（60 次 × 5 秒 = 5 分钟）
+let POLL_INTERVAL = 5       # 轮询间隔（秒）
+
+# 订单状态变量
+let order_id = None
+let phone_number = None
+let verification_code = None
+let order_status = None
+
+# ============================================================
+# 阶段 1: 检查账户余额
+# ============================================================
+
+log "===================="
+log "阶段 1: 检查账户余额"
+log "===================="
+log ""
+
+# 调用 getBalance 操作
+let balance_response = fivesim.getBalance()
+
+# 提取余额信息
+let balance = balance_response.balance
+let email = balance_response.email
+let rating = balance_response.rating
+
+log success "账户信息："
+log success "  邮箱: {email}"
+log success "  余额: ${balance}"
+log success "  评分: {rating}"
+log ""
+
+# 检查余额是否充足（假设最低需要 $10）
+if balance < 10:
+    log error "余额不足！当前余额: ${balance}，需要至少 $10"
+    exit 1
+
+# ============================================================
+# 阶段 2: 查询号码价格
+# ============================================================
+
+log "===================="
+log "阶段 2: 查询号码价格"
+log "===================="
+log ""
+
+# 调用 getPrices 操作，查询指定国家和服务的价格
+let prices_response = fivesim.getPrices({
+    "country": COUNTRY,
+    "product": PRODUCT
+})
+
+# 导航到价格信息: england.factoryai.virtual60
+let country_prices = prices_response[COUNTRY]
+let product_prices = country_prices[PRODUCT]
+let operator_price = product_prices[OPERATOR]
+
+# 提取价格信息
+let cost = operator_price.cost
+let count = operator_price.count
+let rate = operator_price.rate
+
+log success "价格信息："
+log success "  国家: {COUNTRY}"
+log success "  服务: {PRODUCT}"
+log success "  运营商: {OPERATOR}"
+log success "  价格: ${cost}"
+log success "  可用数量: {count}"
+log success "  成功率: {rate}%"
+log ""
+
+# 检查是否有可用号码
+if count < 1:
+    log error "没有可用号码！"
+    exit 1
+
+# 用户确认
+log warning "即将购买号码，价格: ${cost}"
+let confirm = input("是否继续购买？(y/n): ")
+
+if confirm != "y" and confirm != "Y":
+    log "已取消购买"
+    exit 0
+
+# ============================================================
+# 阶段 3: 购买临时号码
+# ============================================================
+
+log ""
+log "===================="
+log "阶段 3: 购买临时号码"
+log "===================="
+log ""
+
+# 调用 buyNumber 操作（路径参数）
+let buy_response = fivesim.buyNumber(COUNTRY, OPERATOR, PRODUCT)
+
+# 保存订单信息
+order_id = buy_response.id
+phone_number = buy_response.phone
+order_status = buy_response.status
+
+log success "号码购买成功！"
+log success "  订单 ID: {order_id}"
+log success "  手机号: {phone_number}"
+log success "  状态: {order_status}"
+log success "  过期时间: {buy_response.expires}"
+log ""
+
+# ============================================================
+# 阶段 4: 使用号码（这里需要在外部应用中输入）
+# ============================================================
+
+log "===================="
+log "阶段 4: 使用号码"
+log "===================="
+log ""
+
+log warning "请在 Factory.ai 注册页面输入以下手机号："
+log warning "  {phone_number}"
+log ""
+
+let ready = input("输入完成后按回车继续...")
+
+# ============================================================
+# 阶段 5: 轮询查询验证码
+# ============================================================
+
+log ""
+log "===================="
+log "阶段 5: 等待验证码"
+log "===================="
+log ""
+
+log info "开始轮询查询验证码..."
+log info "  最大次数: {MAX_POLL_ATTEMPTS}"
+log info "  轮询间隔: {POLL_INTERVAL} 秒"
+log info "  最长等待: 5 分钟"
+log ""
+
+# 轮询计数器
+let attempt = 0
+let sms_received = False
+
+# 轮询循环（使用 while 循环）
+while attempt < MAX_POLL_ATTEMPTS:
+    # 等待指定间隔
+    wait 5 s
+
+    # 增加计数器
+    attempt = attempt + 1
+
+    # 调用 checkOrder 操作（路径参数）
+    log info "[尝试 {attempt}/{MAX_POLL_ATTEMPTS}] 查询订单状态..."
+    let check_response = fivesim.checkOrder(order_id)
+
+    # 更新订单状态
+    order_status = check_response.status
+    let sms_list = check_response.sms
+
+    log info "  状态: {order_status}"
+
+    # 检查是否收到短信
+    if order_status == "RECEIVED" or order_status == "FINISHED":
+        # 收到短信，提取验证码
+        if len(sms_list) > 0:
+            let first_sms = sms_list[0]
+            verification_code = first_sms.code
+            let sms_text = first_sms.text
+            let sender = first_sms.sender
+
+            log success "收到验证码！"
+            log success "  验证码: {verification_code}"
+            log success "  发送者: {sender}"
+            log success "  内容: {sms_text}"
+
+            sms_received = True
+            break  # 退出循环
+
+    # 检查订单是否已结束（非正常状态）
+    if order_status == "CANCELED" or order_status == "TIMEOUT" or order_status == "BANNED":
+        log error "订单异常结束！状态: {order_status}"
+        break  # 退出循环
+
+    # 继续下一次轮询
+    log info "  未收到短信，继续等待..."
+
+log ""
+
+# ============================================================
+# 阶段 6: 处理结果
+# ============================================================
+
+log "===================="
+log "阶段 6: 处理结果"
+log "===================="
+log ""
+
+if sms_received:
+    # 成功收到验证码
+    log success "验证码获取成功: {verification_code}"
+    log ""
+
+    # 这里可以继续自动化流程：在网页中输入验证码
+    # 示例：
+    # select input where xpath="//input[@name='verification_code']"
+    # type verification_code
+    # select button where text="Verify"
+    # click
+
+    log warning "请在 Factory.ai 页面输入验证码: {verification_code}"
+    let verified = input("验证完成后按回车继续...")
+
+    # 完成订单（路径参数）
+    log info "完成订单..."
+    let finish_response = fivesim.finishOrder(order_id)
+
+    log success "订单已完成！"
+    log success "  订单 ID: {order_id}"
+    log success "  最终状态: {finish_response.status}"
+
+else:
+    # 未收到验证码或订单异常
+    log error "未能获取验证码！"
+    log error "  轮询次数: {attempt}"
+    log error "  最终状态: {order_status}"
+
+    # 取消订单并退款（路径参数）
+    log warning "正在取消订单..."
+    let cancel_response = fivesim.cancelOrder(order_id)
+
+    log warning "订单已取消"
+    log warning "  订单 ID: {order_id}"
+    log warning "  状态: {cancel_response.status}"
+
+# ============================================================
+# 阶段 7: 查询最终余额
+# ============================================================
+
+log ""
+log "===================="
+log "阶段 7: 查询最终余额"
+log "===================="
+log ""
+
+let final_balance_response = fivesim.getBalance()
+let final_balance = final_balance_response.balance
+
+log success "最终余额: ${final_balance}"
+log success "本次消费: ${balance - final_balance}"
+
+log ""
+log "===================="
+log "流程完成"
+log "===================="

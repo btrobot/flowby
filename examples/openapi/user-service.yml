@@ -1,0 +1,307 @@
+openapi: 3.0.0
+info:
+  title: User Service API
+  version: 1.0.0
+  description: |
+    用户管理服务 API
+
+    提供用户的 CRUD 操作功能。
+
+servers:
+  - url: https://api.example.com/v1
+    description: 生产环境
+  - url: https://staging-api.example.com/v1
+    description: 测试环境
+
+paths:
+  /users/{userId}:
+    get:
+      operationId: getUser
+      summary: 获取用户信息
+      description: 根据用户 ID 获取用户详细信息
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 用户 ID
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 成功返回用户信息
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: 用户不存在
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: 服务器错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      operationId: updateUser
+      summary: 更新用户信息
+      description: 更新指定用户的信息
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: 用户 ID
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '200':
+          description: 更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: 用户不存在
+        '400':
+          description: 请求参数错误
+
+    delete:
+      operationId: deleteUser
+      summary: 删除用户
+      description: 删除指定用户（软删除）
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: 删除成功
+        '404':
+          description: 用户不存在
+
+  /users:
+    get:
+      operationId: listUsers
+      summary: 列出用户
+      description: 分页获取用户列表
+      tags:
+        - users
+      parameters:
+        - name: page
+          in: query
+          description: 页码（从 1 开始）
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: 每页数量
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: sort
+          in: query
+          description: 排序字段
+          schema:
+            type: string
+            enum: [created_asc, created_desc, name_asc, name_desc]
+            default: created_desc
+      responses:
+        '200':
+          description: 成功返回用户列表
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      totalPages:
+                        type: integer
+
+    post:
+      operationId: createUser
+      summary: 创建用户
+      description: 创建一个新用户
+      tags:
+        - users
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInput'
+      responses:
+        '201':
+          description: 创建成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: 请求参数错误
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: 用户已存在（邮箱重复）
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /users/{userId}/verify:
+    post:
+      operationId: verifyUser
+      summary: 验证用户邮箱
+      description: 使用验证码验证用户邮箱
+      tags:
+        - users
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - verificationCode
+              properties:
+                verificationCode:
+                  type: string
+                  description: 验证码
+      responses:
+        '200':
+          description: 验证成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  verified:
+                    type: boolean
+                  verifiedAt:
+                    type: string
+                    format: date-time
+        '400':
+          description: 验证码错误或已过期
+
+components:
+  schemas:
+    User:
+      type: object
+      required:
+        - id
+        - name
+        - email
+        - createdAt
+      properties:
+        id:
+          type: integer
+          description: 用户 ID
+          example: 123
+        name:
+          type: string
+          description: 用户名
+          example: "Alice"
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: "alice@example.com"
+        verified:
+          type: boolean
+          description: 邮箱是否已验证
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+          description: 创建时间
+          example: "2025-11-28T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新时间
+          example: "2025-11-28T12:45:00Z"
+
+    UserInput:
+      type: object
+      required:
+        - name
+        - email
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          description: 用户名
+          example: "Alice"
+        email:
+          type: string
+          format: email
+          description: 邮箱地址
+          example: "alice@example.com"
+        password:
+          type: string
+          format: password
+          minLength: 8
+          description: 密码（仅创建时需要）
+          example: "SecurePass123!"
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: 错误代码
+          example: "USER_NOT_FOUND"
+        message:
+          type: string
+          description: 错误消息
+          example: "用户不存在"
+        details:
+          type: object
+          description: 错误详情
+          additionalProperties: true

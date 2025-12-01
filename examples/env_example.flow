@@ -1,0 +1,122 @@
+"""
+env() 函数使用示例 - v4.2.1
+
+演示如何使用 env() 函数读取环境变量，配合 .env 文件管理配置。
+
+使用说明：
+1. 复制 .env.example 为 .env 并配置实际值
+2. 运行此脚本查看环境变量读取效果
+
+相关文档：
+- .env 文件位置：脚本目录 > 项目根目录 > 当前目录 > DOTENV_PATH
+- 优先级：系统环境变量 > .env 文件 > 默认值
+"""
+
+# ==================== 基础用法 ====================
+
+# 1. 读取环境变量（带默认值）
+set api_token = env("API_TOKEN", "default_token")
+log f"API Token: {api_token}"
+
+# 2. 读取环境变量（无默认值，不存在时返回 None）
+set debug_mode = env("DEBUG")
+log f"Debug Mode: {debug_mode}"
+
+# 3. 读取并转换为特定类型
+set port = int(env("PORT", "8000"))
+log f"Server Port: {port} (type: integer)"
+
+set timeout = float(env("API_TIMEOUT", "30"))
+log f"API Timeout: {timeout} seconds (type: float)"
+
+# ==================== 微服务配置示例 ====================
+
+# 配置多个微服务的连接信息
+set account_url = env("ACCOUNT_SERVICE_URL", "http://localhost:8000")
+set account_token = env("ACCOUNT_SERVICE_TOKEN", "dev_token")
+
+set user_url = env("USER_SERVICE_URL", "http://localhost:8001")
+set user_token = env("USER_SERVICE_TOKEN", "dev_token")
+
+log "=== 微服务配置 ==="
+log f"Account Service: {account_url}"
+log f"User Service: {user_url}"
+
+# ==================== 环境判断 ====================
+
+# 根据环境类型执行不同逻辑
+set env_type = env("ENV", "development")
+
+if env_type == "production"
+    log "🚀 生产环境：使用生产配置"
+    set max_retries = 5
+    set log_level = "WARNING"
+elif env_type == "development"
+    log "🔧 开发环境：使用开发配置"
+    set max_retries = 1
+    set log_level = "DEBUG"
+else
+    log "🧪 测试环境：使用测试配置"
+    set max_retries = 3
+    set log_level = "INFO"
+end
+
+log f"环境类型: {env_type}"
+log f"最大重试次数: {max_retries}"
+log f"日志级别: {log_level}"
+
+# ==================== 可选配置 ====================
+
+# 使用 env() 处理可选配置
+set screenshot_enabled = env("SCREENSHOT_ON_ERROR", "true")
+
+if screenshot_enabled == "true"
+    log "✓ 错误时自动截图已启用"
+else
+    log "✗ 错误时自动截图已禁用"
+end
+
+# ==================== 数值配置 ====================
+
+# 读取数值类型配置
+set page_timeout = int(env("PAGE_LOAD_TIMEOUT", "30000"))
+set retry_count = int(env("MAX_RETRIES", "3"))
+
+log f"页面加载超时: {page_timeout}ms"
+log f"最大重试次数: {retry_count}"
+
+# ==================== 路径配置 ====================
+
+# 读取路径配置
+set specs_dir = env("API_SPECS_DIR", "./examples")
+log f"OpenAPI 规范目录: {specs_dir}"
+
+set screenshots_dir = env("SCREENSHOTS_DIR", "./screenshots")
+log f"截图保存目录: {screenshots_dir}"
+
+# ==================== 多环境配置示例 ====================
+
+"""
+.env 文件组织示例：
+
+项目根目录/
+├── .env                    # 默认配置（团队共享，提交到版本控制）
+├── .env.local             # 本地配置（个人专属，不提交）
+├── .env.production        # 生产环境配置
+├── .env.development       # 开发环境配置
+├── .env.test              # 测试环境配置
+└── .env.example           # 配置模板（提交到版本控制）
+
+加载优先级（从低到高）：
+1. .env（默认配置）
+2. .env.local（本地覆盖）
+3. .env.{ENV}（环境特定配置）
+4. 系统环境变量（最高优先级，不会被 .env 覆盖）
+
+示例：
+- 开发时使用 .env.local 覆盖团队默认配置
+- 部署时通过环境变量 ENV=production 切换到生产配置
+- CI/CD 中使用系统环境变量覆盖敏感信息
+"""
+
+log "✓ env() 函数示例执行完成"

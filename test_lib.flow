@@ -1,0 +1,7 @@
+# 测试库文件
+library test_lib
+
+export function test_error():
+    # 这是第 5 行
+    let x = nonexistent_var  # 应该报错在第 6 行
+    log x

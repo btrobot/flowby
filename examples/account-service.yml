@@ -1,0 +1,895 @@
+openapi: 3.1.0
+
+info:
+  title: Account Service
+  description: Account management microservice with Email Service integration
+  version: 1.0.0
+
+servers:
+  - url: /api/account
+
+paths:
+  /health:
+    get:
+      summary: Health Check
+      description: |
+        Health check endpoint
+
+        Returns service status and Email Service availability.
+      operationId: health_check_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+
+  /internal/accounts:
+    post:
+      tags:
+        - accounts
+      summary: Create Account
+      description: |
+        Create new account with auto-generated credentials
+
+        Calls Email Service to generate email and password.
+      operationId: create_account_internal_accounts_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccountRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+    get:
+      tags:
+        - accounts
+      summary: List Accounts
+      description: |
+        List accounts
+
+        Can filter by status. Returns summary without passwords.
+      operationId: list_accounts_internal_accounts_get
+      parameters:
+        - name: status_filter
+          in: query
+          required: false
+          schema:
+            type: string
+            title: Status Filter
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 100
+            title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountSummaryResponse'
+                title: Response List Accounts Internal Accounts Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}:
+    get:
+      tags:
+        - accounts
+      summary: Get Account
+      description: |
+        Get account by email address
+
+        Returns full account details including password.
+      operationId: get_account_internal_accounts__email__get
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccountResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+    delete:
+      tags:
+        - accounts
+      summary: Delete Account
+      description: |
+        Delete account
+
+        Cascade deletes all logs. Use with caution.
+      operationId: delete_account_internal_accounts__email__delete
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/search:
+    post:
+      tags:
+        - accounts
+      summary: Search Accounts
+      description: |
+        Search accounts with filters
+
+        Returns summary without passwords.
+      operationId: search_accounts_internal_accounts_search_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SearchAccountsRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccountSummaryResponse'
+                title: Response Search Accounts Internal Accounts Search Post
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}/verification-code:
+    post:
+      tags:
+        - accounts
+      summary: Set Verification Code
+      description: |
+        Set verification code for account
+
+        Updates status to 'verified' and calculates wait time.
+
+        If account doesn't exist, it will be automatically created.
+      operationId: set_verification_code_internal_accounts__email__verification_code_post
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SetVerificationCodeRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}/mark-registered:
+    post:
+      tags:
+        - accounts
+      summary: Mark As Registered
+      description: |
+        Mark account as registered
+
+        Should be called after successful registration on target website.
+      operationId: mark_as_registered_internal_accounts__email__mark_registered_post
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkAsRegisteredRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}/mark-failed:
+    post:
+      tags:
+        - accounts
+      summary: Mark As Failed
+      description: |
+        Mark account as failed
+
+        Should be called when account creation or verification fails.
+      operationId: mark_as_failed_internal_accounts__email__mark_failed_post
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkAsFailedRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}/mark-timeout:
+    post:
+      tags:
+        - accounts
+      summary: Mark As Timeout
+      description: |
+        Mark account as timeout
+
+        Should be called when verification code is not received within timeout period.
+      operationId: mark_as_timeout_internal_accounts__email__mark_timeout_post
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/{email}/logs:
+    get:
+      tags:
+        - accounts
+      summary: Get Account Logs
+      description: |
+        Get logs for specific account
+
+        Returns history of all operations on this account.
+      operationId: get_account_logs_internal_accounts__email__logs_get
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+            title: Limit
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VerificationLogResponse'
+                title: Response Get Account Logs Internal Accounts  Email  Logs Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /internal/accounts/statistics/summary:
+    get:
+      tags:
+        - accounts
+      summary: Get Statistics
+      description: |
+        Get account statistics
+
+        Returns counts by status and average wait time.
+      operationId: get_statistics_internal_accounts_statistics_summary_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StatisticsResponse'
+
+  /internal/accounts/{email}/verification-status:
+    get:
+      tags:
+        - accounts
+      summary: Get Verification Status
+      description: |
+        Get verification code status
+
+        Synchronous endpoint for querying verification code status.
+        Returns format matching WebSocket push messages for unified handling.
+
+        Use cases:
+        - Simple scripts or backend services that cannot use WebSocket
+        - Polling for verification code when WebSocket is unavailable
+        - Checking account status
+
+        Response format matches Notification Service WebSocket messages:
+        {
+            "email": "user@example.com",
+            "status": "verified",
+            "verification_code": "ABC123",
+            "code_type": null,
+            "wait_time_seconds": 285,
+            "timestamp": "2025-11-25T10:35:00Z"
+        }
+      operationId: get_verification_status_internal_accounts__email__verification_status_get
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+            title: Email
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationStatusResponse'
+        '400':
+          description: Invalid email format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+
+  /:
+    get:
+      summary: Root
+      description: Root endpoint with service info
+      operationId: root__get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema: {}
+
+components:
+  schemas:
+    AccountResponse:
+      type: object
+      required:
+        - id
+        - email
+        - password
+        - domain
+        - status
+        - retry_count
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: integer
+          title: Id
+        email:
+          type: string
+          title: Email
+        password:
+          type: string
+          title: Password
+        domain:
+          type: string
+          title: Domain
+        status:
+          type: string
+          title: Status
+        verification_code:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Verification Code
+        code_received_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Code Received At
+        verified_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Verified At
+        registered_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Registered At
+        website:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Website
+        note:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Note
+        metadata:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Metadata
+        wait_time_seconds:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Wait Time Seconds
+        retry_count:
+          type: integer
+          title: Retry Count
+        last_processed_email_id:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Last Processed Email Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        last_used_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Last Used At
+      title: AccountResponse
+      description: Account response model
+
+    AccountSummaryResponse:
+      type: object
+      required:
+        - id
+        - email
+        - domain
+        - status
+        - retry_count
+        - created_at
+      properties:
+        id:
+          type: integer
+          title: Id
+        email:
+          type: string
+          title: Email
+        domain:
+          type: string
+          title: Domain
+        status:
+          type: string
+          title: Status
+        verification_code:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Verification Code
+        verified_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Verified At
+        registered_at:
+          anyOf:
+            - type: string
+              format: date-time
+            - type: 'null'
+          title: Registered At
+        website:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Website
+        wait_time_seconds:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Wait Time Seconds
+        retry_count:
+          type: integer
+          title: Retry Count
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      title: AccountSummaryResponse
+      description: Simplified account response (without password)
+
+    CreateAccountRequest:
+      type: object
+      properties:
+        email_format:
+          type: string
+          title: Email Format
+          description: 'Email format: realistic, human, timestamp, random, readable'
+          default: realistic
+        domain:
+          type: string
+          title: Domain
+          description: Email domain
+          default: asumbra.com
+        password_length:
+          type: integer
+          minimum: 8
+          maximum: 32
+          title: Password Length
+          description: Password length (8-32 characters)
+          default: 12
+        website:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Website
+          description: Target website name
+        metadata:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Metadata
+          description: JSON metadata string
+      title: CreateAccountRequest
+      description: Request to create a new account
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          title: Error
+        detail:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Detail
+      title: ErrorResponse
+      description: Error response
+
+    HTTPValidationError:
+      type: object
+      properties:
+        detail:
+          type: array
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          title: Detail
+      title: HTTPValidationError
+
+    MarkAsFailedRequest:
+      type: object
+      properties:
+        reason:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Reason
+          description: Failure reason
+      title: MarkAsFailedRequest
+      description: Request to mark account as failed
+
+    MarkAsRegisteredRequest:
+      type: object
+      properties:
+        website:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Website
+          description: Website name
+      title: MarkAsRegisteredRequest
+      description: Request to mark account as registered
+
+    MessageResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          title: Message
+        detail:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Detail
+      title: MessageResponse
+      description: Generic message response
+
+    SearchAccountsRequest:
+      type: object
+      properties:
+        email:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Email
+          description: Email pattern (partial match)
+        status:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Status
+          description: Account status
+        website:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Website
+          description: Website name
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 1000
+          title: Limit
+          description: Maximum results
+          default: 100
+      title: SearchAccountsRequest
+      description: Request to search accounts
+
+    SetVerificationCodeRequest:
+      type: object
+      required:
+        - code
+      properties:
+        code:
+          type: string
+          minLength: 4
+          maxLength: 50
+          title: Code
+          description: Verification code
+      title: SetVerificationCodeRequest
+      description: Request to set verification code
+
+    StatisticsResponse:
+      type: object
+      required:
+        - total
+        - pending
+        - verified
+        - registered
+        - failed
+        - timeout
+        - average_wait_time_seconds
+      properties:
+        total:
+          type: integer
+          title: Total
+        pending:
+          type: integer
+          title: Pending
+        verified:
+          type: integer
+          title: Verified
+        registered:
+          type: integer
+          title: Registered
+        failed:
+          type: integer
+          title: Failed
+        timeout:
+          type: integer
+          title: Timeout
+        average_wait_time_seconds:
+          type: number
+          title: Average Wait Time Seconds
+      title: StatisticsResponse
+      description: Statistics response model
+
+    ValidationError:
+      type: object
+      required:
+        - loc
+        - msg
+        - type
+      properties:
+        loc:
+          type: array
+          items:
+            anyOf:
+              - type: string
+              - type: integer
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+      title: ValidationError
+
+    VerificationLogResponse:
+      type: object
+      required:
+        - id
+        - account_id
+        - action
+        - created_at
+      properties:
+        id:
+          type: integer
+          title: Id
+        account_id:
+          type: integer
+          title: Account Id
+        action:
+          type: string
+          title: Action
+        message:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Message
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      title: VerificationLogResponse
+      description: Verification log response model
+
+    VerificationStatusResponse:
+      type: object
+      required:
+        - email
+        - status
+        - timestamp
+      properties:
+        email:
+          type: string
+          title: Email
+        status:
+          type: string
+          title: Status
+        verification_code:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Verification Code
+        code_type:
+          anyOf:
+            - type: string
+            - type: 'null'
+          title: Code Type
+        wait_time_seconds:
+          anyOf:
+            - type: integer
+            - type: 'null'
+          title: Wait Time Seconds
+        timestamp:
+          type: string
+          title: Timestamp
+      title: VerificationStatusResponse
+      description: |
+        Verification status response
+
+        Synchronous endpoint for querying verification code status.
+        Format matches WebSocket push messages for unified handling.

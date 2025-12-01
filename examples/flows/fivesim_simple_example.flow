@@ -1,0 +1,187 @@
+# ============================================================
+# 使用工具库的简化示例 - v1.1
+# ============================================================
+#
+# 用途：展示如何使用 sms_service_utils 库（拆分版本）
+#
+# 核心改进（v1.1）：
+#   - buy_phone_number 和 wait_for_verification_code 分开
+#   - 支持中间插入网页操作（输入号码、提交表单）
+#
+# 前置条件：
+#   - 环境变量 FIVESIM_API_TOKEN 已设置
+#
+# 对比：
+#   - v1.0: 一站式 buy_and_wait_for_sms（不适合实际场景）
+#   - v1.1: 拆分 buy 和 wait（实际使用）✨
+#
+# ============================================================
+
+# 导入工具库
+from "../libs/sms_service_utils.flow" import buy_phone_number, wait_for_verification_code, cleanup_order, check_balance
+
+# 加载 5sim 服务（使用 Resource() 构造函数）
+let fivesim = Resource("../openapi/fivesim-service.yml",
+    auth = {
+        type: "bearer",
+        token: env("FIVESIM_API_TOKEN")
+    }
+)
+
+log "===================="
+log "5sim 服务简化示例 v1.1"
+log "===================="
+log ""
+
+# ============================================================
+# 步骤 1: 检查余额
+# ============================================================
+
+log "步骤 1: 检查余额"
+log "----------------"
+
+let balance_result = check_balance(fivesim, 10)
+
+if !balance_result.success then
+    log error "余额不足，流程终止"
+    exit 1
+end
+
+log ""
+
+# ============================================================
+# 步骤 2: 购买号码
+# ============================================================
+
+log "步骤 2: 购买号码"
+log "----------------"
+
+let buy_result = buy_phone_number(
+    fivesim,
+    "england",
+    "virtual60",
+    "factoryai"
+)
+
+if !buy_result.success then
+    log error "购买号码失败: {buy_result.message}"
+    exit 1
+end
+
+# 保存订单信息
+let order_id = buy_result.order_id
+let phone = buy_result.phone
+let phone_local = buy_result.phone_local
+let country_code = buy_result.country_code
+
+log ""
+
+# ============================================================
+# 步骤 3: 在网页输入号码（示例）
+# ============================================================
+
+log "步骤 3: 在网页输入号码"
+log "----------------------"
+
+log warning "现在你需要在网页上操作："
+log warning "  1. 输入国家码: {country_code}"
+log warning "  2. 输入本地号码: {phone_local}"
+log warning "  3. 点击提交按钮"
+log warning ""
+
+# 实际流程中的代码（示例）：
+# select input where name="country_code"
+# type country_code
+#
+# select input where name="phone_number"
+# type phone_local
+#
+# select button where text="Submit"
+# click
+#
+# wait for networkidle
+
+# 这里用 input 模拟
+let ready = input("完成网页操作后按回车继续...")
+
+log ""
+
+# ============================================================
+# 步骤 4: 等待验证码
+# ============================================================
+
+log "步骤 4: 等待验证码"
+log "------------------"
+
+let code_result = wait_for_verification_code(
+    fivesim,
+    order_id,
+    5  # 最多等待 5 分钟
+)
+
+if !code_result.success then
+    log error "验证码接收失败: {code_result.message}"
+    log warning "正在取消订单..."
+    cleanup_order(fivesim, order_id, False)
+    exit 1
+end
+
+let verification_code = code_result.code
+
+log ""
+
+# ============================================================
+# 步骤 5: 在网页输入验证码（示例）
+# ============================================================
+
+log "步骤 5: 在网页输入验证码"
+log "------------------------"
+
+log warning "现在你需要在网页上输入验证码："
+log warning "  验证码: {verification_code}"
+log warning ""
+
+# 实际流程中的代码（示例）：
+# select input where name="verification_code"
+# type verification_code
+#
+# # 或者如果是 6 位分开的输入框：
+# let i = 0
+# while i < 6 do
+#     let digit = verification_code[i]
+#     select input where xpath="//input[@data-index='{i}']"
+#     type digit
+#     i = i + 1
+# end
+
+# 这里用 input 模拟
+let verified = input("完成验证后按回车继续...")
+
+log ""
+
+# ============================================================
+# 步骤 6: 完成订单
+# ============================================================
+
+log "步骤 6: 完成订单"
+log "----------------"
+
+cleanup_order(fivesim, order_id, True)
+
+log ""
+
+# ============================================================
+# 完成
+# ============================================================
+
+log "===================="
+log "流程完成"
+log "===================="
+log ""
+
+log success "总结："
+log success "  手机号: {phone}"
+log success "  验证码: {verification_code}"
+log success "  订单 ID: {order_id}"
+log success "  费用: ${buy_result.price}"
+

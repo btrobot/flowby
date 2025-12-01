@@ -1,0 +1,287 @@
+# Factory.ai Registration Flow - DSL v2.0
+#
+# This workflow automates the registration process for Factory.ai
+# Rewritten using DSL v2.0 variable and expression system
+#
+# Usage:
+#   python run_dsl.py --browser <ADSPOWER_PROFILE_ID> \
+#     flows/factory_ai_registration_v2.flow
+#
+# Features:
+#   - Variable definitions (let/const)
+#   - System variables ($context, $page)
+#   - String interpolation
+#   - Expression validation
+#   - Improved error handling and logging
+#   - Variables in navigate, type, select statements
+
+# ============================================================
+# Configuration and Variables
+# ============================================================
+
+# Constants - Business rules
+const REGISTRATION_URL = "https://www.verdent.ai/signup?source=dashboard"
+const PAGE_LOAD_TIMEOUT = 3000
+const INPUT_DELAY = 500
+const EXPECTED_DOMAIN = "factory.ai"
+
+# User information
+let email = "zhigangli2010@asumbra.com"
+
+# XPath selectors - verified from debug_xpath.py
+const XPATH_EMAIL = "/html/body/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/input[1]"
+const XPATH_SEND_CODE = "/html/body/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/button[1]"
+const XPATH_SUBMIT_BUTTON = "//div[@class='radix-themes']/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/button[1]"
+
+# System information
+let task_id = $context.task_id
+
+# Statistics
+let total_steps = 5
+let current_step = 0
+
+# Log initial configuration
+log "=========================================="
+log "Factory.ai Registration Flow - v2.0"
+log "=========================================="
+log "Task ID: {task_id}"
+log "User Information:"
+log "  Email: {email}"
+log "Target URL: {REGISTRATION_URL}"
+log "Expected Domain: {EXPECTED_DOMAIN}"
+log "=========================================="
+
+# ============================================================
+# Step 1: Navigate to Registration Page
+# ============================================================
+
+step "Navigate to registration page"
+    current_step = current_step + 1
+    log "[{current_step}/{total_steps}] 导航到注册页面"
+
+    # Navigate to Factory.ai sign-up page using constant
+    log "正在访问: {REGISTRATION_URL}"
+    navigate to REGISTRATION_URL
+
+    # Wait for page to fully load
+    wait for networkidle
+    wait 3s
+
+    # Get current page information
+    let current_url = $page.url
+    let page_title = $page.title
+
+    log "页面加载完成:"
+    log "  URL: {current_url}"
+    log "  Title: {page_title}"
+
+    # Validate we're on the correct page
+    let url_valid = current_url contains EXPECTED_DOMAIN
+
+    if url_valid:
+        log "[OK] URL 验证通过"
+    end if
+
+    if not url_valid:
+        log "[FAIL] URL 验证失败 - 期望包含: {EXPECTED_DOMAIN}"
+    end if
+
+    # Take screenshot of initial page
+    screenshot as "01_registration_page_loaded"
+    log "[OK] 截图已保存: 01_registration_page_loaded.png"
+end step
+
+# ============================================================
+# Step 2: Fill Personal Information
+# ============================================================
+
+step "Fill personal information"
+    current_step = current_step + 1
+    log "[{current_step}/{total_steps}] 填写注册信息"
+
+    log "填写 email: {email}"
+    select input where xpath=XPATH_EMAIL
+    type email
+    wait 500ms
+    log "[OK] email 已填写"
+
+    log "点击发送验证码..."
+    select button where xpath=XPATH_SEND_CODE
+    click
+
+    /*
+    # Fill Last Name field
+    log "填写 Last Name: {last_name}"
+    select input where xpath=XPATH_LAST_NAME
+    type last_name
+    wait 500ms
+    log "[OK] Last Name 已填写"
+
+    # Calculate name statistics
+    let first_name_length = 2
+    let last_name_length = 1
+    let total_name_length = first_name_length + last_name_length
+
+    log "姓名统计:"
+    log "  First Name 长度: {first_name_length} 字符"
+    log "  Last Name 长度: {last_name_length} 字符"
+    log "  总计: {total_name_length} 字符"
+    */
+
+    # Take screenshot after filling names
+    screenshot as "02_names_filled"
+    log "[OK] 截图已保存: 02_names_filled.png"
+end step
+
+# ============================================================
+# Step 3: Fill Email Address
+# ============================================================
+
+step "Fill email address"
+    current_step = current_step + 1
+    log "[{current_step}/{total_steps}] 填写邮箱地址"
+
+    # Validate email format (basic check)
+    let email_valid = email contains "@"
+    let email_length = 24
+
+    if email_valid:
+        log "[OK] Email 格式验证通过: {email}"
+        log "  Email 长度: {email_length} 字符"
+    end if
+
+    if not email_valid:
+        log "[FAIL] Email 格式无效 - 缺少 @ 符号"
+    end if
+
+    # Fill Email field using constant XPath and variable value
+    log "填写 Email: {email}"
+    select input where xpath=XPATH_EMAIL
+    type email
+    wait 500ms
+    log "[OK] Email 已填写"
+
+    # Take screenshot after filling email
+    screenshot as "03_email_filled"
+    log "[OK] 截图已保存: 03_email_filled.png"
+end step
+
+# ============================================================
+# Step 4: Submit Registration Form
+# ============================================================
+
+step "Submit registration form"
+    current_step = current_step + 1
+    log "[{current_step}/{total_steps}] 提交注册表单"
+
+    # Get pre-submission page state
+    let pre_submit_url = $page.url
+    log "提交前 URL: {pre_submit_url}"
+
+    # Take screenshot before submission
+    screenshot fullpage as "04_before_submit"
+    log "[OK] 提交前截图已保存: 04_before_submit.png"
+
+    # Click Continue/Submit button using constant XPath
+    log "点击提交按钮..."
+    select button where xpath=XPATH_SUBMIT_BUTTON
+    click
+
+    log "[OK] 提交按钮已点击"
+
+    # Wait for page transition
+    wait 3s
+    wait for networkidle
+
+    # Get post-submission page state
+    let post_submit_url = $page.url
+    log "提交后 URL: {post_submit_url}"
+
+    # Check if URL changed (indicates submission)
+    let url_changed = post_submit_url != pre_submit_url
+
+    if url_changed:
+        log "[OK] URL 已变化 - 表单提交成功"
+    end if
+
+    if not url_changed:
+        log "[WARNING] URL 未变化 - 可能需要人工检查"
+    end if
+
+    # Take screenshot after submission
+    screenshot fullpage as "05_after_submit"
+    log "[OK] 提交后截图已保存: 05_after_submit.png"
+end step
+
+# ============================================================
+# Step 5: Assert Registration Success
+# ============================================================
+
+step "Assert registration"
+    current_step = current_step + 1
+    log "[{current_step}/{total_steps}] 验证注册结果"
+
+    # Get final page state
+    let final_url = $page.url
+    let final_title = $page.title
+
+    log "最终页面状态:"
+    log "  URL: {final_url}"
+    log "  Title: {final_title}"
+
+    # Check if URL contains expected domain
+    let domain_valid = final_url contains EXPECTED_DOMAIN
+
+    if domain_valid:
+        log "[OK] 域名验证通过 - 包含 {EXPECTED_DOMAIN}"
+    end if
+
+    if not domain_valid:
+        log "[FAIL] 域名验证失败"
+    end if
+
+    # Verify we're on Factory.ai domain
+    #assert url contains "factory.ai"
+
+    # Take final screenshot
+    screenshot fullpage as "06_final_state"
+    log "[OK] 最终截图已保存: 06_final_state.png"
+
+    # Calculate completion statistics
+    let completion_rate = current_step * 100 / total_steps
+
+    log "=========================================="
+    log "注册流程完成"
+    log "=========================================="
+    log "完成步骤: {current_step}/{total_steps}"
+    log "完成率: {completion_rate}%"
+    log "邮箱: {email}"
+    log "最终 URL: {final_url}"
+    log "=========================================="
+end step
+
+# ============================================================
+# Script Complete
+# ============================================================
+#
+# Generated Screenshots:
+#   01_registration_page_loaded.png - Initial page (step 1)
+#   02_names_filled.png             - After filling names (step 2)
+#   03_email_filled.png             - After filling email (step 3)
+#   04_before_submit.png            - Before clicking submit (step 4)
+#   05_after_submit.png             - After clicking submit (step 4)
+#   06_final_state.png              - Final verification (step 5)
+#
+# DSL v2.0 Features Used:
+#   ✅ const - Constants for configuration and XPath selectors
+#   ✅ let - Variable definitions and updates
+#   ✅ System variables ($context.task_id, $page.url, $page.title)
+#   ✅ String interpolation ("User: {first_name} {last_name}")
+#   ✅ Expressions (arithmetic, comparison, logical)
+#   ✅ if statements with expressions
+#   ✅ Variables in navigate to statement (navigate to REGISTRATION_URL)
+#   ✅ Variables in type statements (type first_name)
+#   ✅ Variables in select where clauses (xpath=XPATH_FIRST_NAME)
+#   ✅ Improved logging with interpolated values
+#   ✅ URL validation and change detection
+#   ✅ Statistics tracking (completion rate)

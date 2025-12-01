@@ -1,0 +1,48 @@
+"""
+验证工具库 (v5.0 Module System 示例)
+
+提供常用的数据验证功能
+"""
+
+library validation
+
+# ========== 导出常量 ==========
+
+export const MIN_PASSWORD_LENGTH = 8
+export const MIN_USERNAME_LENGTH = 3
+
+# ========== 导出验证函数 ==========
+
+export function validate_email(email):
+    """验证邮箱格式"""
+    if email contains "@" and email contains ".":
+        return True
+    else:
+        return False
+
+export function validate_password(password):
+    """验证密码强度"""
+    let password_len = len(password)
+    if password_len >= 8:
+        return True
+    else:
+        return False
+
+export function validate_username(username):
+    """验证用户名"""
+    let username_len = len(username)
+    if username_len >= 3 and username_len <= 20:
+        return True
+    else:
+        return False
+
+export function validate_user_data(email, username, password):
+    """综合验证用户数据"""
+    let email_valid = validate_email(email)
+    let username_valid = validate_username(username)
+    let password_valid = validate_password(password)
+
+    if email_valid and username_valid and password_valid:
+        return True
+    else:
+        return False

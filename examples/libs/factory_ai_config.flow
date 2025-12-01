@@ -1,0 +1,99 @@
+# ============================================================
+# Factory.ai 自动化测试配置库 v1.0
+# ============================================================
+#
+# 用途：集中管理 Factory.ai 网站自动化测试的所有配置
+#
+# 包含内容：
+#   - API服务配置
+#   - 目标网站URL
+#   - 页面元素定位器
+#   - 重试和超时策略
+#   - 用户数据模板
+#
+# 使用方式：
+#   import factory_ai_config from "../libs/factory_ai_config.flow"
+#   navigate to factory_ai_config.TARGET_URL
+#
+# 或：
+#   from "../libs/factory_ai_config.flow" import TARGET_URL, FIELD_EMAIL
+#   navigate to TARGET_URL
+#   select input where xpath=FIELD_EMAIL
+#
+# 版本：v1.0
+# 网站：Factory.ai
+# 日期：2025-11-29
+#
+
+library factory_ai_config
+
+# ============================================================
+# API 服务配置
+# ============================================================
+
+export const API_BASE_URL = env("EMAIL_SERVICE_URL", "http://175.178.17.101:8080/api")
+export const EXPECTED_DOMAIN = "factory.ai"
+
+# ============================================================
+# 目标网站URL
+# ============================================================
+
+#export const TARGET_URL = "https://auth.factory.ai/sign-up?state=https%3A%2F%2Fapp.factory.ai%2F%2Fsettings%2Fbilling&redirect_uri=https%3A%2F%2Fapp.factory.ai%2Fapi%2Fauth%2Flogin&authorization_session_id=01K9P7H6KJGBCZNH0G2JN7ZQPH"
+#export const TARGET_URL = "https://auth.factory.ai/sign-up?state=https%3A%2F%2Fapp.factory.ai%2F%2F%3Fpromo%3DD2EKWZNkhAQBOY0s43Vn&redirect_uri=https%3A%2F%2Fapp.factory.ai%2Fapi%2Fauth%2Flogin&authorization_session_id=01KB8GPC16DJ7C5T5XMKCP0S01"
+
+export const TARGET_URL = "https://auth.factory.ai/sign-up?state=https%3A%2F%2Fapp.factory.ai%2F%2F&redirect_uri=https%3A%2F%2Fapp.factory.ai%2Fapi%2Fauth%2Flogin&authorization_session_id=01KB9SGGHWWJ2QKBNF24EEM7GP"
+
+# ============================================================
+# 重试和超时策略
+# ============================================================
+
+# API调用重试
+export const MAX_API_RETRIES = int(env("MAX_RETRIES", "3"))
+export const API_RETRY_DELAY = int(env("RETRY_DELAY", "3"))
+
+# 验证码轮询
+export const MAX_CODE_POLL_ATTEMPTS = int(env("POLL_MAX_ATTEMPTS", "18"))
+export const CODE_POLL_INTERVAL = int(env("POLL_INTERVAL", "10"))
+
+# 页面稳定等待时间（秒）
+export const PAGE_SETTLE_TIME = 3
+
+# ============================================================
+# 页面元素定位器（XPath）
+# ============================================================
+
+# 注册表单字段
+export const FIELD_FIRST_NAME = "//div[@class='radix-themes']/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[1]/div[2]/input[1]"
+export const FIELD_LAST_NAME = "//div[@class='radix-themes']/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[1]/div[2]/div[2]/input[1]"
+export const FIELD_EMAIL = "//div[@class='radix-themes']/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/div[2]/div[2]/input[1]"
+
+# 按钮
+export const BUTTON_SUBMIT = "//div[@class='radix-themes']/div[1]/div[1]/div[2]/form[1]/div[1]/div[1]/button[1]"
+
+# 注意：验证码页面在输入完6位数字后会自动提交，不存在验证按钮
+# 原 BUTTON_VERIFY 已移除（Factory.ai 采用自动提交设计）
+
+# ============================================================
+# 用户数据模板
+# ============================================================
+
+# 默认用户信息（可在主流程中覆盖）
+export const DEFAULT_FIRST_NAME = "tammy"
+export const DEFAULT_LAST_NAME = "zhang"
+
+# ============================================================
+# 流程控制配置
+# ============================================================
+
+# 流程总阶段数
+export const PROGRESS_TOTAL = 4
+
+# ============================================================
+# 库元数据
+# ============================================================
+# 导出常量总数: 15
+# 分类: API(2) + URL(1) + 策略(5) + 定位器(4) + 用户(2) + 流程(1)
+# 复用性: ⭐⭐⭐⭐ Factory.ai 相关流程可复用
+# 环境变量支持: 是（API URL、重试参数可配置）
+# 注意: 验证码页面采用自动提交设计，无需验证按钮
+# ============================================================
