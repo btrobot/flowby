@@ -3,7 +3,8 @@
 """测试 v6.6 实用工具函数"""
 
 import sys
-sys.path.insert(0, 'src')
+
+sys.path.insert(0, "src")
 
 from flowby.lexer import Lexer
 from flowby.parser import Parser
@@ -25,7 +26,7 @@ let capitalized = str1.capitalize()
 """
 tokens = Lexer().tokenize(source1)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("capitalized", line_number=0)
@@ -39,7 +40,7 @@ let padded = num.padStart(3, "0")
 """
 tokens = Lexer().tokenize(source2)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("padded", line_number=0)
@@ -53,7 +54,7 @@ let padded = num.padEnd(3, "0")
 """
 tokens = Lexer().tokenize(source3)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("padded", line_number=0)
@@ -67,7 +68,7 @@ let repeated = str2.repeat(3)
 """
 tokens = Lexer().tokenize(source4)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("repeated", line_number=0)
@@ -87,7 +88,7 @@ let flat = nested.flatten()
 """
 tokens = Lexer().tokenize(source5)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("flat", line_number=0)
@@ -101,7 +102,7 @@ let flat2 = deepNested.flatten(2)
 """
 tokens = Lexer().tokenize(source6)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("flat2", line_number=0)
@@ -115,7 +116,7 @@ let chunks = numbers.chunk(3)
 """
 tokens = Lexer().tokenize(source7)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("chunks", line_number=0)
@@ -135,7 +136,7 @@ let keys = dict1.keys()
 """
 tokens = Lexer().tokenize(source8)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("keys", line_number=0)
@@ -149,7 +150,7 @@ let values = dict2.values()
 """
 tokens = Lexer().tokenize(source9)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("values", line_number=0)
@@ -163,7 +164,7 @@ let entries = dict3.entries()
 """
 tokens = Lexer().tokenize(source10)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("entries", line_number=0)
@@ -186,12 +187,16 @@ let zipped = zip(arr1, arr2)
 """
 tokens = Lexer().tokenize(source11)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("zipped", line_number=0)
 print(f"[OK] zip(): {result}")
-assert result == [[1, "a"], [2, "b"], [3, "c"]], f"期望 [[1, 'a'], [2, 'b'], [3, 'c']]，实际 {result}"
+assert result == [
+    [1, "a"],
+    [2, "b"],
+    [3, "c"],
+], f"期望 [[1, 'a'], [2, 'b'], [3, 'c']]，实际 {result}"
 
 # sleep() - 简单测试（不测试实际睡眠时间）
 source12 = """
@@ -200,7 +205,7 @@ let done = True
 """
 tokens = Lexer().tokenize(source12)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("done", line_number=0)
@@ -219,7 +224,7 @@ let formatted = words.map(w => w.capitalize()).join(" ")
 """
 tokens = Lexer().tokenize(source13)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("formatted", line_number=0)

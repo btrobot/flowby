@@ -3,7 +3,8 @@
 """测试 v6.5 扩展集合方法"""
 
 import sys
-sys.path.insert(0, 'src')
+
+sys.path.insert(0, "src")
 
 from flowby.lexer import Lexer
 from flowby.parser import Parser
@@ -25,12 +26,21 @@ let sorted = numbers.sort()
 """
 tokens = Lexer().tokenize(source1)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 sorted_result = interpreter.symbol_table.get("sorted", line_number=0)
 print(f"[OK] 默认排序: {sorted_result}")
-assert sorted_result == [1, 1, 2, 3, 4, 5, 6, 9], f"期望 [1, 1, 2, 3, 4, 5, 6, 9]，实际 {sorted_result}"
+assert sorted_result == [
+    1,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    9,
+], f"期望 [1, 1, 2, 3, 4, 5, 6, 9]，实际 {sorted_result}"
 
 # 自定义比较器（降序）
 source2 = """
@@ -39,7 +49,7 @@ let descending = numbers.sort((a, b) => b - a)
 """
 tokens = Lexer().tokenize(source2)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 descending = interpreter.symbol_table.get("descending", line_number=0)
@@ -58,7 +68,7 @@ let reversed = numbers.reverse()
 """
 tokens = Lexer().tokenize(source3)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 reversed_result = interpreter.symbol_table.get("reversed", line_number=0)
@@ -78,7 +88,7 @@ let sliced = numbers.slice(2, 5)
 """
 tokens = Lexer().tokenize(source4)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 sliced_result = interpreter.symbol_table.get("sliced", line_number=0)
@@ -92,7 +102,7 @@ let sliced = numbers.slice(3)
 """
 tokens = Lexer().tokenize(source5)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 sliced_result2 = interpreter.symbol_table.get("sliced", line_number=0)
@@ -112,7 +122,7 @@ let sentence = words.join(" ")
 """
 tokens = Lexer().tokenize(source6)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 sentence = interpreter.symbol_table.get("sentence", line_number=0)
@@ -126,7 +136,7 @@ let joined = numbers.join(", ")
 """
 tokens = Lexer().tokenize(source7)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 joined = interpreter.symbol_table.get("joined", line_number=0)
@@ -145,7 +155,7 @@ let unique = numbers.unique()
 """
 tokens = Lexer().tokenize(source8)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 unique_result = interpreter.symbol_table.get("unique", line_number=0)
@@ -164,7 +174,7 @@ let len = numbers.length()
 """
 tokens = Lexer().tokenize(source9)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 length = interpreter.symbol_table.get("len", line_number=0)
@@ -183,7 +193,7 @@ let result = numbers.filter(x => x > 3).sort().slice(0, 3)
 """
 tokens = Lexer().tokenize(source10)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 chained = interpreter.symbol_table.get("result", line_number=0)
@@ -202,7 +212,7 @@ let result = data.unique().reverse().slice(1, 4).join(" -> ")
 """
 tokens = Lexer().tokenize(source11)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 complex = interpreter.symbol_table.get("result", line_number=0)

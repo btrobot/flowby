@@ -3,7 +3,8 @@
 """简单验证 Lambda 和集合操作"""
 
 import sys
-sys.path.insert(0, 'src')
+
+sys.path.insert(0, "src")
 
 from flowby.lexer import Lexer
 from flowby.parser import Parser
@@ -18,7 +19,7 @@ let result = double(5)
 """
 tokens = Lexer().tokenize(source1)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("result", line_number=0)
@@ -33,7 +34,7 @@ let evens = numbers.filter(x => x % 2 == 0)
 """
 tokens = Lexer().tokenize(source2)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 evens = interpreter.symbol_table.get("evens", line_number=0)
@@ -48,7 +49,7 @@ let doubled = numbers.map(x => x * 2)
 """
 tokens = Lexer().tokenize(source3)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 doubled = interpreter.symbol_table.get("doubled", line_number=0)
@@ -63,7 +64,7 @@ let sum = numbers.reduce((acc, x) => acc + x, 0)
 """
 tokens = Lexer().tokenize(source4)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 sum_result = interpreter.symbol_table.get("sum", line_number=0)
@@ -78,7 +79,7 @@ let result = numbers.filter(x => x % 2 == 0).map(x => x * 2)
 """
 tokens = Lexer().tokenize(source5)
 ast = Parser().parse(tokens)
-context = ExecutionContext('test-task')
+context = ExecutionContext("test-task")
 interpreter = Interpreter(context)
 interpreter.execute(ast)
 result = interpreter.symbol_table.get("result", line_number=0)

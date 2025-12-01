@@ -18,7 +18,7 @@ let result = double(5)
 """
     tokens = Lexer().tokenize(source)
     ast = Parser().parse(tokens)
-    context = ExecutionContext('test-task')
+    context = ExecutionContext("test-task")
     interpreter = Interpreter(context)
     interpreter.execute(ast)
 
@@ -36,7 +36,7 @@ let evens = numbers.filter(x => x % 2 == 0)
 """
     tokens = Lexer().tokenize(source)
     ast = Parser().parse(tokens)
-    context = ExecutionContext('test-task')
+    context = ExecutionContext("test-task")
     interpreter = Interpreter(context)
     interpreter.execute(ast)
 
@@ -54,7 +54,7 @@ let doubled = numbers.map(x => x * 2)
 """
     tokens = Lexer().tokenize(source)
     ast = Parser().parse(tokens)
-    context = ExecutionContext('test-task')
+    context = ExecutionContext("test-task")
     interpreter = Interpreter(context)
     interpreter.execute(ast)
 
@@ -72,7 +72,7 @@ let sum = numbers.reduce((acc, x) => acc + x, 0)
 """
     tokens = Lexer().tokenize(source)
     ast = Parser().parse(tokens)
-    context = ExecutionContext('test-task')
+    context = ExecutionContext("test-task")
     interpreter = Interpreter(context)
     interpreter.execute(ast)
 
@@ -90,7 +90,7 @@ let result = numbers.filter(x => x % 2 == 0).map(x => x * 2)
 """
     tokens = Lexer().tokenize(source)
     ast = Parser().parse(tokens)
-    context = ExecutionContext('test-task')
+    context = ExecutionContext("test-task")
     interpreter = Interpreter(context)
     interpreter.execute(ast)
 
@@ -110,4 +110,5 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"\n❌ 测试失败: {e}")
         import traceback
+
         traceback.print_exc()
