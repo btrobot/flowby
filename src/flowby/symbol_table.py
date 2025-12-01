@@ -25,11 +25,19 @@ class SymbolType(Enum):
     CONSTANT - 常量（const 定义）
     SYSTEM - 系统变量（只读，如 $context, $page）
     FUNCTION - 函数（function 定义，v4.3）
+    LOOP_VARIABLE - 循环变量（for 循环，v6.3）
+    PARAMETER - 函数参数（function 参数，v6.3）
+    MODULE - 导入的模块别名（import alias from ..., v6.3）
+    IMPORTED - 导入的成员（from ... import member, v6.3）
     """
     VARIABLE = "variable"
     CONSTANT = "constant"
     SYSTEM = "system"
     FUNCTION = "function"  # v4.3
+    LOOP_VARIABLE = "loop_variable"  # v6.3
+    PARAMETER = "parameter"  # v6.3
+    MODULE = "module"  # v6.3
+    IMPORTED = "imported"  # v6.3
 
 
 @dataclass
@@ -54,10 +62,26 @@ class Symbol:
         """
         检查符号是否可修改
 
+        可变类型：
+        - VARIABLE: let 声明的变量
+        - LOOP_VARIABLE: for 循环变量（v6.3）
+        - PARAMETER: 函数参数（v6.3）
+
+        不可变类型：
+        - CONSTANT: const 声明的常量
+        - SYSTEM: 系统变量
+        - FUNCTION: 函数定义
+        - MODULE: 导入的模块别名（v6.3）
+        - IMPORTED: 导入的成员（v6.3）
+
         Returns:
             True 如果是可变变量，False 如果是常量或系统变量
         """
-        return self.symbol_type == SymbolType.VARIABLE
+        return self.symbol_type in (
+            SymbolType.VARIABLE,
+            SymbolType.LOOP_VARIABLE,  # v6.3: 循环变量可修改
+            SymbolType.PARAMETER       # v6.3: 函数参数可修改
+        )
 
     def to_dict(self) -> Dict[str, Any]:
         """
