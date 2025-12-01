@@ -138,6 +138,14 @@ class DSLRunner:
             program = self.parser.parse(tokens)
             print(f"[{self.task_id}] 解析完成: {len(program.statements)} 条语句")
 
+            # v6.3: VR-006 - 输出警告
+            warnings = self.parser.get_warnings()
+            if warnings:
+                print(f"[{self.task_id}] 发现 {len(warnings)} 个警告:")
+                for warning in warnings:
+                    print(warning.format())
+                print()
+
             # 初始化浏览器
             if self.browser_type in ("playwright", "chromium", "firefox", "webkit"):
                 self._init_playwright_browser()
@@ -401,7 +409,6 @@ def main():
         headless=args.headless,
         browser_id=browser_id,
         browser_type=browser_type,
-        dry_run=args.dry_run
     )
 
     # 执行脚本

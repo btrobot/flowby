@@ -52,11 +52,22 @@ class Symbol:
         value: 符号值
         symbol_type: 符号类型（VARIABLE/CONSTANT/SYSTEM）
         line_number: 定义行号（用于错误报告）
+        is_used: 是否被使用（v6.3 - VR-006 未使用变量警告）
     """
     name: str
     value: Any
     symbol_type: SymbolType
     line_number: int
+    is_used: bool = False  # v6.3: VR-006 未使用变量追踪
+
+
+    def mark_used(self):
+        """
+        标记符号已使用（v6.3 - VR-006）
+
+        用于追踪变量使用情况，避免未使用变量警告
+        """
+        self.is_used = True
 
     def is_mutable(self) -> bool:
         """
@@ -83,7 +94,6 @@ class Symbol:
             SymbolType.PARAMETER       # v6.3: 函数参数可修改
         )
 
-    def __repr__(self) -> str:
         return (
             f"Symbol(name={self.name!r}, "
             f"type={self.symbol_type.value}, "
@@ -120,6 +130,15 @@ class FunctionSymbol(Symbol):
             self.params = []
         if self.body is None:
             self.body = []
+
+
+    def mark_used(self):
+        """
+        标记符号已使用（v6.3 - VR-006）
+
+        用于追踪变量使用情况，避免未使用变量警告
+        """
+        self.is_used = True
 
     def is_mutable(self) -> bool:
         """函数符号不可修改"""
@@ -264,6 +283,9 @@ class SymbolTable:
                 f"(定义于 line {symbol.line_number}, 修改于 line {line_number})"
             )
 
+        # v6.3: VR-006 - 标记符号已使用（赋值也是使用）
+        symbol.mark_used()
+
         # 修改值
         symbol.value = value
 
@@ -295,6 +317,9 @@ class SymbolTable:
             raise RuntimeError(
                 f"未定义的变量: {name} (line {line_number})"
             )
+
+        # v6.3: VR-006 - 标记符号已使用
+        symbol.mark_used()
 
         return symbol.value
 
@@ -538,6 +563,28 @@ class SymbolTableStack:
             作用域深度（全局作用域为 0）
         """
         return len(self.stack) - 1
+
+    def get_all_symbols(self) -> Dict[str, Symbol]:
+        """
+        获取所有作用域的所有符号（v6.3 - VR-006）
+
+        遍历整个作用域栈，收集所有符号。
+        如果同名符号在多个作用域中存在，返回最内层（最近）的符号。
+
+        Returns:
+            符号字典，key 为符号名称，value 为 Symbol 对象
+        """
+        all_symbols: Dict[str, Symbol] = {}
+
+        # 从底层（全局）到顶层（当前作用域）遍历
+        for table in self.stack:
+            # 获取当前作用域的所有符号
+            for name, symbol in table.symbols.items():
+                # 只记录尚未记录的符号（优先记录外层作用域）
+                if name not in all_symbols:
+                    all_symbols[name] = symbol
+
+        return all_symbols
 
     def __repr__(self) -> str:
         scope_names = [table.scope_name for table in self.stack]

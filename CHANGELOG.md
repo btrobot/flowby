@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **VR-006 Unused Variable Warning** (v6.3) - Code quality warnings (non-blocking)
+  - Detects variables declared but never used
+  - Parser-stage AST static analysis for accurate tracking
+  - Warning system with color-coded output
+  - Intelligent filtering: skips system variables, functions, underscore-prefixed variables
+  - Symbol usage tracking with `is_used` flag
+  - Context-aware suggestions (parameters, imports, regular variables)
+  - Non-blocking warnings (script execution continues)
+  - Status: Core functionality complete, 1157/1171 tests passing (14 edge cases pending)
 - **VR-003 Duplicate Declaration Prevention** (v6.3) - Same-scope duplication check
   - Prevents redeclaration of variables/constants in same scope
   - Allows variable shadowing in nested scopes (functions, loops)

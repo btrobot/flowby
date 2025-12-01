@@ -11,6 +11,7 @@ DSL 异常定义
 """
 
 from typing import Optional, List
+from dataclasses import dataclass
 try:
     from colorama import Fore, Style, init
     # 初始化 colorama（Windows 支持）
@@ -409,3 +410,72 @@ class ReturnException(Exception):
     def __init__(self, value=None):
         self.value = value
         super().__init__(f"return {value}")
+
+
+# ============================================================================
+# VR-006: 警告系统 (v6.3+)
+# ============================================================================
+
+
+@dataclass
+class Warning:
+    """
+    DSL 警告（非阻塞，v6.3+）
+
+    用于收集代码质量警告，不会中断执行。
+    主要用于 VR-006（未使用变量）等代码质量检查。
+
+    Attributes:
+        warning_code: 警告代码（如 "VR-006"）
+        message: 警告消息
+        line: 警告发生的行号
+        symbol_name: 相关符号名称（可选）
+        file_path: 警告发生的文件路径（可选）
+        suggestion: 修复建议（可选）
+
+    Example:
+        >>> w = Warning(
+        ...     warning_code="VR-006",
+        ...     message="变量 'unused_var' 声明但从未使用",
+        ...     line=10,
+        ...     symbol_name="unused_var",
+        ...     suggestion="移除此变量或使用它"
+        ... )
+        >>> print(w.format())
+    """
+    warning_code: str
+    message: str
+    line: int
+    symbol_name: Optional[str] = None
+    file_path: Optional[str] = None
+    suggestion: Optional[str] = None
+
+    def format(self) -> str:
+        """
+        格式化警告消息（彩色输出）
+
+        Returns:
+            格式化的警告字符串
+        """
+        parts = []
+
+        # 文件路径和行号
+        location = ""
+        if self.file_path:
+            location = f"{self.file_path}:"
+        location += f"{self.line}"
+
+        # 警告标题（黄色）
+        title = f"{Fore.YELLOW}[Warning {self.warning_code}]{Style.RESET_ALL}"
+        parts.append(f"{title} {self.message}")
+        parts.append(f"  at {location}")
+
+        # 建议（青色）
+        if self.suggestion:
+            parts.append(f"  {Fore.CYAN}help:{Style.RESET_ALL} {self.suggestion}")
+
+        return "\n".join(parts)
+
+    def __str__(self) -> str:
+        """字符串表示"""
+        return self.format()
