@@ -146,7 +146,9 @@ class TestArithmeticPrecedence:
     def test_mixed_operators(self, lexer, parser):
         """测试混合运算: a + b * c - d / e -> (a + (b * c)) - (d / e)"""
         # Arrange
-        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet e = 5\nlet result = a + b * c - d / e"
+        source = (
+            "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet e = 5\nlet result = a + b * c - d / e"
+        )
 
         # Act
         tokens = lexer.tokenize(source)
@@ -248,7 +250,9 @@ class TestLogicalPrecedence:
     def test_complex_logical_expression(self, lexer, parser):
         """测试复杂逻辑表达式: a OR b AND c OR d -> (a OR (b AND c)) OR d"""
         # Arrange
-        source = "let a = True\nlet b = True\nlet c = True\nlet d = True\nlet result = a or b and c or d"
+        source = (
+            "let a = True\nlet b = True\nlet c = True\nlet d = True\nlet result = a or b and c or d"
+        )
 
         # Act
         tokens = lexer.tokenize(source)

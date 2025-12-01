@@ -692,8 +692,14 @@ class TestV3_ControlFlow_PythonAlignment:
         "dsl_code,python_equiv",
         [
             ("let x = 1\nif x > 0:\n    let y = 1", "if x > 0:\n    y = 1"),
-            ("let items = [1, 2]\nfor item in items:\n    log item", "for item in items:\n    print(item)"),
-            ("let x = 1\nlet a = 0\nif x:\n    a = 1\nelse:\n    a = 2", "if x:\n    a = 1\nelse:\n    a = 2"),
+            (
+                "let items = [1, 2]\nfor item in items:\n    log item",
+                "for item in items:\n    print(item)",
+            ),
+            (
+                "let x = 1\nlet a = 0\nif x:\n    a = 1\nelse:\n    a = 2",
+                "if x:\n    a = 1\nelse:\n    a = 2",
+            ),
         ],
     )
     def test_structure_matches_python(self, parse_v3, dsl_code, python_equiv):
