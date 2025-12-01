@@ -31,8 +31,7 @@ class DSLRunner:
         headless: bool = False,
         browser_id: Optional[str] = None,
         browser_type: str = "adspower",
-        services_config_path: Optional[str] = None,
-        dry_run: bool = False
+        services_config_path: Optional[str] = None
     ):
         """
         初始化运行器
@@ -44,7 +43,6 @@ class DSLRunner:
             browser_id: ADSPower 浏览器 ID (when browser_type=adspower)
             browser_type: 浏览器类型 (adspower, playwright, chromium, firefox, webkit)
             services_config_path: 服务配置文件路径（可选，默认在脚本目录查找 services.yaml）
-            dry_run: 是否为 Dry-Run 模式（只检查不执行）
         """
         self.task_id = task_id
         self.variables = variables or {}
@@ -53,7 +51,6 @@ class DSLRunner:
         self.browser_type = browser_type
         self.services_config_path = services_config_path
         self.services_config = None
-        self.dry_run = dry_run
 
         # 组件
         self.lexer = Lexer()
@@ -65,8 +62,6 @@ class DSLRunner:
         # 自省数据（用于测试框架）
         self._introspection_data = {
             'symbol_table': None,
-            'violations': [],
-            'runtime_violations': [],
             'scope_history': [],
             'assertions': []
         }
@@ -151,33 +146,8 @@ class DSLRunner:
             self.program = program  # 保存 AST 根节点，用于自省测试
             print(f"[{self.task_id}] 解析完成: {len(program.statements)} 条语句")
 
-            # 检查是否有 VR 违规
-            violations = self.parser.get_violations_dict()
-            if violations:
-                print(f"[{self.task_id}] 警告: 检测到 {len(violations)} 个 VR 违规")
-                if self.task_id.startswith("test_"):
-                    # 测试模式下，只警告不退出，让测试框架捕获违规
-                    for v in violations:
-                        print(f"  - [{v['rule_id']}] {v['message']} (第 {v['line_number']} 行)")
-                else:
-                    # 生产模式下，违规视为错误
-                    print(f"[{self.task_id}] 错误: 发现 {len(violations)} 个违规")
-                    print("语法错误: VR验证失败，请修正违规后再运行")
-                    for v in violations:
-                        print(f"  - [{v['rule_id']}] {v['message']} (第 {v['line_number']} 行)")
-                    return False
-            else:
-                print(f"[{self.task_id}] VR验证通过: 没有发现违规")
-
             # 保存自省数据
             self._introspection_data['symbol_table'] = self.parser.get_symbol_table_dict()
-            self._introspection_data['violations'] = violations
-
-            # === DRY-RUN 模式：在这里停止，不执行 ===
-            if self.dry_run:
-                elapsed = time.time() - start_time
-                self._print_dry_run_summary(program, violations, elapsed)
-                return len(violations) == 0  # 有违规则返回 False
 
             # 初始化浏览器
             if self.browser_type in ("playwright", "chromium", "firefox", "webkit"):
@@ -345,94 +315,6 @@ class DSLRunner:
             for t, count in sorted(type_counts.items()):
                 print(f"  - {t}: {count}")
 
-    def _print_dry_run_summary(self, program, violations, elapsed):
-        """打印 Dry-Run 摘要"""
-        print(f"\n{'='*60}")
-        print(f"DRY-RUN MODE - Validation Complete")
-        print(f"{'='*60}")
-        
-        # 阶段检查结果
-        print(f"\n[PASS] Lexical Analysis")
-        print(f"[PASS] Syntax Analysis")
-        
-        # VR 违规检查
-        if violations:
-            print(f"[FAIL] Semantic Check ({len(violations)} errors)")
-            for v in violations:
-                print(f"    [{v['rule_id']}] Line {v['line_number']}: {v['message']}")
-        else:
-            print(f"[PASS] Semantic Check")
-        
-        # 统计信息
-        print(f"\nScript Statistics:")
-        print(f"  - Total Statements: {len(program.statements)}")
-        
-        # 分析语句类型
-        statement_types = {}
-        function_count = 0
-        for stmt in program.statements:
-            stmt_type = type(stmt).__name__
-            statement_types[stmt_type] = statement_types.get(stmt_type, 0) + 1
-            if stmt_type == 'FunctionDefNode':
-                function_count += 1
-        
-        if statement_types:
-            print(f"  - Statement Types:")
-            for stmt_type, count in sorted(statement_types.items(), key=lambda x: x[1], reverse=True):
-                print(f"      * {stmt_type}: {count}")
-        
-        # 符号表统计
-        symbol_table = self.parser.get_symbol_table_dict()
-        if symbol_table:
-            self._print_symbol_table_summary(symbol_table)
-        
-        # 总结
-        print(f"\nValidation Time: {elapsed:.2f}s")
-        
-        if violations:
-            print(f"\n[ERROR] Script has {len(violations)} error(s), please fix before execution")
-        else:
-            print(f"\n[SUCCESS] Script validation passed, safe to execute")
-            print(f"          Tip: Remove --dry-run flag to run the script")
-        
-        print(f"{'='*60}\n")
-
-    def _print_symbol_table_summary(self, symbol_table_dict):
-        """打印符号表摘要"""
-        print(f"\nSymbol Table Summary:")
-        
-        # 统计全局作用域的符号
-        if 'scopes' in symbol_table_dict and symbol_table_dict['scopes']:
-            global_scope = symbol_table_dict['scopes'][0]
-            symbols = global_scope.get('symbols', {})
-            
-            # 分类统计
-            variables = []
-            constants = []
-            functions = []
-            
-            for name, symbol in symbols.items():
-                symbol_type = symbol.get('type', '')
-                if symbol_type == 'variable':
-                    variables.append(name)
-                elif symbol_type == 'constant':
-                    constants.append(name)
-                elif symbol_type == 'function':
-                    params = symbol.get('params', [])
-                    functions.append(f"{name}({', '.join(params)})")
-            
-            if constants:
-                print(f"  - Constants ({len(constants)}): {', '.join(constants)}")
-            if variables:
-                print(f"  - Variables ({len(variables)}): {', '.join(variables)}")
-            if functions:
-                print(f"  - Functions ({len(functions)}):")
-                for func in functions:
-                    print(f"      * {func}")
-            
-            if not (constants or variables or functions):
-                print(f"  - (No global symbols)")
-
     # ============================================================
     # 自省接口（用于测试框架）
     # ============================================================
@@ -467,13 +349,11 @@ class DSLRunner:
         获取完整的自省数据
 
         返回:
-            包含符号表、违规记录、运行时数据等的字典
+            包含符号表、运行时数据等的字典
         """
         # 合并所有自省数据
         data = {
             'symbol_table': self._introspection_data['symbol_table'],
-            'violations': self._introspection_data['violations'],
-            'runtime_violations': self._introspection_data['runtime_violations'],
             'scope_history': self._introspection_data['scope_history'],
             'assertions': self._introspection_data['assertions'],
             'execution_summary': self.context.get_summary() if self.context else None,
@@ -481,15 +361,6 @@ class DSLRunner:
         }
 
         return data
-
-    def get_violations(self) -> List[Dict[str, Any]]:
-        """
-        获取VR违规记录
-
-        返回:
-            违规记录列表
-        """
-        return self._introspection_data['violations']
 
     def get_symbol_table(self) -> Optional[Dict[str, Any]]:
         """

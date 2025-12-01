@@ -63,6 +63,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated all examples to v3.0+ syntax
 
 ### Removed
+- **Violation Collection System** (v6.3) - Simplified to immediate ParserError mode
+  - Removed `Violation` class from parser.py
+  - Removed `violations` list tracking
+  - Removed `get_violations()`, `get_violations_dict()` methods
+  - VR rules now throw ParserError immediately instead of collecting violations
+  - Rationale: Consistent error handling, simpler codebase
+- **Dry-Run Feature** (v6.3) - Removed unimplemented feature
+  - Removed `--dry-run` mode from runner
+  - Removed `_print_dry_run_summary()` and related methods
+  - Deleted `DRY_RUN_FEATURE.md` documentation
+  - Rationale: Feature was incomplete and incompatible with ParserError mode
 - **BREAKING**: `resource` statement syntax (v6.0) - Use `Resource()` function instead
   - Removed `resource <name> from <file>` syntax
   - Removed `resource <name>:` block syntax

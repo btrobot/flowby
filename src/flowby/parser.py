@@ -32,46 +32,6 @@ SYSTEM_VARIABLES = {
 }
 
 
-@dataclass
-class Violation:
-    """
-    VR (Validation Rule) 违规记录
-
-    用于记录语义分析阶段发现的验证规则违规
-
-    Attributes:
-        rule_id: 规则ID（如 "VR-VAR-001"）
-        message: 违规消息
-        line_number: 行号
-        column: 列号（可选）
-        severity: 严重程度（"ERROR" | "WARNING"）
-        context: 违规代码上下文（可选）
-
-    Examples:
-        >>> violation = Violation(
-        ...     rule_id="VR-VAR-004",
-        ...     message="不能修改常量 'x'",
-        ...     line_number=5,
-        ...     severity="ERROR"
-        ... )
-    """
-    rule_id: str
-    message: str
-    line_number: int
-    column: Optional[int] = None
-    severity: str = "ERROR"  # ERROR or WARNING
-    context: Optional[str] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        """将违规记录序列化为字典格式"""
-        return {
-            "rule_id": self.rule_id,
-            "message": self.message,
-            "line_number": self.line_number,
-            "column": self.column,
-            "severity": self.severity,
-            "context": self.context
-        }
 
 
 class Parser:
@@ -82,12 +42,8 @@ class Parser:
 
     自省接口:
         - symbol_table_stack: 符号表栈（用于测试框架自省）
-        - violations: VR违规记录列表
         - get_symbol_table(): 获取符号表
         - get_symbol_table_dict(): 获取序列化符号表
-        - get_violations(): 获取违规记录
-        - get_violations_dict(): 获取序列化违规记录
-        - get_introspection_data(): 获取完整自省数据
     """
 
     def __init__(self):
@@ -95,7 +51,6 @@ class Parser:
         self.tokens: List[Token] = []
         self.current = 0
         self.symbol_table_stack = SymbolTableStack()  # 添加符号表栈用于语义分析和自省
-        self.violations: List[Violation] = []  # VR违规记录列表
         self._loop_depth = 0  # v3.0: 跟踪循环嵌套深度 (用于 break/continue 验证)
 
     def parse(self, tokens: List[Token]) -> Program:
@@ -3252,33 +3207,3 @@ class Parser:
             dict: 符号表栈的字典格式
         """
         return self.symbol_table_stack.to_dict()
-
-    def get_violations(self):
-        """
-        获取所有 VR 违规记录（用于测试框架自省）
-
-        Returns:
-            List[Violation]: 违规记录列表
-        """
-        return self.violations
-
-    def get_violations_dict(self):
-        """
-        获取违规记录的序列化表示（用于测试断言）
-
-        Returns:
-            List[dict]: 违规记录的字典格式列表
-        """
-        return [violation.to_dict() for violation in self.violations]
-
-    def get_introspection_data(self):
-        """
-        获取完整的自省数据（包含符号表和违规记录）
-
-        Returns:
-            dict: 包含 symbol_table 和 violations 的字典
-        """
-        return {
-            "symbol_table": self.get_symbol_table_dict(),
-            "violations": self.get_violations_dict()
-        }
