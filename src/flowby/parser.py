@@ -2029,28 +2029,46 @@ class Parser:
         self._consume(TokenType.NEWLINE, "期望换行")
         self._consume(TokenType.INDENT, "期望缩进")
 
-        # 解析函数体
-        body = []
-        while not self._check(TokenType.DEDENT) and not self._is_at_end():
-            if self._check(TokenType.NEWLINE):
-                self._advance()
-                continue
+        # v6.3: 创建函数作用域并注册参数（VR-001 所需）
+        self.symbol_table_stack.enter_scope(f"function_{func_name}")
 
-            stmt = self._parse_statement()
-            if stmt:
-                body.append(stmt)
+        try:
+            # v6.3: 提前注册函数参数
+            from .symbol_table import SymbolType
+            for param in params:
+                self.symbol_table_stack.define(
+                    name=param,
+                    value=None,  # 值在运行时传入
+                    symbol_type=SymbolType.PARAMETER,
+                    line_number=line
+                )
 
-            self._skip_newlines()
+            # 解析函数体
+            body = []
+            while not self._check(TokenType.DEDENT) and not self._is_at_end():
+                if self._check(TokenType.NEWLINE):
+                    self._advance()
+                    continue
 
-        # 消费 DEDENT
-        self._consume(TokenType.DEDENT, "期望反缩进")
+                stmt = self._parse_statement()
+                if stmt:
+                    body.append(stmt)
 
-        return FunctionDefNode(
-            name=func_name,
-            params=params,
-            body=body,
-            line=line
-        )
+                self._skip_newlines()
+
+            # 消费 DEDENT
+            self._consume(TokenType.DEDENT, "期望反缩进")
+
+            return FunctionDefNode(
+                name=func_name,
+                params=params,
+                body=body,
+                line=line
+            )
+
+        finally:
+            # v6.3: 退出函数作用域（确保异常安全）
+            self.symbol_table_stack.exit_scope()
 
     def _parse_return_statement(self) -> ReturnNode:
         """
