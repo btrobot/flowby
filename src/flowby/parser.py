@@ -1758,6 +1758,17 @@ class Parser:
         # 创建 for 循环作用域（修复 VR-VAR-003 bug）
         self.symbol_table_stack.enter_scope("for_loop")
 
+        # v6.3: 提前注册循环变量（VR-001 所需）
+        # 支持多变量解包（v4.0）
+        from .symbol_table import SymbolType
+        for var_name in variable_names:
+            self.symbol_table_stack.define(
+                name=var_name,
+                value=None,  # 值在运行时绑定
+                symbol_type=SymbolType.LOOP_VARIABLE,
+                line_number=line
+            )
+
         try:
             # 解析循环体
             statements = []
