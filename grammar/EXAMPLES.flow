@@ -1,0 +1,292 @@
+# Flowby DSL 完整语法示例
+#
+# 本文件展示当前版本的所有主要语法特性
+# 基于 Python 风格的纯缩进语法
+
+# ============================================================
+# 1. 变量声明与赋值
+# ============================================================
+
+# 变量声明
+let count = 0
+let name = "Alice"
+let score = 95.5
+let active = True
+let items = [1, 2, 3]
+let user = {name: "Bob", age: 30}
+
+# 常量声明
+const MAX_RETRY = 3
+const API_URL = "https://api.example.com"
+
+# 变量赋值
+count = count + 1
+name = "Charlie"
+
+# ============================================================
+# 2. 控制流
+# ============================================================
+
+# Step 块
+step "登录流程":
+    navigate to "https://example.com/login"
+    type "user@example.com" into "#email"
+    type "password123" into "#password"
+    click "#submit"
+
+# If-Else 条件
+step "条件处理":
+    let grade = ""
+    if score >= 90:
+        log "成绩优秀"
+        grade = "A"
+    else if score >= 80:
+        log "成绩良好"
+        grade = "B"
+    else:
+        log "需要努力"
+        grade = "C"
+
+# When-Otherwise 模式匹配
+let status = "pending"
+when status:
+    "pending":
+        log "订单待处理"
+    "processing":
+        log "订单处理中"
+    "completed":
+        log "订单已完成"
+    otherwise:
+        log "未知状态"
+
+# For 循环
+for item in items:
+    log f"处理项目: {item}"
+    click item
+
+# While 循环
+let counter = 0
+while counter < 5:
+    log f"计数: {counter}"
+    counter = counter + 1
+    if counter == 3:
+        break
+
+# ============================================================
+# 3. 导航操作
+# ============================================================
+
+step "导航示例":
+    navigate to "https://example.com"
+    navigate to "https://example.com" wait for networkidle
+    go back
+    go forward
+    reload
+
+# ============================================================
+# 4. 等待操作
+# ============================================================
+
+step "等待示例":
+    wait 1000ms
+    wait for element "#button"
+    wait for element ".loading" to be hidden
+    wait for element "#modal" to be visible
+    wait for navigation
+
+# ============================================================
+# 5. 选择器操作
+# ============================================================
+
+step "选择器示例":
+    select "#username"
+    select option "China" from "#country"
+
+# ============================================================
+# 6. 交互操作
+# ============================================================
+
+step "交互示例":
+    # 输入文本
+    type "Hello World" into "#input"
+    type "Test"  # 输入到当前焦点元素
+
+    # 点击操作
+    click "#submit"
+
+    # 悬停操作
+    hover "#menu"
+
+    # 清空输入
+    clear "#input"
+
+# ============================================================
+# 7. 提取操作
+# ============================================================
+
+step "提取示例":
+    extract text from "#username" into username
+    extract text from "#code" pattern "\\d{6}" into code
+
+# ============================================================
+# 8. 截图操作
+# ============================================================
+
+step "截图示例":
+    screenshot as "dashboard"
+    screenshot fullpage as "full-page"
+
+# ============================================================
+# 9. HTTP 服务调用
+# ============================================================
+
+step "HTTP 请求":
+    # GET 请求
+    let response = http.get("https://api.example.com/users")
+    log f"状态码: {response.status_code}"
+
+    # POST 请求
+    let result = http.post(
+        "https://api.example.com/users",
+        body={name: "John", email: "john@example.com"}
+    )
+
+# ============================================================
+# 11. Random 工具函数
+# ============================================================
+
+step "随机数据生成":
+    let email = random.email()
+    let pwd = random.password(16, True)
+    let uid = random.uuid()
+    let num = random.number(1, 100)
+
+    log f"随机邮箱: {email}"
+    type email into "#email"
+
+# ============================================================
+# 12. 字符串操作（Lambda 表达式）
+# ============================================================
+
+step "字符串处理":
+    let text = "Hello World"
+    let upper = text.upper()
+    let lower = text.lower()
+    let length = text.length()
+
+    log f"原文: {text}, 大写: {upper}, 长度: {length}"
+
+# ============================================================
+# 13. 数组操作（Lambda 表达式）
+# ============================================================
+
+step "数组处理":
+    let numbers = [1, 2, 3, 4, 5]
+
+    # map - 映射转换
+    let doubled = numbers.map(x => x * 2)
+
+    # filter - 过滤
+    let evens = numbers.filter(x => x % 2 == 0)
+
+    # reduce - 归约
+    let sum = numbers.reduce((acc, x) => acc + x, 0)
+
+    # 其他方法
+    let first = numbers.first()
+    let last = numbers.last()
+    let length = numbers.length()
+
+    log f"总和: {sum}, 偶数: {evens}"
+
+# ============================================================
+# 14. 实用工具函数
+# ============================================================
+
+step "工具函数":
+    # 数学函数
+    let abs_val = abs(-10)
+    let max_val = max(10, 20, 30)
+    let min_val = min(10, 20, 30)
+
+    # 类型转换
+    let num = int("123")
+    let float_num = float("3.14")
+    let text = str(123)
+
+    # 类型检查
+    let is_num = typeof(123) == "number"
+    let is_str = typeof("hello") == "string"
+
+# ============================================================
+# 15. 字符串插值（f-string）
+# ============================================================
+
+step "字符串插值":
+    let name = "Alice"
+    let age = 30
+
+    log f"姓名: {name}, 年龄: {age}"
+    log f"计算: {age + 5}"
+
+# ============================================================
+# 16. 诊断配置
+# ============================================================
+
+step "详细诊断" with diagnosis detailed:
+    navigate to "https://example.com"
+    click "#button"
+    # 此步骤会记录详细的诊断信息
+
+# ============================================================
+# 17. 复杂嵌套示例
+# ============================================================
+
+step "复杂业务流程":
+    let users = [
+        {name: "Admin", role: "admin", active: True},
+        {name: "Editor", role: "editor", active: True},
+        {name: "Viewer", role: "viewer", active: False}
+    ]
+
+    for user in users:
+        if user.active:
+            when user.role:
+                "admin":
+                    log f"处理管理员: {user.name}"
+                    navigate to "/admin"
+                "editor":
+                    log f"处理编辑: {user.name}"
+                    navigate to "/editor"
+                otherwise:
+                    log f"处理普通用户: {user.name}"
+                    navigate to "/dashboard"
+
+            wait 500ms
+        else:
+            log f"跳过未激活用户: {user.name}"
+
+# ============================================================
+# 18. 错误处理示例
+# ============================================================
+
+step "错误处理":
+    # 使用条件判断处理可能的错误
+    let result = http.get("https://api.example.com/data")
+
+    if result.status_code == 200:
+        log "请求成功"
+        let data = result.data
+    else:
+        log f"请求失败: {result.status_code}"
+
+# ============================================================
+# 注意事项
+# ============================================================
+
+# 1. 使用 4 空格缩进（不要用 Tab）
+# 2. 布尔值首字母大写：True, False
+# 3. 空值使用：None
+# 4. 字符串插值使用 f-string: f"Hello {name}"
+# 5. Lambda 表达式：x => x * 2
+# 6. 无 end 关键字，使用纯缩进语法
