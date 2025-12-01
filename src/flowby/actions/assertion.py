@@ -16,13 +16,13 @@ from ..diagnosis import DiagnosisLevel
 
 
 def _capture_diagnosis(
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     error: Exception,
     error_type: str,
     line: int,
     statement: str,
     selector: str = "",
-    diagnosis_level: Optional[str] = None
+    diagnosis_level: Optional[str] = None,
 ) -> str:
     """
     捕获诊断信息
@@ -62,9 +62,9 @@ def _capture_diagnosis(
 def execute_assert_url(
     operator: str,
     expected: str,
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     line: int = 0,
-    diagnosis_level: Optional[str] = None
+    diagnosis_level: Optional[str] = None,
 ):
     """
     断言 URL
@@ -93,7 +93,9 @@ def execute_assert_url(
         result = re.search(resolved_expected, current_url) is not None
 
     if not result:
-        error = Exception(f"URL 断言失败: 当前 URL '{current_url}' 不 {operator} '{resolved_expected}'")
+        error = Exception(
+            f"URL 断言失败: 当前 URL '{current_url}' 不 {operator} '{resolved_expected}'"
+        )
         statement = f"assert url {operator} {expected}"
 
         # 捕获诊断信息
@@ -103,7 +105,7 @@ def execute_assert_url(
             error_type="ASSERTION_FAILED",
             line=line,
             statement=statement,
-            diagnosis_level=diagnosis_level
+            diagnosis_level=diagnosis_level,
         )
 
         raise ExecutionError(
@@ -111,13 +113,11 @@ def execute_assert_url(
             statement=statement,
             error_type=ExecutionError.ASSERTION_FAILED,
             message=str(error),
-            screenshot_path=diagnosis_path
+            screenshot_path=diagnosis_path,
         )
 
     context.add_execution_record(
-        record_type="assert",
-        content=f"assert url {operator} {resolved_expected}",
-        success=True
+        record_type="assert", content=f"assert url {operator} {resolved_expected}", success=True
     )
 
     context.logger.info(f"✓ URL 断言通过")
@@ -126,9 +126,9 @@ def execute_assert_url(
 def execute_assert_element(
     state: str,
     selector: str,
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     line: int = 0,
-    diagnosis_level: Optional[str] = None
+    diagnosis_level: Optional[str] = None,
 ):
     """
     断言元素状态
@@ -167,7 +167,7 @@ def execute_assert_element(
         context.add_execution_record(
             record_type="assert",
             content=f"assert element {state} {resolved_selector}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 元素断言通过")
@@ -183,7 +183,7 @@ def execute_assert_element(
             line=line,
             statement=statement,
             selector=resolved_selector,
-            diagnosis_level=diagnosis_level
+            diagnosis_level=diagnosis_level,
         )
 
         raise ExecutionError(
@@ -191,7 +191,7 @@ def execute_assert_element(
             statement=statement,
             error_type=ExecutionError.ASSERTION_FAILED,
             message=str(e),
-            screenshot_path=diagnosis_path
+            screenshot_path=diagnosis_path,
         )
 
 
@@ -199,9 +199,9 @@ def execute_assert_text(
     operator: str,
     expected: str,
     selector: str,
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     line: int = 0,
-    diagnosis_level: Optional[str] = None
+    diagnosis_level: Optional[str] = None,
 ):
     """
     断言文本内容
@@ -236,14 +236,12 @@ def execute_assert_text(
             result = actual_text.strip() == resolved_expected
 
         if not result:
-            raise Exception(
-                f"文本断言失败: 实际文本不 {operator} '{resolved_expected}'"
-            )
+            raise Exception(f"文本断言失败: 实际文本不 {operator} '{resolved_expected}'")
 
         context.add_execution_record(
             record_type="assert",
             content=f"assert text {operator} {resolved_expected}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 文本断言通过")
@@ -259,7 +257,7 @@ def execute_assert_text(
             line=line,
             statement=statement,
             selector=resolved_selector or "",
-            diagnosis_level=diagnosis_level
+            diagnosis_level=diagnosis_level,
         )
 
         raise ExecutionError(
@@ -267,7 +265,7 @@ def execute_assert_text(
             statement=statement,
             error_type=ExecutionError.ASSERTION_FAILED,
             message=str(e),
-            screenshot_path=diagnosis_path
+            screenshot_path=diagnosis_path,
         )
 
 
@@ -275,9 +273,9 @@ def execute_assert_value(
     operator: str,
     expected: str,
     selector: str,
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     line: int = 0,
-    diagnosis_level: Optional[str] = None
+    diagnosis_level: Optional[str] = None,
 ):
     """
     断言输入框的值
@@ -316,7 +314,7 @@ def execute_assert_value(
         context.add_execution_record(
             record_type="assert",
             content=f"assert value {operator} {resolved_expected}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 值断言通过")
@@ -332,7 +330,7 @@ def execute_assert_value(
             line=line,
             statement=statement,
             selector=resolved_selector,
-            diagnosis_level=diagnosis_level
+            diagnosis_level=diagnosis_level,
         )
 
         raise ExecutionError(
@@ -340,11 +338,11 @@ def execute_assert_value(
             statement=statement,
             error_type=ExecutionError.ASSERTION_FAILED,
             message=str(e),
-            screenshot_path=diagnosis_path
+            screenshot_path=diagnosis_path,
         )
 
 
-def _check_condition(condition: 'Condition', context: 'ExecutionContext') -> bool:
+def _check_condition(condition: "Condition", context: "ExecutionContext") -> bool:
     """
     检查条件是否满足（用于 wait until 和条件语句）
 
@@ -371,7 +369,9 @@ def _check_condition(condition: 'Condition', context: 'ExecutionContext') -> boo
 
     # 元素条件
     if condition.condition_type == "element":
-        resolved_selector = context.resolve_variables(condition.selector) if condition.selector else ""
+        resolved_selector = (
+            context.resolve_variables(condition.selector) if condition.selector else ""
+        )
         locator = page.locator(resolved_selector)
 
         if condition.operator == "exists":
@@ -379,12 +379,12 @@ def _check_condition(condition: 'Condition', context: 'ExecutionContext') -> boo
         elif condition.operator == "visible":
             try:
                 return locator.first.is_visible()
-            except:
+            except Exception:
                 return False
         elif condition.operator == "hidden":
             try:
                 return not locator.first.is_visible()
-            except:
+            except Exception:
                 return True
 
     # 文本条件
@@ -396,7 +396,7 @@ def _check_condition(condition: 'Condition', context: 'ExecutionContext') -> boo
             try:
                 element = page.locator(resolved_selector).first
                 actual_text = element.text_content() or ""
-            except:
+            except Exception:
                 actual_text = ""
         else:
             actual_text = page.text_content("body") or ""

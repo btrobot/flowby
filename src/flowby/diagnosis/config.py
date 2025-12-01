@@ -6,7 +6,7 @@
 
 from enum import IntEnum
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class DiagnosisLevel(IntEnum):

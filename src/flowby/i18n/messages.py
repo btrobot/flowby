@@ -5,7 +5,7 @@ Flowby DSL 国际化消息字典
 """
 
 import os
-from typing import Dict, Any
+from typing import Dict
 
 
 # 当前语言（默认中文）

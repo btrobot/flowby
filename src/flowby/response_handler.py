@@ -11,7 +11,7 @@ Response Handler - v4.2 Phase 3
 - 数据验证（类型、必填、格式、范围）
 """
 
-from typing import Dict, Any, Optional, List, Union
+from typing import Dict, Any, Optional
 from datetime import datetime
 import re
 
@@ -49,36 +49,38 @@ class ResponseValidator:
         if not schema:
             return
 
-        schema_type = schema.get('type')
+        schema_type = schema.get("type")
 
         # 处理 nullable
         if data is None:
-            if schema.get('nullable', False):
+            if schema.get("nullable", False):
                 return
             raise ValidationError(field_path, "不能为 null", data)
 
         # 类型验证
-        if schema_type == 'object':
+        if schema_type == "object":
             ResponseValidator._validate_object(data, schema, field_path)
-        elif schema_type == 'array':
+        elif schema_type == "array":
             ResponseValidator._validate_array(data, schema, field_path)
-        elif schema_type == 'string':
+        elif schema_type == "string":
             ResponseValidator._validate_string(data, schema, field_path)
-        elif schema_type == 'integer':
+        elif schema_type == "integer":
             ResponseValidator._validate_integer(data, schema, field_path)
-        elif schema_type == 'number':
+        elif schema_type == "number":
             ResponseValidator._validate_number(data, schema, field_path)
-        elif schema_type == 'boolean':
+        elif schema_type == "boolean":
             ResponseValidator._validate_boolean(data, schema, field_path)
 
     @staticmethod
     def _validate_object(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证对象类型"""
         if not isinstance(data, dict):
-            raise ValidationError(field_path, f"期望类型为 object，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 object，实际为 {type(data).__name__}", data
+            )
 
-        properties = schema.get('properties', {})
-        required = schema.get('required', [])
+        properties = schema.get("properties", {})
+        required = schema.get("required", [])
 
         # 验证必填字段
         for field_name in required:
@@ -89,92 +91,96 @@ class ResponseValidator:
         for field_name, field_value in data.items():
             if field_name in properties:
                 field_schema = properties[field_name]
-                ResponseValidator.validate(
-                    field_value,
-                    field_schema,
-                    f"{field_path}.{field_name}"
-                )
+                ResponseValidator.validate(field_value, field_schema, f"{field_path}.{field_name}")
 
     @staticmethod
     def _validate_array(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证数组类型"""
         if not isinstance(data, list):
-            raise ValidationError(field_path, f"期望类型为 array，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 array，实际为 {type(data).__name__}", data
+            )
 
         # 验证数组长度
-        min_items = schema.get('minItems')
-        max_items = schema.get('maxItems')
+        min_items = schema.get("minItems")
+        max_items = schema.get("maxItems")
 
         if min_items is not None and len(data) < min_items:
-            raise ValidationError(field_path, f"数组长度不能少于 {min_items}，当前为 {len(data)}", data)
+            raise ValidationError(
+                field_path, f"数组长度不能少于 {min_items}，当前为 {len(data)}", data
+            )
 
         if max_items is not None and len(data) > max_items:
-            raise ValidationError(field_path, f"数组长度不能超过 {max_items}，当前为 {len(data)}", data)
+            raise ValidationError(
+                field_path, f"数组长度不能超过 {max_items}，当前为 {len(data)}", data
+            )
 
         # 验证数组元素
-        items_schema = schema.get('items')
+        items_schema = schema.get("items")
         if items_schema:
             for i, item in enumerate(data):
-                ResponseValidator.validate(
-                    item,
-                    items_schema,
-                    f"{field_path}[{i}]"
-                )
+                ResponseValidator.validate(item, items_schema, f"{field_path}[{i}]")
 
     @staticmethod
     def _validate_string(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证字符串类型"""
         if not isinstance(data, str):
-            raise ValidationError(field_path, f"期望类型为 string，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 string，实际为 {type(data).__name__}", data
+            )
 
         # 长度验证
-        min_length = schema.get('minLength')
-        max_length = schema.get('maxLength')
+        min_length = schema.get("minLength")
+        max_length = schema.get("maxLength")
 
         if min_length is not None and len(data) < min_length:
-            raise ValidationError(field_path, f"字符串长度不能少于 {min_length}，当前为 {len(data)}", data)
+            raise ValidationError(
+                field_path, f"字符串长度不能少于 {min_length}，当前为 {len(data)}", data
+            )
 
         if max_length is not None and len(data) > max_length:
-            raise ValidationError(field_path, f"字符串长度不能超过 {max_length}，当前为 {len(data)}", data)
+            raise ValidationError(
+                field_path, f"字符串长度不能超过 {max_length}，当前为 {len(data)}", data
+            )
 
         # 格式验证
-        format_type = schema.get('format')
+        format_type = schema.get("format")
         if format_type:
             ResponseValidator._validate_string_format(data, format_type, field_path)
 
         # 模式验证
-        pattern = schema.get('pattern')
+        pattern = schema.get("pattern")
         if pattern and not re.match(pattern, data):
             raise ValidationError(field_path, f"不符合正则表达式: {pattern}", data)
 
         # 枚举验证
-        enum = schema.get('enum')
+        enum = schema.get("enum")
         if enum and data not in enum:
             raise ValidationError(field_path, f"必须是以下值之一: {enum}，当前为 {data}", data)
 
     @staticmethod
     def _validate_string_format(data: str, format_type: str, field_path: str) -> None:
         """验证字符串格式"""
-        if format_type == 'email':
-            email_pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if format_type == "email":
+            email_pattern = r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
             if not re.match(email_pattern, data):
                 raise ValidationError(field_path, f"不是有效的 email 格式", data)
 
-        elif format_type == 'uri' or format_type == 'url':
-            url_pattern = r'^https?://.+'
+        elif format_type == "uri" or format_type == "url":
+            url_pattern = r"^https?://.+"
             if not re.match(url_pattern, data):
                 raise ValidationError(field_path, f"不是有效的 URL 格式", data)
 
-        elif format_type == 'date':
+        elif format_type == "date":
             # ISO 8601 date: YYYY-MM-DD
-            date_pattern = r'^\d{4}-\d{2}-\d{2}$'
+            date_pattern = r"^\d{4}-\d{2}-\d{2}$"
             if not re.match(date_pattern, data):
                 raise ValidationError(field_path, f"不是有效的日期格式 (YYYY-MM-DD)", data)
 
-        elif format_type == 'date-time':
+        elif format_type == "date-time":
             # ISO 8601 datetime
             try:
-                datetime.fromisoformat(data.replace('Z', '+00:00'))
+                datetime.fromisoformat(data.replace("Z", "+00:00"))
             except ValueError:
                 raise ValidationError(field_path, f"不是有效的日期时间格式 (ISO 8601)", data)
 
@@ -182,11 +188,13 @@ class ResponseValidator:
     def _validate_integer(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证整数类型"""
         if not isinstance(data, int) or isinstance(data, bool):
-            raise ValidationError(field_path, f"期望类型为 integer，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 integer，实际为 {type(data).__name__}", data
+            )
 
         # 范围验证
-        minimum = schema.get('minimum')
-        maximum = schema.get('maximum')
+        minimum = schema.get("minimum")
+        maximum = schema.get("maximum")
 
         if minimum is not None and data < minimum:
             raise ValidationError(field_path, f"不能小于 {minimum}，当前为 {data}", data)
@@ -198,11 +206,13 @@ class ResponseValidator:
     def _validate_number(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证数字类型（包括整数和浮点数）"""
         if not isinstance(data, (int, float)) or isinstance(data, bool):
-            raise ValidationError(field_path, f"期望类型为 number，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 number，实际为 {type(data).__name__}", data
+            )
 
         # 范围验证
-        minimum = schema.get('minimum')
-        maximum = schema.get('maximum')
+        minimum = schema.get("minimum")
+        maximum = schema.get("maximum")
 
         if minimum is not None and data < minimum:
             raise ValidationError(field_path, f"不能小于 {minimum}，当前为 {data}", data)
@@ -214,7 +224,9 @@ class ResponseValidator:
     def _validate_boolean(data: Any, schema: Dict[str, Any], field_path: str) -> None:
         """验证布尔类型"""
         if not isinstance(data, bool):
-            raise ValidationError(field_path, f"期望类型为 boolean，实际为 {type(data).__name__}", data)
+            raise ValidationError(
+                field_path, f"期望类型为 boolean，实际为 {type(data).__name__}", data
+            )
 
 
 class ResponseMapper:
@@ -245,10 +257,10 @@ class ResponseMapper:
             }
         """
         self.mapping_config = mapping_config or {}
-        self.field_mapping = self.mapping_config.get('field_mapping', {})
-        self.exclude_fields = set(self.mapping_config.get('exclude_fields', []))
-        self.include_only = self.mapping_config.get('include_only')
-        self.default_values = self.mapping_config.get('default_values', {})
+        self.field_mapping = self.mapping_config.get("field_mapping", {})
+        self.exclude_fields = set(self.mapping_config.get("exclude_fields", []))
+        self.include_only = self.mapping_config.get("include_only")
+        self.default_values = self.mapping_config.get("default_values", {})
 
     def map(self, data: Any) -> Any:
         """
@@ -294,8 +306,7 @@ class ResponseMapper:
                 result[mapped_key] = self._map_object(value)
             elif isinstance(value, list):
                 result[mapped_key] = [
-                    self._map_object(item) if isinstance(item, dict) else item
-                    for item in value
+                    self._map_object(item) if isinstance(item, dict) else item for item in value
                 ]
             else:
                 result[mapped_key] = value
@@ -314,7 +325,7 @@ class ResponseHandler:
         self,
         response_schema: Optional[Dict[str, Any]] = None,
         mapping_config: Optional[Dict[str, Any]] = None,
-        validate: bool = True
+        validate: bool = True,
     ):
         """
         初始化响应处理器
@@ -356,7 +367,7 @@ class ResponseHandler:
 def create_response_handler(
     operation: Dict[str, Any],
     mapping_config: Optional[Dict[str, Any]] = None,
-    validate: bool = True
+    validate: bool = True,
 ) -> Optional[ResponseHandler]:
     """
     根据 OpenAPI 操作定义创建响应处理器
@@ -370,22 +381,18 @@ def create_response_handler(
         ResponseHandler 实例，如果没有响应定义则返回 None
     """
     # 从操作中提取 200 响应的 schema
-    responses = operation.get('responses', {})
-    success_response = responses.get('200') or responses.get('201')
+    responses = operation.get("responses", {})
+    success_response = responses.get("200") or responses.get("201")
 
     if not success_response:
         return None
 
     # 提取 schema
-    content = success_response.get('content', {})
-    json_content = content.get('application/json', {})
-    schema = json_content.get('schema')
+    content = success_response.get("content", {})
+    json_content = content.get("application/json", {})
+    schema = json_content.get("schema")
 
     if not schema:
         return None
 
-    return ResponseHandler(
-        response_schema=schema,
-        mapping_config=mapping_config,
-        validate=validate
-    )
+    return ResponseHandler(response_schema=schema, mapping_config=mapping_config, validate=validate)

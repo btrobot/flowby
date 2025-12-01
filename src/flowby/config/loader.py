@@ -7,7 +7,7 @@
 import os
 import re
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 
 import yaml
 from dotenv import load_dotenv

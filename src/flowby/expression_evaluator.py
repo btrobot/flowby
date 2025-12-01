@@ -13,7 +13,7 @@
 参考: flows/SEMANTICS.md 第 3 节 - 类型系统
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 from .ast_nodes import (
     Expression,
     BinaryOp,
@@ -47,11 +47,7 @@ class ExpressionEvaluator:
     负责对表达式 AST 进行求值
     """
 
-    def __init__(
-        self,
-        symbol_table: SymbolTableStack,
-        system_variables: SystemVariables
-    ):
+    def __init__(self, symbol_table: SymbolTableStack, system_variables: SystemVariables):
         """
         初始化求值器
 
@@ -72,7 +68,7 @@ class ExpressionEvaluator:
         Returns:
             当前执行的脚本文件路径，如果无法获取则返回 None
         """
-        if hasattr(self.system_variables, 'context') and self.system_variables.context:
+        if hasattr(self.system_variables, "context") and self.system_variables.context:
             return self.system_variables.context.script_path
         return None
 
@@ -133,10 +129,10 @@ class ExpressionEvaluator:
 
         else:
             raise ExecutionError(
-                line=expr.line if hasattr(expr, 'line') else 0,
+                line=expr.line if hasattr(expr, "line") else 0,
                 statement=f"表达式求值",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"未知的表达式类型: {type(expr).__name__}"
+                message=f"未知的表达式类型: {type(expr).__name__}",
             )
 
     # ============================================================
@@ -159,19 +155,20 @@ class ExpressionEvaluator:
 
         # v3.0: 检查系统命名空间 (page, context, browser, env, config)
         from .system_namespaces import SYSTEM_NAMESPACES, SystemNamespaceProxy
+
         if expr.name in SYSTEM_NAMESPACES:
             return SystemNamespaceProxy(expr.name, self.system_variables)
 
         # 最后查找用户定义的变量
         try:
             return self.symbol_table.get(expr.name, expr.line)
-        except Exception as e:
+        except Exception:
             raise ExecutionError(
                 line=expr.line,
                 statement=f"变量引用: {expr.name}",
                 error_type=ExecutionError.VARIABLE_NOT_FOUND,
                 message=f"变量 '{expr.name}' 未定义",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
     def _eval_system_variable(self, expr: SystemVariable) -> Any:
@@ -188,7 +185,7 @@ class ExpressionEvaluator:
                 statement=f"成员访问: .{expr.property}",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"无法访问 null 对象的属性 '{expr.property}'",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
         if isinstance(obj, dict):
@@ -198,7 +195,7 @@ class ExpressionEvaluator:
                     statement=f"成员访问: .{expr.property}",
                     error_type=ExecutionError.RUNTIME_ERROR,
                     message=f"对象没有属性 '{expr.property}'",
-                    file_path=self._get_current_file()
+                    file_path=self._get_current_file(),
                 )
             return obj[expr.property]
 
@@ -211,7 +208,7 @@ class ExpressionEvaluator:
                 statement=f"成员访问: .{expr.property}",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"对象 {type(obj).__name__} 没有属性 '{expr.property}'",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
     def _eval_array_access(self, expr: ArrayAccess) -> Any:
@@ -225,7 +222,7 @@ class ExpressionEvaluator:
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message="无法对 null 值进行数组访问",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
         # 索引必须是整数
@@ -237,7 +234,7 @@ class ExpressionEvaluator:
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"数组索引必须是整数，不能是 {type(index).__name__}",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
         # 检查索引范围
@@ -247,7 +244,7 @@ class ExpressionEvaluator:
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"只能对数组/字符串进行索引访问，不能对 {type(array).__name__}",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
         if index_int < 0 or index_int >= len(array):
@@ -256,7 +253,7 @@ class ExpressionEvaluator:
                 statement=f"数组访问",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"数组索引越界: {index_int} (数组长度: {len(array)})",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
         return array[index_int]
@@ -286,7 +283,7 @@ class ExpressionEvaluator:
                 kwargs = {key: self.evaluate(value) for key, value in expr.kwargs.items()}
                 try:
                     # v6.0: 特殊处理 Resource() 函数，需要注入 context
-                    if expr.method_name == 'Resource':
+                    if expr.method_name == "Resource":
                         # Resource(spec_file, **kwargs) 需要 context 参数
                         # 从 system_variables 获取 context 并注入
                         context = self.system_variables.context
@@ -299,14 +296,14 @@ class ExpressionEvaluator:
                         line=expr.line,
                         statement=f"函数调用 {expr.method_name}",
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"调用内置函数失败: {e}"
+                        message=f"调用内置函数失败: {e}",
                     )
             else:
                 raise ExecutionError(
                     line=expr.line,
                     statement=f"函数调用 {expr.method_name}",
                     error_type=ExecutionError.VARIABLE_NOT_FOUND,
-                    message=f"未定义的函数: {expr.method_name}"
+                    message=f"未定义的函数: {expr.method_name}",
                 )
 
         # 求值对象
@@ -317,7 +314,7 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"方法调用 {expr.method_name}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="无法对 null 值调用方法"
+                message="无法对 null 值调用方法",
             )
 
         # 求值位置参数
@@ -328,57 +325,57 @@ class ExpressionEvaluator:
 
         # v6.4: 处理列表集合操作方法
         if isinstance(obj, list):
-            if expr.method_name == 'filter':
+            if expr.method_name == "filter":
                 return self._list_filter(obj, args, expr.line)
-            elif expr.method_name == 'map':
+            elif expr.method_name == "map":
                 return self._list_map(obj, args, expr.line)
-            elif expr.method_name == 'reduce':
+            elif expr.method_name == "reduce":
                 return self._list_reduce(obj, args, expr.line)
-            elif expr.method_name == 'find':
+            elif expr.method_name == "find":
                 return self._list_find(obj, args, expr.line)
-            elif expr.method_name == 'findIndex':
+            elif expr.method_name == "findIndex":
                 return self._list_findIndex(obj, args, expr.line)
-            elif expr.method_name == 'some':
+            elif expr.method_name == "some":
                 return self._list_some(obj, args, expr.line)
-            elif expr.method_name == 'every':
+            elif expr.method_name == "every":
                 return self._list_every(obj, args, expr.line)
             # v6.5: 扩展集合方法
-            elif expr.method_name == 'sort':
+            elif expr.method_name == "sort":
                 return self._list_sort(obj, args, expr.line)
-            elif expr.method_name == 'reverse':
+            elif expr.method_name == "reverse":
                 return self._list_reverse(obj, args, expr.line)
-            elif expr.method_name == 'slice':
+            elif expr.method_name == "slice":
                 return self._list_slice(obj, args, expr.line)
-            elif expr.method_name == 'join':
+            elif expr.method_name == "join":
                 return self._list_join(obj, args, expr.line)
-            elif expr.method_name == 'unique':
+            elif expr.method_name == "unique":
                 return self._list_unique(obj, args, expr.line)
-            elif expr.method_name == 'length':
+            elif expr.method_name == "length":
                 return self._list_length(obj, args, expr.line)
             # v6.6: 数组工具方法
-            elif expr.method_name == 'flatten':
+            elif expr.method_name == "flatten":
                 return self._list_flatten(obj, args, expr.line)
-            elif expr.method_name == 'chunk':
+            elif expr.method_name == "chunk":
                 return self._list_chunk(obj, args, expr.line)
 
         # v6.6: 字符串方法
         if isinstance(obj, str):
-            if expr.method_name == 'capitalize':
+            if expr.method_name == "capitalize":
                 return self._str_capitalize(obj, args, expr.line)
-            elif expr.method_name == 'padStart':
+            elif expr.method_name == "padStart":
                 return self._str_padStart(obj, args, expr.line)
-            elif expr.method_name == 'padEnd':
+            elif expr.method_name == "padEnd":
                 return self._str_padEnd(obj, args, expr.line)
-            elif expr.method_name == 'repeat':
+            elif expr.method_name == "repeat":
                 return self._str_repeat(obj, args, expr.line)
 
         # v6.6: 字典方法
         if isinstance(obj, dict):
-            if expr.method_name == 'keys':
+            if expr.method_name == "keys":
                 return self._dict_keys(obj, args, expr.line)
-            elif expr.method_name == 'values':
+            elif expr.method_name == "values":
                 return self._dict_values(obj, args, expr.line)
-            elif expr.method_name == 'entries':
+            elif expr.method_name == "entries":
                 return self._dict_entries(obj, args, expr.line)
 
         # 尝试调用原生方法
@@ -400,7 +397,7 @@ class ExpressionEvaluator:
                         line=expr.line,
                         statement=f"{func_name}(...)",
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"函数 '{func_name}' 需要 {len(func_symbol.params)} 个参数，但提供了 {len(args)} 个"
+                        message=f"函数 '{func_name}' 需要 {len(func_symbol.params)} 个参数，但提供了 {len(args)} 个",
                     )
 
                 # 2. 检测递归调用
@@ -409,7 +406,7 @@ class ExpressionEvaluator:
                         line=expr.line,
                         statement=f"{func_name}(...)",
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"不支持递归调用: 函数 '{func_name}' 正在执行中"
+                        message=f"不支持递归调用: 函数 '{func_name}' 正在执行中",
                     )
 
                 # 3. 进入函数调用栈
@@ -420,8 +417,7 @@ class ExpressionEvaluator:
                     if func_symbol.closure_scope:
                         # 使用闭包作用域作为父作用域
                         self.interpreter.symbol_table.enter_scope_with_parent(
-                            f"function:{func_name}",
-                            parent=func_symbol.closure_scope
+                            f"function:{func_name}", parent=func_symbol.closure_scope
                         )
                     else:
                         # 后向兼容：没有闭包的函数使用当前作用域作为父
@@ -434,7 +430,7 @@ class ExpressionEvaluator:
                                 name=param_name,
                                 value=arg_value,
                                 symbol_type=SymbolType.VARIABLE,
-                                line_number=expr.line
+                                line_number=expr.line,
                             )
 
                         # 6. 执行函数体
@@ -465,7 +461,6 @@ class ExpressionEvaluator:
                     # 9. 退出函数调用栈
                     self.interpreter._call_stack.pop()
 
-
             if callable(method):
                 try:
                     return method(*args, **kwargs)
@@ -474,7 +469,7 @@ class ExpressionEvaluator:
                         line=expr.line,
                         statement=f"方法调用 {expr.method_name}",
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"调用方法失败: {e}"
+                        message=f"调用方法失败: {e}",
                     )
 
         # 方法不存在
@@ -484,7 +479,7 @@ class ExpressionEvaluator:
             statement=f"方法调用 {expr.method_name}",
             error_type=ExecutionError.RUNTIME_ERROR,
             message=f"对象类型 {obj_type} 没有方法 '{expr.method_name}'",
-            file_path=self._get_current_file()
+            file_path=self._get_current_file(),
         )
 
     def _eval_function_call(self, expr: FunctionCall) -> Any:
@@ -510,7 +505,7 @@ class ExpressionEvaluator:
             args = [self.evaluate(arg) for arg in expr.arguments]
             try:
                 # v6.0: 特殊处理 Resource() 函数，需要注入 context
-                if func_name == 'Resource':
+                if func_name == "Resource":
                     # Resource(spec_file, **kwargs) 需要 context 参数
                     # 从 system_variables 获取 context 并作为关键字参数传递
                     context = self.system_variables.context
@@ -523,7 +518,7 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"函数调用 {func_name}",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"调用内置函数失败: {e}"
+                    message=f"调用内置函数失败: {e}",
                 )
 
         # 2. 然后检查是否是用户定义的函数或 Lambda 闭包 (v6.4)
@@ -532,7 +527,7 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"函数调用 {func_name}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="表达式求值器未正确初始化（缺少 interpreter 引用）"
+                message="表达式求值器未正确初始化（缺少 interpreter 引用）",
             )
 
         # 求值参数
@@ -560,7 +555,7 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"函数调用 {func_name}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"调用函数失败: {e}"
+                message=f"调用函数失败: {e}",
             )
 
     def _eval_array_literal(self, expr: ArrayLiteral) -> list:
@@ -625,7 +620,7 @@ class ExpressionEvaluator:
 
         return result
 
-    def _eval_input(self, expr: 'InputExpression') -> Any:
+    def _eval_input(self, expr: "InputExpression") -> Any:
         """
         执行 input 表达式，从控制台读取用户输入 (v5.1)
 
@@ -650,8 +645,8 @@ class ExpressionEvaluator:
         # 3. 检查是否在交互模式（非交互模式下必须有默认值）
         # v5.1: 暂时假设总是交互模式，后续通过 context.is_interactive 判断
         is_interactive = True
-        if self.interpreter and hasattr(self.interpreter, 'context'):
-            is_interactive = getattr(self.interpreter.context, 'is_interactive', True)
+        if self.interpreter and hasattr(self.interpreter, "context"):
+            is_interactive = getattr(self.interpreter.context, "is_interactive", True)
 
         if not is_interactive:
             if default is not None:
@@ -661,7 +656,7 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement="input(...)",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message="input() 需要交互模式，但当前在自动模式。请提供 default 参数"
+                    message="input() 需要交互模式，但当前在自动模式。请提供 default 参数",
                 )
 
         # 4. 构建完整提示文本
@@ -674,6 +669,7 @@ class ExpressionEvaluator:
         try:
             if expr.input_type == "password":
                 import getpass
+
                 user_input = getpass.getpass(full_prompt)
             else:
                 user_input = input(full_prompt)
@@ -683,7 +679,7 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement="input(...)",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"用户中断输入: {type(e).__name__}"
+                message=f"用户中断输入: {type(e).__name__}",
             )
 
         # 6. 处理空输入（使用默认值）
@@ -704,7 +700,7 @@ class ExpressionEvaluator:
                 line=expr.line,
                 statement=f"input(..., type={expr.input_type})",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"无法将输入 '{user_input}' 转换为 {expr.input_type}: {e}"
+                message=f"无法将输入 '{user_input}' 转换为 {expr.input_type}: {e}",
             )
 
     # ============================================================
@@ -771,7 +767,7 @@ class ExpressionEvaluator:
                     statement=f"除法运算",
                     error_type=ExecutionError.RUNTIME_ERROR,
                     message="除数不能为零",
-                    file_path=self._get_current_file()
+                    file_path=self._get_current_file(),
                 )
             return to_number(left, expr.line) / right_num
 
@@ -784,7 +780,7 @@ class ExpressionEvaluator:
                     statement=f"整除运算",
                     error_type=ExecutionError.RUNTIME_ERROR,
                     message="整除运算的除数不能为零",
-                    file_path=self._get_current_file()
+                    file_path=self._get_current_file(),
                 )
             return int(to_number(left, expr.line) // right_num)
 
@@ -823,6 +819,7 @@ class ExpressionEvaluator:
         elif operator == "matches":
             # 正则匹配
             import re
+
             try:
                 pattern = to_string(right)
                 text = to_string(left)
@@ -833,7 +830,7 @@ class ExpressionEvaluator:
                     statement=f"正则匹配",
                     error_type=ExecutionError.RUNTIME_ERROR,
                     message=f"正则表达式错误: {e}",
-                    file_path=self._get_current_file()
+                    file_path=self._get_current_file(),
                 )
 
         else:
@@ -842,7 +839,7 @@ class ExpressionEvaluator:
                 statement=f"二元运算",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"未知的二元运算符: {operator}",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
     # ============================================================
@@ -877,7 +874,7 @@ class ExpressionEvaluator:
                 statement=f"一元运算",
                 error_type=ExecutionError.RUNTIME_ERROR,
                 message=f"未知的一元运算符: {operator}",
-                file_path=self._get_current_file()
+                file_path=self._get_current_file(),
             )
 
     def _eval_lambda(self, expr: LambdaExpression) -> Any:
@@ -893,7 +890,7 @@ class ExpressionEvaluator:
             可调用的 Python 函数对象
         """
         # 捕获当前作用域（闭包）
-        captured_scope = self.symbol_table.current_scope()
+        _captured_scope = self.symbol_table.current_scope()  # noqa: F841 - 预留用于闭包实现
 
         # 创建 Lambda 函数
         def lambda_function(*args):
@@ -903,7 +900,7 @@ class ExpressionEvaluator:
                     line=expr.line,
                     statement=f"Lambda 调用",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"Lambda 期望 {len(expr.parameters)} 个参数，实际传入 {len(args)} 个"
+                    message=f"Lambda 期望 {len(expr.parameters)} 个参数，实际传入 {len(args)} 个",
                 )
 
             # 创建新作用域用于 Lambda 执行
@@ -912,12 +909,13 @@ class ExpressionEvaluator:
             try:
                 # 绑定参数到作用域
                 from .symbol_table import SymbolType
+
                 for param, arg in zip(expr.parameters, args):
                     self.symbol_table.define(
                         name=param,
                         value=arg,
                         symbol_type=SymbolType.VARIABLE,
-                        line_number=expr.line
+                        line_number=expr.line,
                     )
 
                 # 执行函数体（表达式）
@@ -941,7 +939,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="filter",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="filter() 需要 1 个参数（predicate 函数）"
+                message="filter() 需要 1 个参数（predicate 函数）",
             )
 
         predicate = args[0]
@@ -950,7 +948,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="filter",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="filter() 的参数必须是函数"
+                message="filter() 的参数必须是函数",
             )
 
         result = []
@@ -966,7 +964,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="map",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="map() 需要 1 个参数（transform 函数）"
+                message="map() 需要 1 个参数（transform 函数）",
             )
 
         transform = args[0]
@@ -975,7 +973,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="map",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="map() 的参数必须是函数"
+                message="map() 的参数必须是函数",
             )
 
         result = []
@@ -990,7 +988,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="reduce",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="reduce() 需要 1-2 个参数（reducer 函数, initial 值）"
+                message="reduce() 需要 1-2 个参数（reducer 函数, initial 值）",
             )
 
         reducer = args[0]
@@ -999,7 +997,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="reduce",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="reduce() 的第一个参数必须是函数"
+                message="reduce() 的第一个参数必须是函数",
             )
 
         # 检查列表是否为空
@@ -1010,7 +1008,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="reduce",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="reduce() 不能用于空列表（除非提供初始值）"
+                message="reduce() 不能用于空列表（除非提供初始值）",
             )
 
         # 确定初始值和起始索引
@@ -1034,7 +1032,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="find",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="find() 需要 1 个参数（predicate 函数）"
+                message="find() 需要 1 个参数（predicate 函数）",
             )
 
         predicate = args[0]
@@ -1043,7 +1041,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="find",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="find() 的参数必须是函数"
+                message="find() 的参数必须是函数",
             )
 
         for item in lst:
@@ -1058,7 +1056,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="findIndex",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="findIndex() 需要 1 个参数（predicate 函数）"
+                message="findIndex() 需要 1 个参数（predicate 函数）",
             )
 
         predicate = args[0]
@@ -1067,7 +1065,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="findIndex",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="findIndex() 的参数必须是函数"
+                message="findIndex() 的参数必须是函数",
             )
 
         for index, item in enumerate(lst):
@@ -1082,7 +1080,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="some",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="some() 需要 1 个参数（predicate 函数）"
+                message="some() 需要 1 个参数（predicate 函数）",
             )
 
         predicate = args[0]
@@ -1091,7 +1089,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="some",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="some() 的参数必须是函数"
+                message="some() 的参数必须是函数",
             )
 
         for item in lst:
@@ -1106,7 +1104,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="every",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="every() 需要 1 个参数（predicate 函数）"
+                message="every() 需要 1 个参数（predicate 函数）",
             )
 
         predicate = args[0]
@@ -1115,7 +1113,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="every",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="every() 的参数必须是函数"
+                message="every() 的参数必须是函数",
             )
 
         for item in lst:
@@ -1147,7 +1145,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="sort",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="sort() 最多接受 1 个参数（comparator 函数）"
+                message="sort() 最多接受 1 个参数（comparator 函数）",
             )
 
         # 创建副本以避免修改原列表
@@ -1162,7 +1160,7 @@ class ExpressionEvaluator:
                     line=line,
                     statement="sort",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"无法排序列表: {e}"
+                    message=f"无法排序列表: {e}",
                 )
         else:
             # 使用自定义比较函数
@@ -1172,12 +1170,13 @@ class ExpressionEvaluator:
                     line=line,
                     statement="sort",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message="sort() 的参数必须是函数"
+                    message="sort() 的参数必须是函数",
                 )
 
             # Python 的 sort 使用 key 函数，而不是比较器
             # 我们需要使用 functools.cmp_to_key 转换
             from functools import cmp_to_key
+
             try:
                 result.sort(key=cmp_to_key(lambda a, b: int(comparator(a, b))))
             except Exception as e:
@@ -1185,7 +1184,7 @@ class ExpressionEvaluator:
                     line=line,
                     statement="sort",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"排序失败: {e}"
+                    message=f"排序失败: {e}",
                 )
 
         return result
@@ -1209,7 +1208,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="reverse",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="reverse() 不接受参数"
+                message="reverse() 不接受参数",
             )
 
         # 创建副本并反转
@@ -1237,7 +1236,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="slice",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="slice() 需要 1-2 个参数 (start, end?)"
+                message="slice() 需要 1-2 个参数 (start, end?)",
             )
 
         start = args[0]
@@ -1246,7 +1245,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="slice",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"slice() 的 start 参数必须是整数，实际是 {type(start).__name__}"
+                message=f"slice() 的 start 参数必须是整数，实际是 {type(start).__name__}",
             )
 
         if len(args) == 1:
@@ -1260,7 +1259,7 @@ class ExpressionEvaluator:
                     line=line,
                     statement="slice",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"slice() 的 end 参数必须是整数，实际是 {type(end).__name__}"
+                    message=f"slice() 的 end 参数必须是整数，实际是 {type(end).__name__}",
                 )
             return lst[start:end]
 
@@ -1284,7 +1283,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="join",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="join() 需要 1 个参数（separator 字符串）"
+                message="join() 需要 1 个参数（separator 字符串）",
             )
 
         separator = args[0]
@@ -1293,7 +1292,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="join",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"join() 的参数必须是字符串，实际是 {type(separator).__name__}"
+                message=f"join() 的参数必须是字符串，实际是 {type(separator).__name__}",
             )
 
         # 将所有元素转换为字符串并连接
@@ -1304,7 +1303,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="join",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"连接失败: {e}"
+                message=f"连接失败: {e}",
             )
 
     def _list_unique(self, lst: list, args: list, line: int) -> list:
@@ -1326,7 +1325,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="unique",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="unique() 不接受参数"
+                message="unique() 不接受参数",
             )
 
         # 使用字典保持插入顺序（Python 3.7+）
@@ -1367,7 +1366,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="length",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="length() 不接受参数"
+                message="length() 不接受参数",
             )
 
         return len(lst)
@@ -1398,7 +1397,7 @@ class ExpressionEvaluator:
                     line=line,
                     statement="flatten",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"flatten() 深度参数必须是数字，但得到 {type(args[0]).__name__}"
+                    message=f"flatten() 深度参数必须是数字，但得到 {type(args[0]).__name__}",
                 )
             depth = int(args[0])
 
@@ -1407,7 +1406,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="flatten",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"flatten() 最多接受 1 个参数，但得到 {len(args)} 个"
+                message=f"flatten() 最多接受 1 个参数，但得到 {len(args)} 个",
             )
 
         def flatten_recursive(items, d):
@@ -1442,7 +1441,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="chunk",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"chunk() 需要 1 个参数（块大小），但得到 {len(args)} 个"
+                message=f"chunk() 需要 1 个参数（块大小），但得到 {len(args)} 个",
             )
 
         size = args[0]
@@ -1451,7 +1450,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="chunk",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"chunk() 块大小必须是数字，但得到 {type(size).__name__}"
+                message=f"chunk() 块大小必须是数字，但得到 {type(size).__name__}",
             )
 
         size = int(size)
@@ -1460,12 +1459,12 @@ class ExpressionEvaluator:
                 line=line,
                 statement="chunk",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"chunk() 块大小必须大于 0，但得到 {size}"
+                message=f"chunk() 块大小必须大于 0，但得到 {size}",
             )
 
         result = []
         for i in range(0, len(lst), size):
-            result.append(lst[i:i + size])
+            result.append(lst[i : i + size])
         return result
 
     # ============================================================
@@ -1491,7 +1490,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="capitalize",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="capitalize() 不接受参数"
+                message="capitalize() 不接受参数",
             )
 
         return s.capitalize()
@@ -1515,7 +1514,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padStart",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padStart() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个"
+                message=f"padStart() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个",
             )
 
         target_length = args[0]
@@ -1524,7 +1523,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padStart",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padStart() 长度参数必须是数字，但得到 {type(target_length).__name__}"
+                message=f"padStart() 长度参数必须是数字，但得到 {type(target_length).__name__}",
             )
 
         target_length = int(target_length)
@@ -1535,7 +1534,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padStart",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padStart() 填充字符必须是字符串，但得到 {type(fill_str).__name__}"
+                message=f"padStart() 填充字符必须是字符串，但得到 {type(fill_str).__name__}",
             )
 
         if len(fill_str) == 0:
@@ -1543,7 +1542,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padStart",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="padStart() 填充字符不能为空字符串"
+                message="padStart() 填充字符不能为空字符串",
             )
 
         if len(s) >= target_length:
@@ -1572,7 +1571,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padEnd",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padEnd() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个"
+                message=f"padEnd() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个",
             )
 
         target_length = args[0]
@@ -1581,7 +1580,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padEnd",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padEnd() 长度参数必须是数字，但得到 {type(target_length).__name__}"
+                message=f"padEnd() 长度参数必须是数字，但得到 {type(target_length).__name__}",
             )
 
         target_length = int(target_length)
@@ -1592,7 +1591,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padEnd",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"padEnd() 填充字符必须是字符串，但得到 {type(fill_str).__name__}"
+                message=f"padEnd() 填充字符必须是字符串，但得到 {type(fill_str).__name__}",
             )
 
         if len(fill_str) == 0:
@@ -1600,7 +1599,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="padEnd",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="padEnd() 填充字符不能为空字符串"
+                message="padEnd() 填充字符不能为空字符串",
             )
 
         if len(s) >= target_length:
@@ -1629,7 +1628,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="repeat",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"repeat() 需要 1 个参数（重复次数），但得到 {len(args)} 个"
+                message=f"repeat() 需要 1 个参数（重复次数），但得到 {len(args)} 个",
             )
 
         count = args[0]
@@ -1638,7 +1637,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="repeat",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"repeat() 重复次数必须是数字，但得到 {type(count).__name__}"
+                message=f"repeat() 重复次数必须是数字，但得到 {type(count).__name__}",
             )
 
         count = int(count)
@@ -1647,7 +1646,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="repeat",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"repeat() 重复次数不能为负数，但得到 {count}"
+                message=f"repeat() 重复次数不能为负数，但得到 {count}",
             )
 
         return s * count
@@ -1675,7 +1674,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="keys",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="keys() 不接受参数"
+                message="keys() 不接受参数",
             )
 
         return list(d.keys())
@@ -1699,7 +1698,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="values",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="values() 不接受参数"
+                message="values() 不接受参数",
             )
 
         return list(d.values())
@@ -1723,7 +1722,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement="entries",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="entries() 不接受参数"
+                message="entries() 不接受参数",
             )
 
         return [[k, v] for k, v in d.items()]
@@ -1801,7 +1800,7 @@ class ExpressionEvaluator:
                 line=line,
                 statement=f"模运算",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="模运算的除数不能为零"
+                message="模运算的除数不能为零",
             )
 
         left_num = to_number(left, line)
@@ -1826,7 +1825,7 @@ class ExpressionEvaluator:
 
         if left_is_int and right_is_int:
             if right >= 0:
-                return left ** right  # int ** int (非负) → int
+                return left**right  # int ** int (非负) → int
             else:
                 return float(left) ** float(right)  # int ** int (负数) → float
         elif (left_is_int or left_is_float) and (right_is_int or right_is_float):
@@ -1838,6 +1837,7 @@ class ExpressionEvaluator:
 # ============================================================
 # 类型转换函数（弱类型系统）
 # ============================================================
+
 
 def to_boolean(value: Any) -> bool:
     """
@@ -1890,7 +1890,7 @@ def to_number(value: Any, line: int = 0) -> float:
                 line=line,
                 statement=f"类型转换",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"无法将字符串 '{value}' 转换为数字"
+                message=f"无法将字符串 '{value}' 转换为数字",
             )
 
     if value is None:
@@ -1898,14 +1898,14 @@ def to_number(value: Any, line: int = 0) -> float:
             line=line,
             statement=f"类型转换",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message="无法将 null 转换为数字"
+            message="无法将 null 转换为数字",
         )
 
     raise ExecutionError(
         line=line,
         statement=f"类型转换",
         error_type=ExecutionError.RUNTIME_ERROR,
-        message=f"无法将类型 {type(value).__name__} 转换为数字"
+        message=f"无法将类型 {type(value).__name__} 转换为数字",
     )
 
 

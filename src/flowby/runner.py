@@ -9,16 +9,15 @@ import argparse
 import json
 import time
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 from .lexer import Lexer
 from .parser import Parser
 from .interpreter import Interpreter
 from .context import ExecutionContext
-from .errors import DSLError, LexerError, ParserError, ExecutionError
+from .errors import LexerError, ParserError, ExecutionError
 from .config.loader import ConfigLoader
 from .config.errors import ConfigError
-
 
 
 class DSLRunner:
@@ -31,7 +30,7 @@ class DSLRunner:
         headless: bool = False,
         browser_id: Optional[str] = None,
         browser_type: str = "adspower",
-        services_config_path: Optional[str] = None
+        services_config_path: Optional[str] = None,
     ):
         """
         初始化运行器
@@ -57,7 +56,6 @@ class DSLRunner:
         self.parser = Parser()
         self.interpreter = None
         self.context = None  # Will be initialized when running
-
 
     def run_file(self, file_path: str) -> bool:
         """
@@ -126,7 +124,7 @@ class DSLRunner:
                 task_id=self.task_id,
                 variables=self.variables,
                 services_config=self.services_config,
-                script_path=source_name if source_name != "<source>" else None
+                script_path=source_name if source_name != "<source>" else None,
             )
 
             # 词法分析
@@ -186,6 +184,7 @@ class DSLRunner:
         except Exception as e:
             print(f"\n未知错误: {e}")
             import traceback
+
             traceback.print_exc()
             return False
 
@@ -209,10 +208,7 @@ class DSLRunner:
                 browser_type = "chromium"  # 默认使用 chromium
 
             # 启动浏览器
-            page = wrapper.launch(
-                browser_type=browser_type,
-                headless=self.headless
-            )
+            page = wrapper.launch(browser_type=browser_type, headless=self.headless)
 
             # 设置到上下文
             self.context.set_playwright_wrapper(wrapper)
@@ -228,14 +224,14 @@ class DSLRunner:
                 line=0,
                 statement="init browser",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"Playwright 不可用: {e}"
+                message=f"Playwright 不可用: {e}",
             )
         except Exception as e:
             raise ExecutionError(
                 line=0,
                 statement="init browser",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"Playwright 浏览器初始化失败: {e}"
+                message=f"Playwright 浏览器初始化失败: {e}",
             )
 
     def _init_adspower_browser(self):
@@ -249,10 +245,7 @@ class DSLRunner:
             wrapper = ADSPowerWrapper()
 
             # 连接到浏览器 (browser_id 可以是 profile_id 或 profile_no)
-            page = wrapper.connect_to_browser(
-                profile_id=self.browser_id,
-                headless=self.headless
-            )
+            page = wrapper.connect_to_browser(profile_id=self.browser_id, headless=self.headless)
 
             # 设置到上下文
             self.context.set_playwright_wrapper(wrapper)
@@ -267,14 +260,14 @@ class DSLRunner:
                 line=0,
                 statement="init browser",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"ADSPowerWrapper 不可用: {e}"
+                message=f"ADSPowerWrapper 不可用: {e}",
             )
         except Exception as e:
             raise ExecutionError(
                 line=0,
                 statement="init browser",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"ADSPower 浏览器初始化失败: {e}"
+                message=f"ADSPower 浏览器初始化失败: {e}",
             )
 
     def _cleanup(self):
@@ -283,7 +276,7 @@ class DSLRunner:
             wrapper = self.context.playwright_wrapper
             if wrapper:
                 wrapper.close()
-        except:
+        except Exception:
             pass
 
     def _print_summary(self):
@@ -310,57 +303,34 @@ class DSLRunner:
 def main():
     """主入口函数"""
     parser = argparse.ArgumentParser(
-        description="DSL 脚本运行器",
-        formatter_class=argparse.RawDescriptionHelpFormatter
+        description="DSL 脚本运行器", formatter_class=argparse.RawDescriptionHelpFormatter
     )
 
-    parser.add_argument(
-        "script",
-        help="DSL 脚本文件路径 (.flow)"
-    )
+    parser.add_argument("script", help="DSL 脚本文件路径 (.flow)")
 
-    parser.add_argument(
-        "--task-id",
-        default=None,
-        help="任务标识符（默认自动生成）"
-    )
+    parser.add_argument("--task-id", default=None, help="任务标识符（默认自动生成）")
 
     parser.add_argument(
         "--browser",
         default="playwright",
-        help="浏览器类型或 ADSPower 浏览器 ID。支持: playwright, chromium, firefox, webkit, 或 ADSPower ID (默认: playwright)"
+        help="浏览器类型或 ADSPower 浏览器 ID。支持: playwright, chromium, firefox, webkit, 或 ADSPower ID (默认: playwright)",
     )
 
-    parser.add_argument(
-        "--headless",
-        action="store_true",
-        help="无头模式运行"
-    )
+    parser.add_argument("--headless", action="store_true", help="无头模式运行")
+
+    parser.add_argument("--variables", default=None, help="变量 JSON 文件路径")
+
+    parser.add_argument("--var", action="append", default=[], help="设置单个变量 (格式: key=value)")
 
     parser.add_argument(
-        "--variables",
-        default=None,
-        help="变量 JSON 文件路径"
-    )
-
-    parser.add_argument(
-        "--var",
-        action="append",
-        default=[],
-        help="设置单个变量 (格式: key=value)"
-    )
-
-    parser.add_argument(
-        "--dry-run",
-        action="store_true",
-        help="Dry-Run 模式：只检查脚本语法和语义，不执行操作"
+        "--dry-run", action="store_true", help="Dry-Run 模式：只检查脚本语法和语义，不执行操作"
     )
 
     parser.add_argument(
         "--lang",
         default=None,
-        choices=['zh', 'en'],
-        help="设置错误消息语言 (zh=中文, en=English)。也可通过环境变量 FLOWBY_LANG 设置"
+        choices=["zh", "en"],
+        help="设置错误消息语言 (zh=中文, en=English)。也可通过环境变量 FLOWBY_LANG 设置",
     )
 
     args = parser.parse_args()
@@ -368,9 +338,11 @@ def main():
     # 设置语言
     if args.lang:
         import os
-        os.environ['FLOWBY_LANG'] = args.lang
+
+        os.environ["FLOWBY_LANG"] = args.lang
         try:
             from .i18n import set_language
+
             set_language(args.lang)
         except ImportError:
             pass  # i18n 模块可选
@@ -380,6 +352,7 @@ def main():
         task_id = args.task_id
     else:
         import uuid
+
         task_id = f"task_{uuid.uuid4().hex[:8]}"
 
     # 加载变量
@@ -388,17 +361,17 @@ def main():
     # 从 JSON 文件加载
     if args.variables:
         try:
-            with open(args.variables, 'r', encoding='utf-8') as f:
+            with open(args.variables, "r", encoding="utf-8") as f:
                 variables = json.load(f)
         except Exception as e:
             print(f"警告: 加载变量文件失败: {e}")
 
     # 从命令行参数加载
     for var in args.var:
-        if '=' in var:
-            key, value = var.split('=', 1)
+        if "=" in var:
+            key, value = var.split("=", 1)
             # 支持嵌套键 (user.email)
-            keys = key.split('.')
+            keys = key.split(".")
             current = variables
             for k in keys[:-1]:
                 if k not in current:

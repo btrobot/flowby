@@ -4,7 +4,7 @@ DSL 解释器
 遍历 AST 并执行相应动作
 """
 
-from typing import TYPE_CHECKING, Optional, Any, Dict
+from typing import TYPE_CHECKING, Optional, Any
 from pathlib import Path
 
 if TYPE_CHECKING:
@@ -85,11 +85,6 @@ from .actions import (
     execute_check,
     execute_upload,
     execute_select_option,
-    # 断言
-    execute_assert_url,
-    execute_assert_element,
-    execute_assert_text,
-    execute_assert_value,
     # 截图
     execute_screenshot,
 )
@@ -102,6 +97,7 @@ from .context import ExecutionStatus
 from .symbol_table import SymbolTableStack, SymbolType, FunctionSymbol
 from .system_variables import SystemVariables
 from .expression_evaluator import ExpressionEvaluator
+
 # v5.0 新增导入
 from .module_system import ModuleLoader, ModuleInfo
 
@@ -109,6 +105,7 @@ from .module_system import ModuleLoader, ModuleInfo
 # ============================================================
 # v3.0 While 循环控制流
 # ============================================================
+
 
 class BreakException(Exception):
     """
@@ -120,7 +117,6 @@ class BreakException(Exception):
     用法:
         在 _execute_break() 中抛出，在 _execute_while_loop() 中捕获。
     """
-    pass
 
 
 class ContinueException(Exception):
@@ -133,7 +129,6 @@ class ContinueException(Exception):
     用法:
         在 _execute_continue() 中抛出，在 _execute_while_loop() 中捕获。
     """
-    pass
 
 
 class EarlyExitException(Exception):
@@ -154,6 +149,7 @@ class EarlyExitException(Exception):
     用法:
         在 _execute_exit() 中抛出，在 execute() 中捕获。
     """
+
     def __init__(self, code: int = 0, message: Optional[str] = None):
         self.code = code
         self.message = message or f"Exit with code {code}"
@@ -214,7 +210,7 @@ class WhileLoopGuard:
                     f"可能是死循环。\n"
                     f"提示：检查循环条件是否能够变为 False，"
                     f"或在循环内添加 break 语句。"
-                )
+                ),
             )
 
     def reset(self):
@@ -225,7 +221,7 @@ class WhileLoopGuard:
 class Interpreter:
     """DSL 解释器"""
 
-    def __init__(self, context: 'ExecutionContext'):
+    def __init__(self, context: "ExecutionContext"):
         """
         初始化解释器
 
@@ -240,15 +236,11 @@ class Interpreter:
 
         # v2.0 新增：系统变量提供者
         self.system_variables = SystemVariables(
-            context=context,
-            config_vars=getattr(context, 'config_vars', {})
+            context=context, config_vars=getattr(context, "config_vars", {})
         )
 
         # v2.0 新增：表达式求值器
-        self.expression_evaluator = ExpressionEvaluator(
-            self.symbol_table,
-            self.system_variables
-        )
+        self.expression_evaluator = ExpressionEvaluator(self.symbol_table, self.system_variables)
         # v4.3: 设置延迟绑定,让 evaluator 可以调用函数
         self.expression_evaluator.interpreter = self
 
@@ -316,7 +308,7 @@ class Interpreter:
                 line=0,
                 statement="program",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"执行失败: {e}"
+                message=f"执行失败: {e}",
             )
         # 注意: 不要在 finally 中退出全局作用域
         # 因为测试可能需要在执行后访问全局变量
@@ -348,7 +340,7 @@ class Interpreter:
         import re
 
         # 匹配 {任意内容}，允许嵌套大括号
-        pattern = r'\{([^}]+)\}'
+        pattern = r"\{([^}]+)\}"
 
         def replacer(match):
             expr_text = match.group(1).strip()
@@ -361,12 +353,12 @@ class Interpreter:
             # 尝试解析并求值表达式
             try:
                 # 简单变量引用（优化路径）
-                if re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', expr_text):
+                if re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", expr_text):
                     value = self.symbol_table.get(expr_text, line_number=0)
                     return str(value)
 
                 # 系统变量引用（如 $page.url）
-                elif expr_text.startswith('$'):
+                elif expr_text.startswith("$"):
                     value = self.system_vars.get_system_variable(expr_text)
                     return str(value)
 
@@ -379,7 +371,7 @@ class Interpreter:
 
                     # 创建临时 lexer 和 parser 解析表达式
                     temp_lexer = Lexer()
-                    tokens = temp_lexer.tokenize(expr_text)
+                    temp_lexer.tokenize(expr_text)  # 初始化 lexer 状态
 
                     temp_parser = Parser()
                     # 解析为表达式节点
@@ -390,9 +382,7 @@ class Interpreter:
                     return str(value)
 
             except Exception as e:
-                raise RuntimeError(
-                    f"字符串插值失败 '{{{expr_text}}}': {e}"
-                )
+                raise RuntimeError(f"字符串插值失败 '{{{expr_text}}}': {e}")
 
         # 替换所有变量引用和表达式
         resolved = re.sub(pattern, replacer, text)
@@ -426,29 +416,16 @@ class Interpreter:
             url_value = self.expression_evaluator.evaluate(statement.url)
             resolved_url = str(url_value)  # 确保是字符串类型
 
-            execute_navigate_to(
-                url=resolved_url,
-                context=self.context,
-                line=statement.line
-            )
+            execute_navigate_to(url=resolved_url, context=self.context, line=statement.line)
 
         elif isinstance(statement, GoBackStatement):
-            execute_go_back(
-                context=self.context,
-                line=statement.line
-            )
+            execute_go_back(context=self.context, line=statement.line)
 
         elif isinstance(statement, GoForwardStatement):
-            execute_go_forward(
-                context=self.context,
-                line=statement.line
-            )
+            execute_go_forward(context=self.context, line=statement.line)
 
         elif isinstance(statement, ReloadStatement):
-            execute_reload(
-                context=self.context,
-                line=statement.line
-            )
+            execute_reload(context=self.context, line=statement.line)
 
         # 等待语句
         elif isinstance(statement, WaitDurationStatement):
@@ -457,15 +434,11 @@ class Interpreter:
                 unit=statement.unit,  # v6.0.2: 传递时间单位（仅表达式需要）
                 context=self.context,
                 evaluator=self.expression_evaluator,  # v6.0.2: 传递表达式求值器
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, WaitForStateStatement):
-            execute_wait_for_state(
-                state=statement.state,
-                context=self.context,
-                line=statement.line
-            )
+            execute_wait_for_state(state=statement.state, context=self.context, line=statement.line)
 
         elif isinstance(statement, WaitForElementStatement):
             # v2.0: selector 可能是表达式，需要求值
@@ -483,32 +456,28 @@ class Interpreter:
                 selector=resolved_selector,
                 state=statement.state,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, WaitForNavigationStatement):
-            execute_wait_for_navigation(
-                context=self.context,
-                line=statement.line
-            )
+            execute_wait_for_navigation(context=self.context, line=statement.line)
 
         elif isinstance(statement, WaitUntilStatement):
             # v2.0: 支持表达式条件或旧式条件
             if isinstance(statement.condition, Expression):
                 # 新式表达式条件
                 from .actions.wait import execute_wait_until_expression
+
                 execute_wait_until_expression(
                     condition=statement.condition,
                     evaluator=self.expression_evaluator,
                     context=self.context,
-                    line=statement.line
+                    line=statement.line,
                 )
             else:
                 # 旧式条件（向后兼容）
                 execute_wait_until(
-                    condition=statement.condition,
-                    context=self.context,
-                    line=statement.line
+                    condition=statement.condition, context=self.context, line=statement.line
                 )
 
         # 选择语句
@@ -523,7 +492,7 @@ class Interpreter:
                 element_type=statement.element_type,
                 conditions=resolved_conditions,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         # 交互动作
@@ -537,10 +506,7 @@ class Interpreter:
             resolved_text = to_string(text_value)
 
             execute_type(
-                text=resolved_text,
-                mode=statement.mode,
-                context=self.context,
-                line=statement.line
+                text=resolved_text, mode=statement.mode, context=self.context, line=statement.line
             )
 
         elif isinstance(statement, ClickAction):
@@ -548,35 +514,24 @@ class Interpreter:
                 click_type=statement.click_type,
                 wait_duration=statement.wait_duration,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, HoverAction):
-            execute_hover(
-                selector=statement.selector,
-                context=self.context,
-                line=statement.line
-            )
+            execute_hover(selector=statement.selector, context=self.context, line=statement.line)
 
         elif isinstance(statement, ClearAction):
-            execute_clear(
-                context=self.context,
-                line=statement.line
-            )
+            execute_clear(context=self.context, line=statement.line)
 
         elif isinstance(statement, PressAction):
-            execute_press(
-                key_name=statement.key_name,
-                context=self.context,
-                line=statement.line
-            )
+            execute_press(key_name=statement.key_name, context=self.context, line=statement.line)
 
         elif isinstance(statement, ScrollAction):
             execute_scroll(
                 target=statement.target,
                 selector=statement.selector,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, CheckAction):
@@ -584,7 +539,7 @@ class Interpreter:
                 action=statement.action,
                 selector=statement.selector,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, UploadAction):
@@ -592,7 +547,7 @@ class Interpreter:
                 file_path=statement.file_path,
                 selector=statement.selector,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         elif isinstance(statement, SelectOptionAction):
@@ -617,7 +572,7 @@ class Interpreter:
                 option_value=resolved_option_value,
                 selector=resolved_selector,
                 context=self.context,
-                line=statement.line
+                line=statement.line,
             )
 
         # 断言语句
@@ -655,11 +610,12 @@ class Interpreter:
             if resolved_selector:
                 # 元素截图
                 from .actions.screenshot import execute_screenshot_element
+
                 execute_screenshot_element(
                     selector=resolved_selector,
                     name=resolved_name,
                     context=self.context,
-                    line=statement.line
+                    line=statement.line,
                 )
             else:
                 # 全屏或全页面截图
@@ -667,7 +623,7 @@ class Interpreter:
                     name=resolved_name,
                     fullpage=statement.fullpage,
                     context=self.context,
-                    line=statement.line
+                    line=statement.line,
                 )
 
         # Step 块
@@ -689,7 +645,6 @@ class Interpreter:
         # 数据提取
         elif isinstance(statement, ExtractStatement):
             self._execute_extract(statement)
-
 
         # 日志
         elif isinstance(statement, LogStatement):
@@ -733,10 +688,10 @@ class Interpreter:
 
         else:
             raise ExecutionError(
-                line=getattr(statement, 'line', 0),
+                line=getattr(statement, "line", 0),
                 statement=str(type(statement).__name__),
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"未知的语句类型: {type(statement).__name__}"
+                message=f"未知的语句类型: {type(statement).__name__}",
             )
 
     def _execute_assert(self, statement: AssertStatement) -> None:
@@ -756,6 +711,7 @@ class Interpreter:
 
         # 转换为布尔值
         from .expression_evaluator import to_boolean
+
         passed = to_boolean(result)
 
         # v4.3: 求值错误消息表达式
@@ -777,20 +733,21 @@ class Interpreter:
                 error_message = error_message_str
             else:
                 # 没有提供消息，生成默认消息
-                error_message = f"断言失败: {condition_str}"
+                # 使用表达式的简单描述
+                condition_desc = "condition"
+                if hasattr(statement.condition, "__class__"):
+                    condition_desc = statement.condition.__class__.__name__
+                error_message = f"断言失败: {condition_desc}"
 
             # 记录断言失败
-            self.context.add_execution_record(
-                record_type="assertion_failed",
-                content=error_message
-            )
+            self.context.add_execution_record(record_type="assertion_failed", content=error_message)
 
             # 抛出执行错误
             raise ExecutionError(
                 line=statement.line,
                 statement=f"assert",
                 error_type=ExecutionError.ASSERTION_FAILED,
-                message=error_message
+                message=error_message,
             )
 
     def _execute_exit(self, statement: ExitStatement) -> None:
@@ -810,11 +767,7 @@ class Interpreter:
 
         # 记录退出信息
         self.context.logger.info(f"[EXIT] {message} (code={code})")
-        self.context.add_execution_record(
-            record_type="exit",
-            content=message,
-            success=(code == 0)
-        )
+        self.context.add_execution_record(record_type="exit", content=message, success=(code == 0))
 
         # 抛出提前退出异常
         raise EarlyExitException(code=code, message=message)
@@ -832,10 +785,7 @@ class Interpreter:
 
         # 记录步骤开始
         start_time = time.time()
-        self.context.add_execution_record(
-            record_type="step_start",
-            content=step_name
-        )
+        self.context.add_execution_record(record_type="step_start", content=step_name)
 
         success = True
         try:
@@ -847,7 +797,7 @@ class Interpreter:
 
             self.context.logger.info(f"<<< 步骤完成: {step_name}")
 
-        except ExecutionError as e:
+        except ExecutionError:
             success = False
             self.context.logger.error(f"<<< 步骤失败: {step_name}")
             raise
@@ -858,10 +808,7 @@ class Interpreter:
             duration = end_time - start_time
 
             self.context.add_execution_record(
-                record_type="step_end",
-                content=step_name,
-                duration=duration,
-                success=success
+                record_type="step_end", content=step_name, duration=duration, success=success
             )
 
             self.context.current_step = None
@@ -883,6 +830,7 @@ class Interpreter:
             # 新的表达式求值
             condition_result = self.expression_evaluator.evaluate(statement.condition)
             from .expression_evaluator import to_boolean
+
             condition_met = to_boolean(condition_result)
         else:
             # 旧的条件检查 (向后兼容)
@@ -907,6 +855,7 @@ class Interpreter:
                 if isinstance(elif_condition, Expression):
                     elif_result = self.expression_evaluator.evaluate(elif_condition)
                     from .expression_evaluator import to_boolean
+
                     elif_met = to_boolean(elif_result)
                 else:
                     elif_met = _check_condition(elif_condition, self.context)
@@ -989,9 +938,7 @@ class Interpreter:
         self.context.set_variable(statement.name, resolved_value)
 
         self.context.add_execution_record(
-            record_type="set",
-            content=f"set {statement.name} = {resolved_value}",
-            success=True
+            record_type="set", content=f"set {statement.name} = {resolved_value}", success=True
         )
 
         self.context.logger.info(f"✓ 设置变量: {statement.name} = {resolved_value}")
@@ -1022,7 +969,7 @@ class Interpreter:
             self.context.add_execution_record(
                 record_type="extract",
                 content=f"extract {statement.extract_type} from {resolved_selector} -> {statement.variable_name}",
-                success=True
+                success=True,
             )
 
             self.context.logger.info(
@@ -1034,7 +981,7 @@ class Interpreter:
                 line=statement.line,
                 statement=f"extract {statement.extract_type}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"提取数据失败: {e}"
+                message=f"提取数据失败: {e}",
             )
 
     def _execute_log(self, statement: LogStatement) -> None:
@@ -1049,13 +996,7 @@ class Interpreter:
         - error: 错误消息（红色 ✗）
         """
         # 日志级别图标映射 (v4.3+)
-        LOG_ICONS = {
-            'debug': '🔍',
-            'info': '',
-            'success': '✓',
-            'warning': '⚠',
-            'error': '✗'
-        }
+        LOG_ICONS = {"debug": "🔍", "info": "", "success": "✓", "warning": "⚠", "error": "✗"}
 
         # v2.0: 支持 Expression 或旧的字符串
         if isinstance(statement.message, Expression):
@@ -1067,16 +1008,16 @@ class Interpreter:
             resolved_message = self.context.resolve_variables(statement.message)
 
         # v4.3+: 添加级别图标前缀
-        icon = LOG_ICONS.get(statement.level, '')
+        icon = LOG_ICONS.get(statement.level, "")
         formatted_message = f"{icon} {resolved_message}" if icon else resolved_message
 
         # 根据级别输出日志
         level_map = {
-            'debug': self.context.logger.debug,
-            'info': self.context.logger.info,
-            'success': self.context.logger.info,  # success 使用 info 级别但带 ✓ 图标
-            'warning': self.context.logger.warning,
-            'error': self.context.logger.error
+            "debug": self.context.logger.debug,
+            "info": self.context.logger.info,
+            "success": self.context.logger.info,  # success 使用 info 级别但带 ✓ 图标
+            "warning": self.context.logger.warning,
+            "error": self.context.logger.error,
         }
 
         log_func = level_map.get(statement.level, self.context.logger.info)
@@ -1085,9 +1026,8 @@ class Interpreter:
         self.context.add_execution_record(
             record_type=f"log_{statement.level}",
             content=f"log {statement.level} {resolved_message}",
-            success=True
+            success=True,
         )
-
 
     # ============================================================
     # v2.0 新增执行方法
@@ -1103,7 +1043,7 @@ class Interpreter:
             name=statement.name,
             value=value,
             symbol_type=SymbolType.VARIABLE,
-            line_number=statement.line
+            line_number=statement.line,
         )
 
         self.context.logger.info(f"[OK] 定义变量: let {statement.name} = {value}")
@@ -1118,7 +1058,7 @@ class Interpreter:
             name=statement.name,
             value=value,
             symbol_type=SymbolType.CONSTANT,
-            line_number=statement.line
+            line_number=statement.line,
         )
 
         self.context.logger.info(f"[OK] 定义常量: const {statement.name} = {value}")
@@ -1129,11 +1069,7 @@ class Interpreter:
         value = self.expression_evaluator.evaluate(statement.value)
 
         # 更新变量
-        self.symbol_table.set(
-            name=statement.name,
-            value=value,
-            line_number=statement.line
-        )
+        self.symbol_table.set(name=statement.name, value=value, line_number=statement.line)
 
         self.context.logger.info(f"[OK] 赋值: {statement.name} = {value}")
 
@@ -1157,7 +1093,7 @@ class Interpreter:
                 line=statement.line,
                 statement=f"for {', '.join(statement.variable_names)} in ...",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"无法迭代类型 {type(iterable).__name__}"
+                message=f"无法迭代类型 {type(iterable).__name__}",
             )
 
         # 获取变量数量
@@ -1188,7 +1124,7 @@ class Interpreter:
                             line=statement.line,
                             statement=f"for {', '.join(statement.variable_names)} in ...",
                             error_type=ExecutionError.RUNTIME_ERROR,
-                            message=f"无法解包类型 {type(item).__name__}（期望 list 或 tuple）"
+                            message=f"无法解包类型 {type(item).__name__}（期望 list 或 tuple）",
                         )
 
                     if len(item) != var_count:
@@ -1196,7 +1132,7 @@ class Interpreter:
                             line=statement.line,
                             statement=f"for {', '.join(statement.variable_names)} in ...",
                             error_type=ExecutionError.RUNTIME_ERROR,
-                            message=f"解包值数量不匹配：需要 {var_count} 个值，得到 {len(item)} 个"
+                            message=f"解包值数量不匹配：需要 {var_count} 个值，得到 {len(item)} 个",
                         )
 
                     # 为每个变量定义值
@@ -1205,7 +1141,7 @@ class Interpreter:
                             name=var_name,
                             value=value,
                             symbol_type=SymbolType.VARIABLE,
-                            line_number=statement.line
+                            line_number=statement.line,
                         )
 
                     self.context.logger.debug(
@@ -1218,7 +1154,7 @@ class Interpreter:
                         name=statement.variable_names[0],
                         value=item,
                         symbol_type=SymbolType.VARIABLE,
-                        line_number=statement.line
+                        line_number=statement.line,
                     )
 
                     self.context.logger.debug(
@@ -1241,7 +1177,6 @@ class Interpreter:
             except ContinueException:
                 # Continue: 跳过剩余语句，作用域在 finally 中清理（与 while 一致）
                 self.context.logger.debug(f"  遇到 continue，跳过剩余语句")
-                pass
 
             finally:
                 # 每次迭代后销毁作用域（如果尚未退出）
@@ -1296,7 +1231,7 @@ class Interpreter:
                     line=statement.line,
                     statement=f"while {statement.condition}",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"条件求值失败: {e}"
+                    message=f"条件求值失败: {e}",
                 )
 
             # 4. 验证条件类型
@@ -1305,12 +1240,14 @@ class Interpreter:
                     line=statement.line,
                     statement=f"while {statement.condition}",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"while 条件必须是布尔值，实际类型: {type(condition).__name__}"
+                    message=f"while 条件必须是布尔值，实际类型: {type(condition).__name__}",
                 )
 
             # 5. 条件为 False 则退出循环
             if not condition:
-                self.context.logger.debug(f"  while 条件为 False，退出循环（共迭代 {iteration_count} 次）")
+                self.context.logger.debug(
+                    f"  while 条件为 False，退出循环（共迭代 {iteration_count} 次）"
+                )
                 break
 
             iteration_count += 1
@@ -1337,7 +1274,6 @@ class Interpreter:
             except ContinueException:
                 # Continue: 跳过剩余语句，作用域在 finally 中清理
                 self.context.logger.debug(f"  遇到 continue，跳过剩余语句")
-                pass
 
             finally:
                 # 8. 每次迭代后销毁作用域（如果尚未退出）
@@ -1345,7 +1281,6 @@ class Interpreter:
                     self.symbol_table.exit_scope()
 
         self.context.logger.info(f"完成 while 循环（共迭代 {iteration_count} 次）")
-
 
     def _execute_break(self, statement: BreakStatement) -> None:
         """
@@ -1358,7 +1293,6 @@ class Interpreter:
         """
         self.context.logger.debug(f"执行 break（行 {statement.line}）")
         raise BreakException()
-
 
     def _execute_continue(self, statement: ContinueStatement) -> None:
         """
@@ -1407,7 +1341,7 @@ class Interpreter:
                 line=statement.line,
                 statement=f"function {func_name}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"函数 '{func_name}' 已定义"
+                message=f"函数 '{func_name}' 已定义",
             )
 
         # 创建函数符号（v5.1: 保存定义时的符号表作为闭包作用域, v6.0.1: 保存源文件路径）
@@ -1419,7 +1353,7 @@ class Interpreter:
             params=params,
             body=body,
             closure_scope=self.symbol_table.current_scope(),  # v5.1: 闭包作用域
-            source_file=self.context.script_path  # v6.0.1: 保存函数定义所在的文件路径
+            source_file=self.context.script_path,  # v6.0.1: 保存函数定义所在的文件路径
         )
 
         # 注册到符号表
@@ -1427,7 +1361,7 @@ class Interpreter:
             name=func_name,
             value=func_symbol,  # 存储整个 FunctionSymbol 对象
             symbol_type=SymbolType.FUNCTION,
-            line_number=statement.line
+            line_number=statement.line,
         )
 
         self.context.logger.debug(
@@ -1463,7 +1397,7 @@ class Interpreter:
                 line=statement.line,
                 statement="return",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="return 语句只能在函数内使用"
+                message="return 语句只能在函数内使用",
             )
 
         # 求值返回表达式
@@ -1475,9 +1409,7 @@ class Interpreter:
         self._return_value = return_value
         self._return_flag = True
 
-        self.context.logger.debug(
-            f"执行 return（值: {return_value}, 行 {statement.line}）"
-        )
+        self.context.logger.debug(f"执行 return（值: {return_value}, 行 {statement.line}）")
 
         # 抛出 ReturnException 退出函数
         raise ReturnException(return_value)
@@ -1534,7 +1466,7 @@ class Interpreter:
                 line=line,
                 statement=f"{func_name}(...)",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"未定义的函数: '{func_name}'"
+                message=f"未定义的函数: '{func_name}'",
             )
 
         # 验证是函数类型并获取 FunctionSymbol
@@ -1543,7 +1475,7 @@ class Interpreter:
                 line=line,
                 statement=f"{func_name}(...)",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"'{func_name}' 不是函数"
+                message=f"'{func_name}' 不是函数",
             )
 
         func_symbol: FunctionSymbol = symbol.value
@@ -1554,7 +1486,7 @@ class Interpreter:
                 line=line,
                 statement=f"{func_name}(...)",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"不支持递归调用: 函数 '{func_name}' 正在执行中"
+                message=f"不支持递归调用: 函数 '{func_name}' 正在执行中",
             )
 
         # 3. 验证参数数量
@@ -1563,7 +1495,7 @@ class Interpreter:
                 line=line,
                 statement=f"{func_name}(...)",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"函数 '{func_name}' 需要 {len(func_symbol.params)} 个参数，但提供了 {len(args)} 个"
+                message=f"函数 '{func_name}' 需要 {len(func_symbol.params)} 个参数，但提供了 {len(args)} 个",
             )
 
         # 4. 进入函数调用栈
@@ -1574,8 +1506,7 @@ class Interpreter:
             if func_symbol.closure_scope:
                 # 使用闭包作用域作为父作用域
                 self.symbol_table.enter_scope_with_parent(
-                    f"function:{func_name}",
-                    parent=func_symbol.closure_scope
+                    f"function:{func_name}", parent=func_symbol.closure_scope
                 )
             else:
                 # 后向兼容：没有闭包的函数使用当前作用域作为父
@@ -1588,7 +1519,7 @@ class Interpreter:
                         name=param_name,
                         value=arg_value,
                         symbol_type=SymbolType.VARIABLE,
-                        line_number=line
+                        line_number=line,
                     )
 
                 self.context.logger.debug(
@@ -1615,9 +1546,7 @@ class Interpreter:
                     # 8. 返回值（如果没有 return 语句，返回 None）
                     return_value = self._return_value
 
-                    self.context.logger.debug(
-                        f"函数 '{func_name}' 返回: {return_value}"
-                    )
+                    self.context.logger.debug(f"函数 '{func_name}' 返回: {return_value}")
 
                     return return_value
 
@@ -1669,7 +1598,7 @@ class Interpreter:
                 line=statement.line,
                 statement=f"library {statement.name}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="一个文件只能有一个 library 声明"
+                message="一个文件只能有一个 library 声明",
             )
 
         # 标记为库文件
@@ -1677,8 +1606,9 @@ class Interpreter:
         self.library_name = statement.name
 
         # 验证库名称与文件名匹配
-        if hasattr(self.context, 'script_path') and self.context.script_path:
+        if hasattr(self.context, "script_path") and self.context.script_path:
             from pathlib import Path
+
             script_path = Path(self.context.script_path)
 
             if not self.module_loader.validate_library_name(statement.name, script_path):
@@ -1686,7 +1616,7 @@ class Interpreter:
                     line=statement.line,
                     statement=f"library {statement.name}",
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"library 名称必须与文件名匹配: 期望 '{script_path.stem}'，得到 '{statement.name}'"
+                    message=f"library 名称必须与文件名匹配: 期望 '{script_path.stem}'，得到 '{statement.name}'",
                 )
 
         self.context.logger.debug(f"Library '{statement.name}' 声明成功（行 {statement.line}）")
@@ -1716,7 +1646,7 @@ class Interpreter:
                 line=statement.line,
                 statement="export ...",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="export 语句只能在 library 文件中使用（需要先声明 library）"
+                message="export 语句只能在 library 文件中使用（需要先声明 library）",
             )
 
         # 执行被导出的语句
@@ -1734,7 +1664,7 @@ class Interpreter:
                 line=statement.line,
                 statement="export ...",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"export 只能用于 const 或 function，得到: {type(statement.target).__name__}"
+                message=f"export 只能用于 const 或 function，得到: {type(statement.target).__name__}",
             )
 
         # 添加到导出列表
@@ -1771,7 +1701,11 @@ class Interpreter:
         from pathlib import Path
 
         # 获取当前文件路径
-        current_file = Path(self.context.script_path) if (hasattr(self.context, 'script_path') and self.context.script_path) else Path.cwd()
+        current_file = (
+            Path(self.context.script_path)
+            if (hasattr(self.context, "script_path") and self.context.script_path)
+            else Path.cwd()
+        )
 
         # 解析模块路径
         try:
@@ -1779,9 +1713,9 @@ class Interpreter:
         except ValueError as e:
             raise ExecutionError(
                 line=statement.line,
-                statement=f"import ... from \"{statement.module_path}\"",
+                statement=f'import ... from "{statement.module_path}"',
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=str(e)
+                message=str(e),
             )
 
         # 检查循环导入
@@ -1790,9 +1724,9 @@ class Interpreter:
             chain_str = " -> ".join(import_chain + [resolved_path.name])
             raise ExecutionError(
                 line=statement.line,
-                statement=f"import ... from \"{statement.module_path}\"",
+                statement=f'import ... from "{statement.module_path}"',
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"检测到循环导入: {chain_str}"
+                message=f"检测到循环导入: {chain_str}",
             )
 
         # 加载模块（如果未缓存）
@@ -1815,7 +1749,7 @@ class Interpreter:
                 name=statement.module_alias,
                 value=module_namespace,
                 symbol_type=SymbolType.VARIABLE,
-                line_number=statement.line
+                line_number=statement.line,
             )
 
             self.context.logger.debug(
@@ -1830,9 +1764,9 @@ class Interpreter:
                     available = ", ".join(module_info.exports.keys())
                     raise ExecutionError(
                         line=statement.line,
-                        statement=f"from \"{statement.module_path}\" import {member_name}",
+                        statement=f'from "{statement.module_path}" import {member_name}',
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"模块 '{module_info.library_name}' 没有导出成员 '{member_name}'。可用成员: {available}"
+                        message=f"模块 '{module_info.library_name}' 没有导出成员 '{member_name}'。可用成员: {available}",
                     )
 
                 # 获取导出成员的值
@@ -1849,7 +1783,7 @@ class Interpreter:
                     name=member_name,
                     value=member_value,
                     symbol_type=member_symbol_type,
-                    line_number=statement.line
+                    line_number=statement.line,
                 )
 
             members_str = ", ".join(statement.members)
@@ -1890,21 +1824,23 @@ class Interpreter:
             if not module_path.exists():
                 raise ExecutionError(
                     line=0,
-                    statement=f"import from \"{module_path}\"",
+                    statement=f'import from "{module_path}"',
                     error_type=ExecutionError.RUNTIME_ERROR,
-                    message=f"模块文件不存在: {module_path}"
+                    message=f"模块文件不存在: {module_path}",
                 )
 
-            with open(module_path, 'r', encoding='utf-8') as f:
+            with open(module_path, "r", encoding="utf-8") as f:
                 module_source = f.read()
 
             # 4. 词法分析
             from .lexer import Lexer
+
             lexer = Lexer()
             tokens = lexer.tokenize(module_source)
 
             # 5. 语法分析
             from .parser import Parser
+
             parser = Parser()
             ast = parser.parse(tokens)
 
@@ -1930,9 +1866,9 @@ class Interpreter:
                 if not module_interpreter.is_library_file:
                     raise ExecutionError(
                         line=0,
-                        statement=f"import from \"{module_path}\"",
+                        statement=f'import from "{module_path}"',
                         error_type=ExecutionError.RUNTIME_ERROR,
-                        message=f"导入的文件必须是 library 文件（需要 library 声明）: {module_path.name}"
+                        message=f"导入的文件必须是 library 文件（需要 library 声明）: {module_path.name}",
                     )
 
                 # 8. 提取导出成员
@@ -1941,10 +1877,7 @@ class Interpreter:
 
                 # 9. 创建 ModuleInfo
                 module_info = ModuleInfo(
-                    path=module_path,
-                    library_name=library_name,
-                    exports=exports,
-                    ast=ast
+                    path=module_path, library_name=library_name, exports=exports, ast=ast
                 )
 
                 # 10. 缓存模块
@@ -1967,9 +1900,9 @@ class Interpreter:
             # 其他异常包装为 ExecutionError
             raise ExecutionError(
                 line=0,
-                statement=f"import from \"{module_path}\"",
+                statement=f'import from "{module_path}"',
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"加载模块失败: {str(e)}"
+                message=f"加载模块失败: {str(e)}",
             )
 
         finally:
@@ -1982,8 +1915,7 @@ class Interpreter:
 # ============================================================
 
 
-
-def interpret(program: Program, context: 'ExecutionContext') -> None:
+def interpret(program: Program, context: "ExecutionContext") -> None:
     """
     便捷函数：执行 DSL 程序
 

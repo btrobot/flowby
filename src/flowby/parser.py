@@ -16,8 +16,7 @@ v3.0 核心变更:
     输出: StepBlock(name="登录", ...)
 """
 
-from typing import List, Optional, Dict, Any
-from dataclasses import dataclass
+from typing import List, Optional
 from .lexer import Token, TokenType
 from .ast_nodes import *
 from .errors import ParserError
@@ -26,12 +25,10 @@ from .symbol_table import SymbolTableStack, SymbolType
 
 # v6.3: 系统变量列表（运行时隐式可用，无需声明）
 SYSTEM_VARIABLES = {
-    "page",      # 页面对象
-    "env",       # 环境变量
+    "page",  # 页面对象
+    "env",  # 环境变量
     "response",  # HTTP响应对象
 }
-
-
 
 
 class Parser:
@@ -47,7 +44,7 @@ class Parser:
         self.current = 0
         self.symbol_table_stack = SymbolTableStack()  # 符号表栈用于语义分析
         self._loop_depth = 0  # v3.0: 跟踪循环嵌套深度 (用于 break/continue 验证)
-        self.warnings: List['Warning'] = []  # v6.3: VR-006 警告收集
+        self.warnings: List["Warning"] = []  # v6.3: VR-006 警告收集
 
     def parse(self, tokens: List[Token]) -> Program:
         """
@@ -200,29 +197,43 @@ class Parser:
         # v3.0: 检测 double click / right click (两个词)
         if token.type == TokenType.IDENTIFIER:
             # 向前看：如果是 'double' 或 'right' 后面跟 'click'
-            if token.value.lower() in ('double', 'right'):
-                if self.current + 1 < len(self.tokens) and self.tokens[self.current + 1].type == TokenType.CLICK:
+            if token.value.lower() in ("double", "right"):
+                if (
+                    self.current + 1 < len(self.tokens)
+                    and self.tokens[self.current + 1].type == TokenType.CLICK
+                ):
                     # 先推进到第一个词，然后让 _parse_click_multiword 处理
                     return self._parse_click_multiword()
 
             # v4.3: 向前看: 函数调用语句 (作为独立语句)
-            if self.current + 1 < len(self.tokens) and self.tokens[self.current + 1].type == TokenType.LPAREN:
+            if (
+                self.current + 1 < len(self.tokens)
+                and self.tokens[self.current + 1].type == TokenType.LPAREN
+            ):
                 # 这是函数调用语句，将其解析为表达式然后包装成语句
                 expr = self._parse_expression()
                 # 创建一个表达式语句节点（或直接返回，Interpreter 会处理）
                 # 这里我们创建一个简单的包装器
                 from .ast_nodes import ExpressionStatement
+
                 return ExpressionStatement(expression=expr, line=token.line)
 
             # v5.0: 向前看: 方法调用语句 (作为独立语句)
-            if self.current + 1 < len(self.tokens) and self.tokens[self.current + 1].type == TokenType.DOT:
+            if (
+                self.current + 1 < len(self.tokens)
+                and self.tokens[self.current + 1].type == TokenType.DOT
+            ):
                 # 这是方法调用语句（如 logging.log_step(...)），解析为表达式并包装
                 expr = self._parse_expression()
                 from .ast_nodes import ExpressionStatement
+
                 return ExpressionStatement(expression=expr, line=token.line)
 
             # 向前看一个 token: 赋值语句
-            if self.current + 1 < len(self.tokens) and self.tokens[self.current + 1].type == TokenType.EQUALS_SIGN:
+            if (
+                self.current + 1 < len(self.tokens)
+                and self.tokens[self.current + 1].type == TokenType.EQUALS_SIGN
+            ):
                 return self._parse_assignment()
 
         # v5.1: 支持关键字作为函数调用的表达式语句
@@ -231,9 +242,13 @@ class Parser:
         # - 作为函数调用: input("prompt")
         if token.type == TokenType.INPUT:
             # 向前看: 如果后面跟着 '('，则是函数调用
-            if self.current + 1 < len(self.tokens) and self.tokens[self.current + 1].type == TokenType.LPAREN:
+            if (
+                self.current + 1 < len(self.tokens)
+                and self.tokens[self.current + 1].type == TokenType.LPAREN
+            ):
                 expr = self._parse_expression()
                 from .ast_nodes import ExpressionStatement
+
                 return ExpressionStatement(expression=expr, line=token.line)
 
         # 未知语句
@@ -242,7 +257,7 @@ class Parser:
             token.column,
             token.type.name,
             token.value,
-            f"未知的语句开始: {token.type.name}"
+            f"未知的语句开始: {token.type.name}",
         )
 
     # ============================================================
@@ -278,7 +293,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望 'back' 或 'forward'",
-                "back | forward"
+                "back | forward",
             )
 
     def _parse_reload(self) -> ReloadStatement:
@@ -318,7 +333,7 @@ class Parser:
             # Check for optional time unit identifier (seconds, second, sec, s, ms, milliseconds)
             if self._check(TokenType.IDENTIFIER):
                 unit = self._peek().value.lower()
-                if unit in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+                if unit in ("s", "sec", "second", "seconds", "ms", "milliseconds"):
                     time_value = time_value + unit
                     self._advance()  # consume the unit
 
@@ -338,18 +353,18 @@ class Parser:
                     self._peek().type.name,
                     self._peek().value,
                     "使用表达式时需要指定时间单位（s, ms 等）",
-                    "s | ms | seconds | milliseconds"
+                    "s | ms | seconds | milliseconds",
                 )
 
             unit = self._peek().value.lower()
-            if unit not in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+            if unit not in ("s", "sec", "second", "seconds", "ms", "milliseconds"):
                 raise ParserError(
                     self._peek().line,
                     self._peek().column,
                     self._peek().type.name,
                     self._peek().value,
                     f"无效的时间单位: {unit}",
-                    "s | ms | seconds | milliseconds"
+                    "s | ms | seconds | milliseconds",
                 )
 
             self._advance()  # consume the unit
@@ -363,7 +378,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望 'for', 'until' 或时间值（数字或表达式 + 单位）",
-                "for | until | <number> [unit] | <expression> <unit>"
+                "for | until | <number> [unit] | <expression> <unit>",
             )
 
     def _parse_wait_for(self) -> ASTNode:
@@ -388,7 +403,9 @@ class Parser:
                 if self._check(TokenType.FOR):
                     self._advance()  # consume FOR
                     # 解析页面状态
-                    if self._check_any(TokenType.NETWORKIDLE, TokenType.DOMCONTENTLOADED, TokenType.LOAD):
+                    if self._check_any(
+                        TokenType.NETWORKIDLE, TokenType.DOMCONTENTLOADED, TokenType.LOAD
+                    ):
                         page_state = self._advance().value.lower()
                     else:
                         # 不是页面状态，回退
@@ -399,7 +416,7 @@ class Parser:
 
             # 可选：timeout <duration>
             timeout = None
-            if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == 'timeout':
+            if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == "timeout":
                 self._advance()  # consume TIMEOUT
                 # 解析超时时间
                 if self._check_any(TokenType.INTEGER, TokenType.NUMBER):
@@ -409,7 +426,7 @@ class Parser:
                     # Check for optional time unit identifier
                     if self._check(TokenType.IDENTIFIER):
                         unit = self._peek().value.lower()
-                        if unit in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+                        if unit in ("s", "sec", "second", "seconds", "ms", "milliseconds"):
                             time_value = time_value + unit
                             self._advance()  # consume the unit
 
@@ -421,14 +438,11 @@ class Parser:
                         self._peek().type.name,
                         self._peek().value,
                         "期望超时时间值",
-                        "<duration>"
+                        "<duration>",
                     )
 
             return WaitForNavigationStatement(
-                url=url,
-                page_state=page_state,
-                timeout=timeout,
-                line=line
+                url=url, page_state=page_state, timeout=timeout, line=line
             )
 
         # wait for element ...
@@ -443,10 +457,12 @@ class Parser:
             if self._check(TokenType.TO):
                 self._advance()  # consume TO
                 # 期待 BE（作为 IDENTIFIER）
-                if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == 'be':
+                if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == "be":
                     self._advance()  # consume BE
                     # 解析状态
-                    if self._check_any(TokenType.VISIBLE, TokenType.HIDDEN, TokenType.ATTACHED, TokenType.DETACHED):
+                    if self._check_any(
+                        TokenType.VISIBLE, TokenType.HIDDEN, TokenType.ATTACHED, TokenType.DETACHED
+                    ):
                         state = self._advance().value.lower()
                     else:
                         raise ParserError(
@@ -455,7 +471,7 @@ class Parser:
                             self._peek().type.name,
                             self._peek().value,
                             "期望元素状态 (visible/hidden/attached/detached)",
-                            "visible | hidden | attached | detached"
+                            "visible | hidden | attached | detached",
                         )
                 else:
                     raise ParserError(
@@ -464,12 +480,12 @@ class Parser:
                         self._peek().type.name,
                         self._peek().value,
                         "期望 'be'",
-                        "be"
+                        "be",
                     )
 
             # 可选：timeout <duration>
             timeout = None
-            if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == 'timeout':
+            if self._check(TokenType.IDENTIFIER) and self._peek().value.lower() == "timeout":
                 self._advance()  # consume TIMEOUT
                 # 解析超时时间
                 if self._check_any(TokenType.INTEGER, TokenType.NUMBER):
@@ -479,7 +495,7 @@ class Parser:
                     # Check for optional time unit identifier
                     if self._check(TokenType.IDENTIFIER):
                         unit = self._peek().value.lower()
-                        if unit in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+                        if unit in ("s", "sec", "second", "seconds", "ms", "milliseconds"):
                             time_value = time_value + unit
                             self._advance()  # consume the unit
 
@@ -491,14 +507,11 @@ class Parser:
                         self._peek().type.name,
                         self._peek().value,
                         "期望超时时间值",
-                        "<duration>"
+                        "<duration>",
                     )
 
             return WaitForElementStatement(
-                selector=selector,
-                state=state,
-                timeout=timeout,
-                line=line
+                selector=selector, state=state, timeout=timeout, line=line
             )
 
         # wait for <page_state>
@@ -514,7 +527,7 @@ class Parser:
             # Check for optional time unit identifier (seconds, second, sec, s, ms)
             if self._check(TokenType.IDENTIFIER):
                 unit = self._peek().value.lower()
-                if unit in ('s', 'sec', 'second', 'seconds', 'ms', 'milliseconds'):
+                if unit in ("s", "sec", "second", "seconds", "ms", "milliseconds"):
                     time_value = time_value + unit
                     self._advance()  # consume the unit
 
@@ -527,7 +540,7 @@ class Parser:
             self._peek().type.name,
             self._peek().value,
             "期望 'navigation', 'element', 页面状态或时间值",
-            "navigation | element | networkidle | domcontentloaded | load | <duration>"
+            "navigation | element | networkidle | domcontentloaded | load | <duration>",
         )
 
     # ============================================================
@@ -553,9 +566,16 @@ class Parser:
         else:
             # 关键字形式：select input
             element_type_token = self._consume_any(
-                [TokenType.INPUT, TokenType.BUTTON, TokenType.ELEMENT, TokenType.LINK,
-                 TokenType.TEXTAREA, TokenType.DIV, TokenType.SPAN],
-                "期望元素类型"
+                [
+                    TokenType.INPUT,
+                    TokenType.BUTTON,
+                    TokenType.ELEMENT,
+                    TokenType.LINK,
+                    TokenType.TEXTAREA,
+                    TokenType.DIV,
+                    TokenType.SPAN,
+                ],
+                "期望元素类型",
             )
             element_type = element_type_token.value.lower()
 
@@ -565,11 +585,7 @@ class Parser:
             self._advance()
             conditions = self._parse_where_clause()
 
-        return SelectStatement(
-            element_type=element_type,
-            conditions=conditions,
-            line=line
-        )
+        return SelectStatement(element_type=element_type, conditions=conditions, line=line)
 
     def _parse_select_option(self) -> SelectOptionAction:
         """解析 select option 语句（下拉框选项选择） - v2.0 支持表达式"""
@@ -581,11 +597,7 @@ class Parser:
         self._consume(TokenType.FROM, "期望 'from'")
         selector = self._parse_expression()
 
-        return SelectOptionAction(
-            option_value=option_value,
-            selector=selector,
-            line=line
-        )
+        return SelectOptionAction(option_value=option_value, selector=selector, line=line)
 
     def _parse_where_clause(self) -> List[tuple[str, str, str]]:
         """解析 where 子句 - v3.0 支持运算符"""
@@ -615,7 +627,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望运算符 (=, contains, equals, matches)",
-                "= | contains | equals | matches"
+                "= | contains | equals | matches",
             )
 
         # 解析值 - v3.1: 支持表达式
@@ -661,7 +673,7 @@ class Parser:
                     self._peek().type.name,
                     self._peek().value,
                     "期望运算符 (=, contains, equals, matches)",
-                    "= | contains | equals | matches"
+                    "= | contains | equals | matches",
                 )
 
             # 解析值 - v3.1: 支持表达式
@@ -692,12 +704,7 @@ class Parser:
             return self._advance().value.lower()
         else:
             raise ParserError(
-                token.line,
-                token.column,
-                token.type.name,
-                token.value,
-                "期望属性名",
-                "IDENTIFIER"
+                token.line, token.column, token.type.name, token.value, "期望属性名", "IDENTIFIER"
             )
 
     # ============================================================
@@ -744,9 +751,9 @@ class Parser:
         self._consume(TokenType.CLICK, "期望 'click'")
 
         # 确定点击类型
-        if modifier == 'double':
+        if modifier == "double":
             click_type = "double_click"
-        elif modifier == 'right':
+        elif modifier == "right":
             click_type = "right_click"
         else:
             click_type = "click"
@@ -769,10 +776,7 @@ class Parser:
             wait_duration = self._parse_time_value(duration_token.value)
 
         return ClickAction(
-            click_type=click_type,
-            selector=selector,
-            wait_duration=wait_duration,
-            line=line
+            click_type=click_type, selector=selector, wait_duration=wait_duration, line=line
         )
 
     def _parse_click(self) -> ClickAction:
@@ -808,10 +812,7 @@ class Parser:
             wait_duration = self._parse_time_value(duration_token.value)
 
         return ClickAction(
-            click_type=click_type,
-            selector=selector,
-            wait_duration=wait_duration,
-            line=line
+            click_type=click_type, selector=selector, wait_duration=wait_duration, line=line
         )
 
     def _parse_hover(self) -> HoverAction:
@@ -826,7 +827,11 @@ class Parser:
             self._advance()  # 消费 over
 
         # v3.2: 选择器支持完整表达式（v3.3: 添加 f-string 支持）
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
 
         return HoverAction(selector=selector, line=line)
@@ -838,7 +843,11 @@ class Parser:
 
         # v3.2: 选择器支持完整表达式（v3.3: 添加 f-string 支持）
         selector = None
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
 
         return ClearAction(selector=selector, line=line)
@@ -865,7 +874,11 @@ class Parser:
         if self._check(TokenType.ELEMENT):
             self._advance()
             # v3.3: element 后的选择器支持完整表达式
-            if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+            if (
+                self._check(TokenType.STRING)
+                or self._check(TokenType.FSTRING)
+                or self._check(TokenType.IDENTIFIER)
+            ):
                 selector_expr = self._parse_expression()
             else:
                 raise ParserError(
@@ -874,7 +887,7 @@ class Parser:
                     self._peek().type.name,
                     self._peek().value,
                     "期望选择器字符串或表达式",
-                    "STRING | FSTRING | IDENTIFIER"
+                    "STRING | FSTRING | IDENTIFIER",
                 )
             return ScrollAction(target="element", selector=selector_expr, line=line)
 
@@ -884,7 +897,11 @@ class Parser:
             return ScrollAction(target="position", selector=position, line=line)
 
         # v3.3: scroll to <expr> (统一表达式支持)
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
             return ScrollAction(target="element", selector=selector, line=line)
 
@@ -894,7 +911,7 @@ class Parser:
             self._peek().type.name,
             self._peek().value,
             "期望 'top', 'bottom', 'element', 选择器字符串、数字或变量",
-            "top | bottom | element | STRING | NUMBER | INTEGER | IDENTIFIER"
+            "top | bottom | element | STRING | NUMBER | INTEGER | IDENTIFIER",
         )
 
     def _parse_check(self) -> CheckAction:
@@ -904,7 +921,11 @@ class Parser:
         action = action_token.value.lower()
 
         # v3.2: 选择器支持完整表达式（v3.3: 添加 f-string 支持）
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
         else:
             raise ParserError(
@@ -913,7 +934,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望选择器字符串或表达式",
-                "STRING | FSTRING | IDENTIFIER"
+                "STRING | FSTRING | IDENTIFIER",
             )
 
         return CheckAction(action=action, selector=selector, line=line)
@@ -925,7 +946,11 @@ class Parser:
         self._consume(TokenType.FILE, "期望 'file'")
 
         # v3.2: 文件路径支持完整表达式（v3.3: 添加 f-string 支持）
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             file_path = self._parse_expression()
         else:
             raise ParserError(
@@ -934,13 +959,17 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望文件路径字符串或表达式",
-                "STRING | FSTRING | IDENTIFIER"
+                "STRING | FSTRING | IDENTIFIER",
             )
 
         self._consume(TokenType.TO, "期望 'to'")
 
         # v3.2: 选择器支持完整表达式（v3.3: 添加 f-string 支持）
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
         else:
             raise ParserError(
@@ -949,14 +978,10 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望选择器字符串或表达式",
-                "STRING | FSTRING | IDENTIFIER"
+                "STRING | FSTRING | IDENTIFIER",
             )
 
-        return UploadAction(
-            file_path=file_path,
-            selector=selector,
-            line=line
-        )
+        return UploadAction(file_path=file_path, selector=selector, line=line)
 
     # ============================================================
     # 验证语句解析
@@ -987,13 +1012,9 @@ class Parser:
             self._advance()  # 消费逗号
             message = self._parse_expression()  # v4.3: 解析表达式而不只是字符串字面量
 
-        return AssertStatement(
-            condition=condition,
-            message=message,
-            line=line
-        )
+        return AssertStatement(condition=condition, message=message, line=line)
 
-    def _parse_exit(self) -> 'ExitStatement':
+    def _parse_exit(self) -> "ExitStatement":
         """
         解析 exit 语句 - v4.0
 
@@ -1032,11 +1053,7 @@ class Parser:
                 message = self._advance().value
                 code = 1
 
-        return ExitStatement(
-            code=code,
-            message=message,
-            line=line
-        )
+        return ExitStatement(code=code, message=message, line=line)
 
     # ============================================================
     # 截图语句解析
@@ -1086,12 +1103,7 @@ class Parser:
                 # 没有更多 screenshot 参数
                 break
 
-        return ScreenshotStatement(
-            name=name,
-            fullpage=fullpage,
-            selector=selector,
-            line=line
-        )
+        return ScreenshotStatement(name=name, fullpage=fullpage, selector=selector, line=line)
 
     # ============================================================
     # 服务调用语句解析
@@ -1099,12 +1111,12 @@ class Parser:
     def _parse_number_value(self, value: str) -> float:
         """解析数字值（去除时间单位）"""
         # 移除可能的时间单位
-        for suffix in ['ms', 'seconds', 'second', 'sec', 's']:
+        for suffix in ["ms", "seconds", "second", "sec", "s"]:
             if value.lower().endswith(suffix):
-                value = value[:-len(suffix)]
+                value = value[: -len(suffix)]
                 break
 
-        if '.' in value:
+        if "." in value:
             return float(value)
         return int(value)
 
@@ -1125,7 +1137,13 @@ class Parser:
             self._consume(TokenType.DIAGNOSIS, "期望 'diagnosis'")
             # 解析诊断级别（接受任何 identifier 或关键字）
             level_token = self._peek()
-            if level_token.type == TokenType.IDENTIFIER or level_token.type.name not in ('EOF', 'NEWLINE', 'COLON', 'INDENT', 'DEDENT'):
+            if level_token.type == TokenType.IDENTIFIER or level_token.type.name not in (
+                "EOF",
+                "NEWLINE",
+                "COLON",
+                "INDENT",
+                "DEDENT",
+            ):
                 self._advance()
                 diagnosis = level_token.value
             else:
@@ -1135,7 +1153,7 @@ class Parser:
                     level_token.type.name,
                     level_token.value,
                     "期望诊断级别（identifier 或关键字）",
-                    "IDENTIFIER"
+                    "IDENTIFIER",
                 )
 
         # 可选的条件
@@ -1157,7 +1175,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "步骤块不能为空，必须包含至少一条语句",
-                "INDENT"
+                "INDENT",
             )
 
         # 消费 INDENT
@@ -1187,12 +1205,7 @@ class Parser:
             # 二次检查：如果解析过程中没有产生任何语句（所有都是空行）
             if not statements:
                 raise ParserError(
-                    line,
-                    0,
-                    "DEDENT",
-                    "",
-                    "步骤块不能为空，必须包含至少一条语句",
-                    "statement"
+                    line, 0, "DEDENT", "", "步骤块不能为空，必须包含至少一条语句", "statement"
                 )
 
             return StepBlock(
@@ -1200,7 +1213,7 @@ class Parser:
                 condition=condition,
                 diagnosis=diagnosis,
                 statements=statements,
-                line=line
+                line=line,
             )
 
         finally:
@@ -1260,7 +1273,9 @@ class Parser:
 
                 # 解析 else-if 块中的语句
                 elif_statements = []
-                while not self._check_any(TokenType.DEDENT, TokenType.ELSE) and not self._is_at_end():
+                while (
+                    not self._check_any(TokenType.DEDENT, TokenType.ELSE) and not self._is_at_end()
+                ):
                     if self._check(TokenType.NEWLINE):
                         self._advance()
                         continue
@@ -1308,7 +1323,7 @@ class Parser:
             then_statements=if_statements,
             elif_clauses=elif_clauses,
             else_statements=else_statements,
-            line=line
+            line=line,
         )
 
     def _parse_when(self) -> WhenBlock:
@@ -1366,7 +1381,9 @@ class Parser:
             # 消费 case 块的 DEDENT
             self._consume(TokenType.DEDENT, "期望反缩进")
 
-            when_clauses.append(WhenClause(case_values=case_values, statements=statements, line=clause_line))
+            when_clauses.append(
+                WhenClause(case_values=case_values, statements=statements, line=clause_line)
+            )
 
         # otherwise 块（可选）
         otherwise_statements = []
@@ -1397,7 +1414,7 @@ class Parser:
             value_expression=value_expression,
             when_clauses=when_clauses,
             otherwise_statements=otherwise_statements,
-            line=line
+            line=line,
         )
 
     # ============================================================
@@ -1465,7 +1482,7 @@ class Parser:
                 next_token.type.name,
                 next_token.value,
                 "export 只能用于 const 或 function",
-                "const | function"
+                "const | function",
             )
 
         return ExportStatement(target=target, line=line)
@@ -1509,18 +1526,16 @@ class Parser:
 
             # v6.3: Register module alias in symbol table
             from .symbol_table import SymbolType
+
             self.symbol_table_stack.define(
                 name=module_alias,
                 value=None,  # Module object created at runtime
                 symbol_type=SymbolType.MODULE,
-                line_number=line
+                line_number=line,
             )
 
             return ImportStatement(
-                module_path=module_path,
-                module_alias=module_alias,
-                members=None,
-                line=line
+                module_path=module_path, module_alias=module_alias, members=None, line=line
             )
 
         elif self._check(TokenType.FROM):
@@ -1542,7 +1557,12 @@ class Parser:
             if self._check(TokenType.IDENTIFIER):
                 first_member = self._consume(TokenType.IDENTIFIER, "期望成员名称")
                 members.append(first_member.value)
-            elif self._peek().type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL):
+            elif self._peek().type in (
+                TokenType.VALUE,
+                TokenType.TEXT,
+                TokenType.TYPE,
+                TokenType.URL,
+            ):
                 first_member = self._advance()
                 members.append(first_member.value)
             else:
@@ -1553,7 +1573,7 @@ class Parser:
                     token.type.name,
                     token.value,
                     "期望成员名称（标识符或关键字）",
-                    "IDENTIFIER | VALUE | TEXT | TYPE | URL"
+                    "IDENTIFIER | VALUE | TEXT | TYPE | URL",
                 )
 
             # 后续成员（可选）
@@ -1563,7 +1583,12 @@ class Parser:
                 if self._check(TokenType.IDENTIFIER):
                     member_token = self._consume(TokenType.IDENTIFIER, "期望成员名称")
                     members.append(member_token.value)
-                elif self._peek().type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL):
+                elif self._peek().type in (
+                    TokenType.VALUE,
+                    TokenType.TEXT,
+                    TokenType.TYPE,
+                    TokenType.URL,
+                ):
                     member_token = self._advance()
                     members.append(member_token.value)
                 else:
@@ -1574,24 +1599,22 @@ class Parser:
                         token.type.name,
                         token.value,
                         "期望成员名称（标识符或关键字）",
-                        "IDENTIFIER | VALUE | TEXT | TYPE | URL"
+                        "IDENTIFIER | VALUE | TEXT | TYPE | URL",
                     )
 
             # v6.3: Register imported members in symbol table
             from .symbol_table import SymbolType
+
             for member_name in members:
                 self.symbol_table_stack.define(
                     name=member_name,
                     value=None,  # Imported value bound at runtime
                     symbol_type=SymbolType.IMPORTED,
-                    line_number=line
+                    line_number=line,
                 )
 
             return ImportStatement(
-                module_path=module_path,
-                module_alias=None,
-                members=members,
-                line=line
+                module_path=module_path, module_alias=None, members=members, line=line
             )
 
         else:
@@ -1603,7 +1626,7 @@ class Parser:
                 token.type.name,
                 token.value,
                 "期望 'import' 或 'from'",
-                "import | from"
+                "import | from",
             )
 
     # ============================================================
@@ -1629,7 +1652,7 @@ class Parser:
                 "IDENTIFIER",
                 name_token.value,
                 f"变量 '{name_token.value}' 重复声明（VR-003 违规）",
-                f"同一作用域内不能声明同名变量。如需在子作用域使用同名变量，请在嵌套块中声明"
+                f"同一作用域内不能声明同名变量。如需在子作用域使用同名变量，请在嵌套块中声明",
             )
 
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
@@ -1640,7 +1663,7 @@ class Parser:
             name=name_token.value,
             value=None,  # 值在运行时计算，这里不存储
             symbol_type=SymbolType.VARIABLE,
-            line_number=line
+            line_number=line,
         )
 
         return LetStatement(name=name_token.value, value=value, line=line)
@@ -1664,7 +1687,7 @@ class Parser:
                 "IDENTIFIER",
                 name_token.value,
                 f"常量 '{name_token.value}' 重复声明（VR-003 违规）",
-                f"同一作用域内不能声明同名常量。如需在子作用域使用同名常量，请在嵌套块中声明"
+                f"同一作用域内不能声明同名常量。如需在子作用域使用同名常量，请在嵌套块中声明",
             )
 
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
@@ -1672,10 +1695,7 @@ class Parser:
 
         # 将常量添加到符号表
         self.symbol_table_stack.define(
-            name=name_token.value,
-            value=None,
-            symbol_type=SymbolType.CONSTANT,
-            line_number=line
+            name=name_token.value, value=None, symbol_type=SymbolType.CONSTANT, line_number=line
         )
 
         return ConstStatement(name=name_token.value, value=value, line=line)
@@ -1697,7 +1717,7 @@ class Parser:
                 "IDENTIFIER",
                 name_token.value,
                 f"不能修改系统变量 '{name_token.value}'（VR-004 违规）",
-                f"系统变量 (page, env, response) 是只读的"
+                f"系统变量 (page, env, response) 是只读的",
             )
 
         # v6.3: VR-002 检查 - 常量不能重新赋值
@@ -1709,7 +1729,7 @@ class Parser:
                 "IDENTIFIER",
                 name_token.value,
                 f"不能修改常量 '{name_token.value}'（VR-002 违规）",
-                f"常量在定义后不可修改（定义于第 {symbol.line_number} 行）。请使用 'let' 声明可变变量"
+                f"常量在定义后不可修改（定义于第 {symbol.line_number} 行）。请使用 'let' 声明可变变量",
             )
 
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
@@ -1770,12 +1790,13 @@ class Parser:
         # v6.3: 提前注册循环变量（VR-001 所需）
         # 支持多变量解包（v4.0）
         from .symbol_table import SymbolType
+
         for var_name in variable_names:
             self.symbol_table_stack.define(
                 name=var_name,
                 value=None,  # 值在运行时绑定
                 symbol_type=SymbolType.LOOP_VARIABLE,
-                line_number=line
+                line_number=line,
             )
 
         try:
@@ -1796,10 +1817,7 @@ class Parser:
             self._consume(TokenType.DEDENT, "期望反缩进")
 
             return EachLoop(
-                variable_names=variable_names,
-                iterable=iterable,
-                statements=statements,
-                line=line
+                variable_names=variable_names, iterable=iterable, statements=statements, line=line
             )
 
         finally:
@@ -1869,16 +1887,11 @@ class Parser:
             # 消费 DEDENT
             self._consume(TokenType.DEDENT, "期望反缩进")
 
-            return WhileLoop(
-                condition=condition,
-                statements=statements,
-                line=line
-            )
+            return WhileLoop(condition=condition, statements=statements, line=line)
 
         finally:
             # 退出循环体 (恢复循环深度)
             self._loop_depth -= 1
-
 
     def _parse_break(self) -> BreakStatement:
         """
@@ -1906,12 +1919,9 @@ class Parser:
 
         # 验证 break 在循环内
         if self._loop_depth == 0:
-            raise RuntimeError(
-                f"行 {line}: break 语句只能在循环内使用"
-            )
+            raise RuntimeError(f"行 {line}: break 语句只能在循环内使用")
 
         return BreakStatement(line=line)
-
 
     def _parse_continue(self) -> ContinueStatement:
         """
@@ -1940,9 +1950,7 @@ class Parser:
 
         # 验证 continue 在循环内
         if self._loop_depth == 0:
-            raise RuntimeError(
-                f"行 {line}: continue 语句只能在循环内使用"
-            )
+            raise RuntimeError(f"行 {line}: continue 语句只能在循环内使用")
 
         return ContinueStatement(line=line)
 
@@ -1991,7 +1999,7 @@ class Parser:
                 self._peek().column,
                 self._peek().type.name,
                 self._peek().value,
-                "期望函数名 (标识符)"
+                "期望函数名 (标识符)",
             )
         func_name = self._advance().value
 
@@ -2004,7 +2012,12 @@ class Parser:
             param_token = self._peek()
             if param_token.type == TokenType.IDENTIFIER:
                 params.append(self._advance().value)
-            elif param_token.type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL):
+            elif param_token.type in (
+                TokenType.VALUE,
+                TokenType.TEXT,
+                TokenType.TYPE,
+                TokenType.URL,
+            ):
                 # 允许这些关键字作为参数名
                 params.append(self._advance().value.lower())
             else:
@@ -2013,7 +2026,7 @@ class Parser:
                     param_token.column,
                     param_token.type.name,
                     param_token.value,
-                    "期望参数名 (标识符)"
+                    "期望参数名 (标识符)",
                 )
 
             # 解析后续参数 (逗号分隔)
@@ -2021,7 +2034,12 @@ class Parser:
                 param_token = self._peek()
                 if param_token.type == TokenType.IDENTIFIER:
                     params.append(self._advance().value)
-                elif param_token.type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL):
+                elif param_token.type in (
+                    TokenType.VALUE,
+                    TokenType.TEXT,
+                    TokenType.TYPE,
+                    TokenType.URL,
+                ):
                     # 允许这些关键字作为参数名
                     params.append(self._advance().value.lower())
                 else:
@@ -2030,7 +2048,7 @@ class Parser:
                         param_token.column,
                         param_token.type.name,
                         param_token.value,
-                        "期望参数名 (标识符)"
+                        "期望参数名 (标识符)",
                     )
 
         self._consume(TokenType.RPAREN, "期望 ')'")
@@ -2044,12 +2062,13 @@ class Parser:
         try:
             # v6.3: 提前注册函数参数
             from .symbol_table import SymbolType
+
             for param in params:
                 self.symbol_table_stack.define(
                     name=param,
                     value=None,  # 值在运行时传入
                     symbol_type=SymbolType.PARAMETER,
-                    line_number=line
+                    line_number=line,
                 )
 
             # 解析函数体
@@ -2068,12 +2087,7 @@ class Parser:
             # 消费 DEDENT
             self._consume(TokenType.DEDENT, "期望反缩进")
 
-            return FunctionDefNode(
-                name=func_name,
-                params=params,
-                body=body,
-                line=line
-            )
+            return FunctionDefNode(name=func_name, params=params, body=body, line=line)
 
         finally:
             # v6.3: 退出函数作用域（确保异常安全）
@@ -2134,7 +2148,7 @@ class Parser:
 
         # 检查是否有日志级别关键字 (v4.3+)
         level = "info"  # 默认级别
-        valid_levels = ['debug', 'info', 'success', 'warning', 'error']
+        valid_levels = ["debug", "info", "success", "warning", "error"]
 
         # 向前看一个 token，检查是否是级别关键字
         if self._check(TokenType.IDENTIFIER):
@@ -2192,7 +2206,11 @@ class Parser:
         self._consume(TokenType.FROM, "期望 'from'")
 
         # v3.3: 选择器支持完整表达式
-        if self._check(TokenType.STRING) or self._check(TokenType.FSTRING) or self._check(TokenType.IDENTIFIER):
+        if (
+            self._check(TokenType.STRING)
+            or self._check(TokenType.FSTRING)
+            or self._check(TokenType.IDENTIFIER)
+        ):
             selector = self._parse_expression()
         else:
             raise ParserError(
@@ -2201,7 +2219,7 @@ class Parser:
                 self._peek().type.name,
                 self._peek().value,
                 "期望选择器字符串或表达式",
-                "STRING | FSTRING | IDENTIFIER"
+                "STRING | FSTRING | IDENTIFIER",
             )
 
         # v3.0: 可选的 pattern "regex" (在 from 之后)
@@ -2218,11 +2236,12 @@ class Parser:
 
         # v6.3: VR-001 要求 - 提前注册 extract 目标变量
         from .symbol_table import SymbolType
+
         self.symbol_table_stack.define(
             name=variable_name,
             value=None,  # 值在运行时提取
             symbol_type=SymbolType.VARIABLE,
-            line_number=line
+            line_number=line,
         )
 
         return ExtractStatement(
@@ -2231,7 +2250,7 @@ class Parser:
             variable_name=variable_name,
             attribute_name=attribute_name,
             pattern=pattern,
-            line=line
+            line=line,
         )
 
     def _parse_variable_name(self) -> str:
@@ -2242,16 +2261,17 @@ class Parser:
         # 常见的: url, text, value, type, link, etc.
         if token.type == TokenType.IDENTIFIER:
             return self._advance().value
-        elif token.type in (TokenType.URL, TokenType.TEXT, TokenType.VALUE, TokenType.TYPE, TokenType.LINK):
+        elif token.type in (
+            TokenType.URL,
+            TokenType.TEXT,
+            TokenType.VALUE,
+            TokenType.TYPE,
+            TokenType.LINK,
+        ):
             return self._advance().value.lower()
         else:
             raise ParserError(
-                token.line,
-                token.column,
-                token.type.name,
-                token.value,
-                "期望变量名",
-                "IDENTIFIER"
+                token.line, token.column, token.type.name, token.value, "期望变量名", "IDENTIFIER"
             )
 
     # ============================================================
@@ -2300,9 +2320,17 @@ class Parser:
         """解析比较表达式"""
         left = self._parse_additive()
 
-        if self._match(TokenType.GT, TokenType.LT, TokenType.GTE, TokenType.LTE,
-                      TokenType.EQ, TokenType.NEQ, TokenType.CONTAINS,
-                      TokenType.MATCHES, TokenType.EQUALS):
+        if self._match(
+            TokenType.GT,
+            TokenType.LT,
+            TokenType.GTE,
+            TokenType.LTE,
+            TokenType.EQ,
+            TokenType.NEQ,
+            TokenType.CONTAINS,
+            TokenType.MATCHES,
+            TokenType.EQUALS,
+        ):
             line = self._previous().line
             token = self._previous()
 
@@ -2396,7 +2424,7 @@ class Parser:
             ParserError: 位置参数在命名参数之后
         """
         arguments = []  # 位置参数
-        kwargs = {}     # 命名参数
+        kwargs = {}  # 命名参数
         seen_kwarg = False  # 是否已见过命名参数
 
         # 跳过开括号后的换行符和缩进（支持多行）
@@ -2411,7 +2439,10 @@ class Parser:
                 # v3.2: 允许某些关键字作为参数名（如 url, text, value, type等）
                 valid_param_name_types = (
                     TokenType.IDENTIFIER,
-                    TokenType.URL, TokenType.TEXT, TokenType.VALUE, TokenType.TYPE
+                    TokenType.URL,
+                    TokenType.TEXT,
+                    TokenType.VALUE,
+                    TokenType.TYPE,
                 )
 
                 if self._peek().type in valid_param_name_types:
@@ -2423,7 +2454,11 @@ class Parser:
                         # 确实是命名参数 name=value 或 name: value
                         is_kwarg = True
                         # 关键字token需要小写化
-                        param_name = identifier_token.value.lower() if identifier_token.type != TokenType.IDENTIFIER else identifier_token.value
+                        param_name = (
+                            identifier_token.value.lower()
+                            if identifier_token.type != TokenType.IDENTIFIER
+                            else identifier_token.value
+                        )
                         self._advance()  # 消费 '=' 或 ':'
 
                         # 解析值表达式
@@ -2439,11 +2474,7 @@ class Parser:
                     # 位置参数
                     if seen_kwarg:
                         raise ParserError(
-                            line,
-                            0,
-                            "PARAMETER",
-                            "",
-                            "位置参数不能出现在命名参数之后"
+                            line, 0, "PARAMETER", "", "位置参数不能出现在命名参数之后"
                         )
                     arguments.append(self._parse_expression())
 
@@ -2486,15 +2517,11 @@ class Parser:
                         method_name=expr.name,
                         arguments=arguments,
                         kwargs=kwargs,
-                        line=line
+                        line=line,
                     )
                 else:
                     # 纯位置参数,使用 FunctionCall
-                    expr = FunctionCall(
-                        function_name=expr.name,
-                        arguments=arguments,
-                        line=line
-                    )
+                    expr = FunctionCall(function_name=expr.name, arguments=arguments, line=line)
                 continue
 
             if self._match(TokenType.DOT):
@@ -2502,7 +2529,12 @@ class Parser:
                 # v3.0: 允许某些关键字作为属性名
                 if self._check(TokenType.IDENTIFIER):
                     property_name = self._advance().value
-                elif self._peek().type in (TokenType.URL, TokenType.TEXT, TokenType.VALUE, TokenType.TYPE):
+                elif self._peek().type in (
+                    TokenType.URL,
+                    TokenType.TEXT,
+                    TokenType.VALUE,
+                    TokenType.TYPE,
+                ):
                     # v5.0: 保留原始大小写以支持模块系统的大小写敏感成员访问
                     property_name = self._advance().value
                 else:
@@ -2513,7 +2545,7 @@ class Parser:
                         token.type.name,
                         token.value,
                         "期望属性名",
-                        "IDENTIFIER"
+                        "IDENTIFIER",
                     )
 
                 # 检查是否是方法调用: .method(...)
@@ -2531,7 +2563,7 @@ class Parser:
                         method_name=property_name,
                         arguments=arguments,
                         kwargs=kwargs,
-                        line=line
+                        line=line,
                     )
                 else:
                     # 属性访问
@@ -2560,7 +2592,7 @@ class Parser:
                         "IDENTIFIER",
                         var_name,
                         f"未定义的变量 '{var_name}'（VR-001 违规）",
-                        f"在使用前先用 'let' 或 'const' 声明变量"
+                        f"在使用前先用 'let' 或 'const' 声明变量",
                     )
                 else:
                     # v6.3: VR-006 - 标记符号为已使用
@@ -2568,7 +2600,7 @@ class Parser:
                         symbol = self.symbol_table_stack.current_scope()._lookup(var_name)
                         if symbol:
                             symbol.mark_used()
-                    except:
+                    except Exception:
                         pass
 
         return expr
@@ -2661,7 +2693,7 @@ class Parser:
                         name=name,
                         value=None,  # Parser 阶段不需要实际值
                         symbol_type=SymbolType.VARIABLE,
-                        line_number=line
+                        line_number=line,
                     )
                     body = self._parse_expression()
                     return LambdaExpression(parameters=[name], body=body, line=line)
@@ -2714,7 +2746,7 @@ class Parser:
                                     name=param,
                                     value=None,  # Parser 阶段不需要实际值
                                     symbol_type=SymbolType.VARIABLE,
-                                    line_number=line
+                                    line_number=line,
                                 )
                             body = self._parse_expression()
                             return LambdaExpression(parameters=params, body=body, line=line)
@@ -2724,7 +2756,7 @@ class Parser:
                 # 不是 Lambda，回退
                 raise Exception("Not a lambda")
 
-            except:
+            except Exception:
                 # 回退到括号位置，按普通括号表达式处理
                 self.current = saved_pos
                 expr = self._parse_expression()
@@ -2738,10 +2770,10 @@ class Parser:
             token.column,
             token.type.name,
             token.value,
-            f"期望表达式，得到 {token.type.name}"
+            f"期望表达式，得到 {token.type.name}",
         )
 
-    def _parse_array_literal(self, line: int) -> 'ArrayLiteral':
+    def _parse_array_literal(self, line: int) -> "ArrayLiteral":
         """
         解析数组字面量
 
@@ -2794,7 +2826,7 @@ class Parser:
 
         return ArrayLiteral(elements=elements, line=line)
 
-    def _parse_object_literal(self, line: int) -> 'ObjectLiteral':
+    def _parse_object_literal(self, line: int) -> "ObjectLiteral":
         """
         解析对象字面量
 
@@ -2858,14 +2890,13 @@ class Parser:
         """
         # key 可以是标识符、字符串或某些关键字
         token = self._peek()
-        
+
         if self._check(TokenType.IDENTIFIER):
             key = self._advance().value
         elif self._check(TokenType.STRING):
             key = self._advance().value
         # v3.0: 允许某些关键字作为对象键（常见属性名）
-        elif token.type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, 
-                           TokenType.URL):
+        elif token.type in (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL):
             key = self._advance().value.lower()
         else:
             raise ParserError(
@@ -2874,7 +2905,7 @@ class Parser:
                 token.type.name,
                 token.value,
                 "期望标识符、字符串或关键字作为对象键",
-                "IDENTIFIER | STRING | keyword"
+                "IDENTIFIER | STRING | keyword",
             )
 
         # 期望 ':'
@@ -2885,7 +2916,7 @@ class Parser:
 
         return (key, value)
 
-    def _parse_input_expression(self, line: int) -> 'InputExpression':
+    def _parse_input_expression(self, line: int) -> "InputExpression":
         """
         解析 input() 表达式 (v5.1)
 
@@ -2941,7 +2972,7 @@ class Parser:
                     param_token.type.name,
                     param_token.value,
                     "期望参数名（identifier或type关键字）",
-                    "IDENTIFIER | TYPE"
+                    "IDENTIFIER | TYPE",
                 )
 
             # 期望 '=' 或 ':'
@@ -2953,7 +2984,7 @@ class Parser:
                     token.type.name,
                     token.value,
                     "期望 '=' 或 ':'",
-                    "EQUALS_SIGN | COLON"
+                    "EQUALS_SIGN | COLON",
                 )
 
             # 解析参数值
@@ -2975,7 +3006,7 @@ class Parser:
                         type_token.type.name,
                         type_token.value,
                         "type 参数期望标识符（text, password, integer, float）",
-                        "IDENTIFIER"
+                        "IDENTIFIER",
                     )
 
                 # 验证类型值
@@ -2988,7 +3019,7 @@ class Parser:
                         type_token.column,
                         "TYPE_VALUE",
                         input_type,
-                        f"无效的 input type: {input_type}。有效值：{', '.join(valid_types)}"
+                        f"无效的 input type: {input_type}。有效值：{', '.join(valid_types)}",
                     )
             else:
                 # 未知参数，跳过
@@ -2997,7 +3028,7 @@ class Parser:
                     param_token.column,
                     "PARAMETER_NAME",
                     param_name,
-                    f"未知的 input 参数: {param_name}。有效参数：default, type"
+                    f"未知的 input 参数: {param_name}。有效参数：default, type",
                 )
 
         # 跳过结尾换行符和缩进
@@ -3007,10 +3038,7 @@ class Parser:
         self._consume(TokenType.RPAREN, "期望 ')' 结束 input 表达式")
 
         return InputExpression(
-            prompt=prompt,
-            default_value=default_value,
-            input_type=input_type,
-            line=line
+            prompt=prompt, default_value=default_value, input_type=input_type, line=line
         )
 
     def _parse_string_interpolation(self, string_value: str, line: int) -> StringInterpolation:
@@ -3024,7 +3052,7 @@ class Parser:
         i = 0
 
         while i < len(string_value):
-            if string_value[i] == '{':
+            if string_value[i] == "{":
                 # 保存当前文本部分
                 if current:
                     parts.append(current)
@@ -3034,9 +3062,9 @@ class Parser:
                 j = i + 1
                 brace_count = 1
                 while j < len(string_value) and brace_count > 0:
-                    if string_value[j] == '{':
+                    if string_value[j] == "{":
                         brace_count += 1
-                    elif string_value[j] == '}':
+                    elif string_value[j] == "}":
                         brace_count -= 1
                     j += 1
 
@@ -3047,7 +3075,7 @@ class Parser:
                     continue
 
                 # 提取表达式文本
-                expr_text = string_value[i + 1:j - 1].strip()
+                expr_text = string_value[i + 1 : j - 1].strip()
 
                 # 处理空表达式 - 添加空字符串字面量
                 if not expr_text:
@@ -3057,6 +3085,7 @@ class Parser:
 
                 # 解析表达式 (创建临时 lexer 和 parser)
                 from .lexer import Lexer
+
                 lexer = Lexer()
                 expr_tokens = lexer.tokenize(expr_text)
 
@@ -3125,18 +3154,18 @@ class Parser:
         value_lower = value.lower()
 
         # 毫秒 - 先检查完整单词，再检查缩写
-        if value_lower.endswith('milliseconds'):
+        if value_lower.endswith("milliseconds"):
             return float(value[:-12]) / 1000.0
-        elif value_lower.endswith('ms'):
+        elif value_lower.endswith("ms"):
             return float(value[:-2]) / 1000.0
         # 秒 - 多种格式
-        elif value_lower.endswith('seconds'):
+        elif value_lower.endswith("seconds"):
             return float(value[:-7])
-        elif value_lower.endswith('second'):
+        elif value_lower.endswith("second"):
             return float(value[:-6])
-        elif value_lower.endswith('sec'):
+        elif value_lower.endswith("sec"):
             return float(value[:-3])
-        elif value_lower.endswith('s'):
+        elif value_lower.endswith("s"):
             return float(value[:-1])
         else:
             # 无单位，默认为秒
@@ -3180,12 +3209,7 @@ class Parser:
 
         token = self._peek()
         raise ParserError(
-            token.line,
-            token.column,
-            token.type.name,
-            token.value,
-            message,
-            token_type.name
+            token.line, token.column, token.type.name, token.value, message, token_type.name
         )
 
     def _consume_numeric(self, message: str) -> Token:
@@ -3199,12 +3223,7 @@ class Parser:
 
         token = self._peek()
         raise ParserError(
-            token.line,
-            token.column,
-            token.type.name,
-            token.value,
-            message,
-            "INTEGER or NUMBER"
+            token.line, token.column, token.type.name, token.value, message, "INTEGER or NUMBER"
         )
 
     def _consume_any(self, token_types: List[TokenType], message: str) -> Token:
@@ -3215,14 +3234,7 @@ class Parser:
 
         token = self._peek()
         expected = " | ".join(t.name for t in token_types)
-        raise ParserError(
-            token.line,
-            token.column,
-            token.type.name,
-            token.value,
-            message,
-            expected
-        )
+        raise ParserError(token.line, token.column, token.type.name, token.value, message, expected)
 
     def _skip_newlines(self):
         """跳过所有换行符"""
@@ -3252,12 +3264,7 @@ class Parser:
             Token 对象
         """
         # 允许的关键字类型（可以作为标识符使用）
-        allowed_keyword_types = (
-            TokenType.VALUE,
-            TokenType.TEXT,
-            TokenType.TYPE,
-            TokenType.URL
-        )
+        allowed_keyword_types = (TokenType.VALUE, TokenType.TEXT, TokenType.TYPE, TokenType.URL)
 
         if self._check(TokenType.IDENTIFIER):
             return self._advance()
@@ -3266,12 +3273,7 @@ class Parser:
         else:
             token = self._peek()
             raise ParserError(
-                token.line,
-                token.column,
-                token.type.name,
-                token.value,
-                message,
-                "IDENTIFIER"
+                token.line, token.column, token.type.name, token.value, message, "IDENTIFIER"
             )
 
     # ========================================================================
@@ -3281,31 +3283,31 @@ class Parser:
     def _check_unused_variables(self):
         """
         检查未使用的变量并生成警告（VR-006）
-        
+
         遍历所有作用域的符号表，对于未使用的用户定义变量生成警告。
-        
+
         例外情况（不生成警告）：
         - 系统变量（page, env, response）
         - 函数定义（函数本身可以未被调用）
         - 以下划线开头的变量（约定俗成的"私有"或"忽略"变量）
         """
         from .errors import Warning
-        
+
         all_symbols = self.symbol_table_stack.get_all_symbols()
-        
+
         for name, symbol in all_symbols.items():
             # 跳过系统变量
             if symbol.symbol_type == SymbolType.SYSTEM:
                 continue
-            
+
             # 跳过函数定义（函数可以未被调用）
             if symbol.symbol_type == SymbolType.FUNCTION:
                 continue
-            
+
             # 跳过以下划线开头的变量（约定的"忽略"变量）
-            if name.startswith('_'):
+            if name.startswith("_"):
                 continue
-            
+
             # 检查是否未使用
             if not symbol.is_used:
                 # 根据符号类型生成不同的建议
@@ -3315,23 +3317,22 @@ class Parser:
                     suggestion = f"移除未使用的导入，或使用该符号"
                 else:
                     suggestion = f"移除未使用的变量，或使用它"
-                
+
                 warning = Warning(
                     warning_code="VR-006",
                     message=f"变量 '{name}' 声明但从未使用",
                     line=symbol.line_number,
                     symbol_name=name,
-                    suggestion=suggestion
+                    suggestion=suggestion,
                 )
-                
+
                 self.warnings.append(warning)
-    
-    def get_warnings(self) -> List['Warning']:
+
+    def get_warnings(self) -> List["Warning"]:
         """
         获取所有警告（v6.3 - VR-006）
-        
+
         Returns:
             警告列表
         """
         return self.warnings
-

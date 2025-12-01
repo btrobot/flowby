@@ -17,10 +17,10 @@ from ..errors import ExecutionError
 
 def execute_wait_duration(
     duration,  # float 或 Expression (v6.0.2)
-    context: 'ExecutionContext',
+    context: "ExecutionContext",
     line: int = 0,
     unit: Optional[str] = None,  # v6.0.2: 时间单位（仅表达式需要）
-    evaluator: Optional['ExpressionEvaluator'] = None  # v6.0.2: 表达式求值器
+    evaluator: Optional["ExpressionEvaluator"] = None,  # v6.0.2: 表达式求值器
 ):
     """
     等待固定时间 (v6.0.2: 支持数值表达式)
@@ -43,7 +43,7 @@ def execute_wait_duration(
                 line=line,
                 statement=f"wait {duration} {unit}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message="内部错误：缺少表达式求值器"
+                message="内部错误：缺少表达式求值器",
             )
 
         # 求值表达式
@@ -55,20 +55,20 @@ def execute_wait_duration(
                 line=line,
                 statement=f"wait {duration} {unit}",
                 error_type=ExecutionError.TYPE_ERROR,
-                message=f"wait 表达式必须求值为数值类型，但得到 {type(value).__name__}: {value}"
+                message=f"wait 表达式必须求值为数值类型，但得到 {type(value).__name__}: {value}",
             )
 
         # 转换单位为秒
-        if unit in ('ms', 'milliseconds'):
+        if unit in ("ms", "milliseconds"):
             duration_seconds = float(value) / 1000.0
-        elif unit in ('s', 'sec', 'second', 'seconds'):
+        elif unit in ("s", "sec", "second", "seconds"):
             duration_seconds = float(value)
         else:
             raise ExecutionError(
                 line=line,
                 statement=f"wait {duration} {unit}",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"无效的时间单位: {unit}"
+                message=f"无效的时间单位: {unit}",
             )
     else:
         # 字面量，已经转换为秒
@@ -82,11 +82,11 @@ def execute_wait_duration(
         record_type="wait",
         content=f"wait {duration_seconds}s",
         duration=duration_seconds,
-        success=True
+        success=True,
     )
 
 
-def execute_wait_for_state(state: str, context: 'ExecutionContext', line: int = 0):
+def execute_wait_for_state(state: str, context: "ExecutionContext", line: int = 0):
     """
     等待页面状态
 
@@ -101,11 +101,7 @@ def execute_wait_for_state(state: str, context: 'ExecutionContext', line: int = 
         page = context.get_page()
         page.wait_for_load_state(state=state, timeout=30000)
 
-        context.add_execution_record(
-            record_type="wait",
-            content=f"wait for {state}",
-            success=True
-        )
+        context.add_execution_record(record_type="wait", content=f"wait for {state}", success=True)
 
         context.logger.info(f"✓ 页面状态达到: {state}")
 
@@ -114,15 +110,12 @@ def execute_wait_for_state(state: str, context: 'ExecutionContext', line: int = 
             line=line,
             statement=f"wait for {state}",
             error_type=ExecutionError.TIMEOUT,
-            message=f"等待页面状态 {state} 超时: {e}"
+            message=f"等待页面状态 {state} 超时: {e}",
         )
 
 
 def execute_wait_for_element(
-    selector: str,
-    state: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
+    selector: str, state: Optional[str], context: "ExecutionContext", line: int = 0
 ):
     """
     等待元素出现或达到指定状态
@@ -147,7 +140,7 @@ def execute_wait_for_element(
         context.add_execution_record(
             record_type="wait",
             content=f"wait for element {element_state} {resolved_selector}",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 元素已 {element_state}: {resolved_selector}")
@@ -159,7 +152,7 @@ def execute_wait_for_element(
             screenshot_path = context.screenshot_manager.capture_on_error(
                 page, "element_wait_timeout", line
             )
-        except:
+        except Exception:
             screenshot_path = None
 
         raise ExecutionError(
@@ -167,11 +160,11 @@ def execute_wait_for_element(
             statement=f"wait for element {element_state} {resolved_selector}",
             error_type=ExecutionError.TIMEOUT,
             message=f"等待元素 {resolved_selector} ({element_state}) 超时: {e}",
-            screenshot_path=screenshot_path
+            screenshot_path=screenshot_path,
         )
 
 
-def execute_wait_for_navigation(context: 'ExecutionContext', line: int = 0):
+def execute_wait_for_navigation(context: "ExecutionContext", line: int = 0):
     """
     等待导航完成
 
@@ -186,9 +179,7 @@ def execute_wait_for_navigation(context: 'ExecutionContext', line: int = 0):
         page.wait_for_load_state("networkidle", timeout=30000)
 
         context.add_execution_record(
-            record_type="wait",
-            content="wait for navigation",
-            success=True
+            record_type="wait", content="wait for navigation", success=True
         )
 
         context.logger.info("✓ 导航已完成")
@@ -198,15 +189,11 @@ def execute_wait_for_navigation(context: 'ExecutionContext', line: int = 0):
             line=line,
             statement="wait for navigation",
             error_type=ExecutionError.TIMEOUT,
-            message=f"等待导航超时: {e}"
+            message=f"等待导航超时: {e}",
         )
 
 
-def execute_wait_until(
-    condition: 'Condition',
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_wait_until(condition: "Condition", context: "ExecutionContext", line: int = 0):
     """
     等待条件满足
 
@@ -230,11 +217,11 @@ def execute_wait_until(
                     record_type="wait",
                     content=f"wait until {condition.condition_type} {condition.operator}",
                     duration=time.time() - start_time,
-                    success=True
+                    success=True,
                 )
                 context.logger.info(f"✓ 条件满足")
                 return
-        except:
+        except Exception:
             pass
 
         time.sleep(poll_interval)
@@ -244,17 +231,17 @@ def execute_wait_until(
         line=line,
         statement=f"wait until {condition.condition_type} {condition.operator}",
         error_type=ExecutionError.TIMEOUT,
-        message=f"等待条件超时（{timeout}秒）"
+        message=f"等待条件超时（{timeout}秒）",
     )
 
 
 def execute_wait_until_expression(
-    condition: 'Expression',
-    evaluator: 'ExpressionEvaluator',
-    context: 'ExecutionContext',
+    condition: "Expression",
+    evaluator: "ExpressionEvaluator",
+    context: "ExecutionContext",
     line: int = 0,
     timeout: float = 30.0,
-    poll_interval: float = 0.5
+    poll_interval: float = 0.5,
 ):
     """
     等待直到条件表达式为真 (v2.0)
@@ -281,13 +268,14 @@ def execute_wait_until_expression(
 
             # 转换为布尔值
             from ..expression_evaluator import to_boolean
+
             if to_boolean(result):
                 elapsed = time.time() - start_time
                 context.add_execution_record(
                     record_type="wait",
                     content=f"wait until expression",
                     duration=elapsed,
-                    success=True
+                    success=True,
                 )
                 context.logger.info(f"✓ 条件满足 (耗时 {elapsed:.1f}s)")
                 return
@@ -301,7 +289,7 @@ def execute_wait_until_expression(
                 line=line,
                 statement="wait until",
                 error_type=ExecutionError.TIMEOUT,
-                message=f"等待条件超时 ({timeout}s)"
+                message=f"等待条件超时 ({timeout}s)",
             )
 
         # 等待轮询间隔

@@ -4,11 +4,10 @@
 负责协调信息收集和诊断包生成
 """
 
-import os
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, Any, Optional
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from playwright.sync_api import Page
@@ -20,7 +19,7 @@ from .config import (
     DEFAULT_DIAGNOSIS_CONFIG,
     get_collectors_for_level,
 )
-from .collectors import get_collector, ScreenshotCollector
+from .collectors import get_collector
 from .listeners import DiagnosisListeners
 from .report import DiagnosisReportGenerator
 

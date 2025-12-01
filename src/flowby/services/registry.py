@@ -3,9 +3,9 @@
 """
 
 import time
-from typing import Dict, Any, Type, Optional
+from typing import Dict, Any, Type
 
-from ..config.schema import ServicesConfig, GlobalSettings
+from ..config.schema import ServicesConfig
 from .provider import ServiceProvider
 from .errors import ServiceError
 

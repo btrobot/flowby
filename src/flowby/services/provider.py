@@ -49,7 +49,6 @@ class ServiceProvider(ABC):
         Raises:
             ServiceError: 初始化失败
         """
-        pass
 
     @abstractmethod
     def get_methods(self) -> List[str]:
@@ -59,7 +58,6 @@ class ServiceProvider(ABC):
         Returns:
             方法名列表
         """
-        pass
 
     def call_method(self, method: str, **kwargs) -> Any:
         """
@@ -92,7 +90,6 @@ class ServiceProvider(ABC):
 
     def close(self) -> None:
         """关闭提供者，释放资源"""
-        pass
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name!r})"
