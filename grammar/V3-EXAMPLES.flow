@@ -17,6 +17,8 @@ let score = 95.5
 let active = True          # ✅ Python风格: True（首字母大写）
 let items = [1, 2, 3]
 let user = {name: "Bob", age: 30}
+let order_status = "pending"
+let users = []
 
 # 1.2 Const Declaration（DSL特有：真正的不可变）
 const MAX_RETRY = 3
@@ -43,18 +45,19 @@ step "用户注册流程":
 
 # 2.2 If-Else Block（删除 end if，完全像Python）
 step "条件处理":
+    let grade = ""
     if score >= 90:
         log "成绩优秀"
-        const grade = "A"
+        grade = "A"
     else if score >= 80:
         log "成绩良好"
-        const grade = "B"
+        grade = "B"
     else if score >= 70:
         log "成绩中等"
-        const grade = "C"
+        grade = "C"
     else:
         log "需要努力"
-        const grade = "F"
+        grade = "F"
     # ✅ 块结束由缩进决定，无需 end if
 
 # 嵌套if示例

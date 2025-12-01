@@ -377,7 +377,7 @@ extract text from ".phone" pattern "\d{3}-\d{4}" into phone
 |------|------|
 | **字符串** | `"hello"`, `'world'`, `"Hello {name}"`, `f"Hello {name}"` |
 | **数字** | `123`, `3.14`, `-10`, `0.5` |
-| **布尔** | `true`, `false` |
+| **布尔** | `True`, `False` |
 | **空值** | `None` |
 | **数组** | `[1, 2, 3]`, `["a", "b", "c"]` |
 | **对象** | `{name: "Alice", age: 30}` |
