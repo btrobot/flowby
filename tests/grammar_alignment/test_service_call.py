@@ -11,19 +11,20 @@ Reference: grammar/MASTER.md #8-Service Call
 
 import pytest
 from unittest.mock import Mock, patch
-from registration_system.dsl.ast_nodes import (
+from flowby.ast_nodes import (
     LetStatement,
     MethodCall,
     Program,
 )
-from registration_system.dsl.interpreter import Interpreter
-from registration_system.dsl.context import ExecutionContext
-from registration_system.dsl.errors import ExecutionError
+from flowby.interpreter import Interpreter
+from flowby.context import ExecutionContext
+from flowby.errors import ExecutionError
 
 
 # ============================================================================
 # Feature 8.1: Call Service (Python-style)
 # ============================================================================
+
 
 @pytest.mark.feature("8.1")
 @pytest.mark.priority("high")
@@ -42,7 +43,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_email(self, parse):
         """Test random.email() service call"""
-        ast = parse('let email = random.email()')
+        ast = parse("let email = random.email()")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -53,7 +54,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_password(self, parse):
         """Test random.password() with positional parameters"""
-        ast = parse('let pwd = random.password(16, True)')
+        ast = parse("let pwd = random.password(16, True)")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -64,7 +65,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_password_named_params(self, parse):
         """Test random.password() with named parameters (v3.2+)"""
-        ast = parse('let pwd = random.password(length=16, special=True)')
+        ast = parse("let pwd = random.password(length=16, special=True)")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -73,7 +74,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_username(self, parse):
         """Test random.username() service call"""
-        ast = parse('let user = random.username()')
+        ast = parse("let user = random.username()")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -92,7 +93,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_number(self, parse):
         """Test random.number() with positional parameters"""
-        ast = parse('let num = random.number(1, 100)')
+        ast = parse("let num = random.number(1, 100)")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -102,7 +103,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_random_uuid(self, parse):
         """Test random.uuid() service call"""
-        ast = parse('let id = random.uuid()')
+        ast = parse("let id = random.uuid()")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -155,7 +156,9 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_http_patch(self, parse):
         """Test http.patch() service call"""
-        ast = parse('let result = http.patch(url="https://api.example.com", body={status: "active"})')
+        ast = parse(
+            'let result = http.patch(url="https://api.example.com", body={status: "active"})'
+        )
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -168,7 +171,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_service_call_in_expression(self, parse):
         """Test service call used in expression"""
-        ast = parse('let uppercase = random.email().toUpperCase()')
+        ast = parse("let uppercase = random.email().toUpperCase()")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -177,7 +180,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_service_call_in_object_literal(self, parse):
         """Test service call in object literal"""
-        ast = parse('let user = {email: random.email(), password: random.password(16)}')
+        ast = parse("let user = {email: random.email(), password: random.password(16)}")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -185,7 +188,7 @@ class Test8_1_PythonStyleServiceCall:
 
     def test_service_call_in_array_literal(self, parse):
         """Test service call in array literal"""
-        ast = parse('let emails = [random.email(), random.email(), random.email()]')
+        ast = parse("let emails = [random.email(), random.email(), random.email()]")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -203,7 +206,7 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_service_call_mixed_params(self, parse):
         """Test service call with mixed positional and named parameters (v3.2+)"""
-        ast = parse('let pwd = random.password(16, special=True)')
+        ast = parse("let pwd = random.password(16, special=True)")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -211,7 +214,9 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_service_call_multiple_named_params(self, parse):
         """Test service call with multiple named parameters (v3.2+)"""
-        ast = parse('let response = http.post(url="https://api.example.com", body={data: "test"}, timeout=5000)')
+        ast = parse(
+            'let response = http.post(url="https://api.example.com", body={data: "test"}, timeout=5000)'
+        )
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -228,7 +233,9 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_http_get_with_headers(self, parse):
         """Test HTTP GET with headers parameter"""
-        ast = parse('let response = http.get(url="https://api.example.com", headers={Authorization: "Bearer token"})')
+        ast = parse(
+            'let response = http.get(url="https://api.example.com", headers={Authorization: "Bearer token"})'
+        )
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -236,7 +243,9 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_http_post_with_json(self, parse):
         """Test HTTP POST with json parameter"""
-        ast = parse('let response = http.post(url="https://api.example.com", json={email: "test@example.com"})')
+        ast = parse(
+            'let response = http.post(url="https://api.example.com", json={email: "test@example.com"})'
+        )
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -249,7 +258,7 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_service_call_no_params(self, parse):
         """Test service call with no parameters"""
-        ast = parse('let id = random.uuid()')
+        ast = parse("let id = random.uuid()")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -257,7 +266,7 @@ let response = http.get(url=base_url + "/users")"""
 
     def test_service_call_only_named_params(self, parse):
         """Test service call with only named parameters"""
-        ast = parse('let pwd = random.password(length=20, special=False, numeric=True)')
+        ast = parse("let pwd = random.password(length=20, special=False, numeric=True)")
 
         assert len(ast) == 1
         assert isinstance(ast[0], LetStatement)
@@ -305,6 +314,7 @@ let response = http.get(url=base + path + "?page=1")"""
 # Feature 8.1: Execution Validation
 # ============================================================================
 
+
 @pytest.mark.feature("8.1")
 @pytest.mark.priority("high")
 class Test8_1_ExecutionValidation:
@@ -332,90 +342,88 @@ class Test8_1_ExecutionValidation:
     # HTTP Namespace - Response Interface Validation
     # ========================================================================
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_http_get_returns_response_object(self, mock_get, parse):
         """验证 http.get() 返回 HttpResponse 对象 (v4.0)"""
         # Mock 响应
         mock_response = Mock()
         mock_response.ok = True
         mock_response.status_code = 200
-        mock_response.headers = {'content-type': 'application/json'}
-        mock_response.json.return_value = {'status': 'ok'}
+        mock_response.headers = {"content-type": "application/json"}
+        mock_response.json.return_value = {"status": "ok"}
         mock_get.return_value = mock_response
 
         # 解析并执行
         ast = parse('let response = http.get(url="https://api.example.com")')
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         # 验证返回 HttpResponse 对象
         response = interpreter.symbol_table.get("response", 0)
-        assert hasattr(response, 'ok'), "HttpResponse 必须有 .ok 属性"
-        assert hasattr(response, 'data'), "HttpResponse 必须有 .data 属性"
-        assert hasattr(response, 'status_code'), "HttpResponse 必须有 .status_code 属性"
-        assert hasattr(response, 'headers'), "HttpResponse 必须有 .headers 属性"
+        assert hasattr(response, "ok"), "HttpResponse 必须有 .ok 属性"
+        assert hasattr(response, "data"), "HttpResponse 必须有 .data 属性"
+        assert hasattr(response, "status_code"), "HttpResponse 必须有 .status_code 属性"
+        assert hasattr(response, "headers"), "HttpResponse 必须有 .headers 属性"
 
         # 验证属性值
         assert response.ok is True
-        assert response.data == {'status': 'ok'}
+        assert response.data == {"status": "ok"}
         assert response.status_code == 200
 
-    @patch('requests.post')
+    @patch("requests.post")
     def test_http_post_with_body_parameter(self, mock_post, parse):
         """验证 http.post() 使用 body 参数（非 json）"""
         mock_response = Mock()
         mock_response.ok = True
         mock_response.status_code = 201
-        mock_response.headers = {'content-type': 'application/json'}
-        mock_response.json.return_value = {'id': 1}
+        mock_response.headers = {"content-type": "application/json"}
+        mock_response.json.return_value = {"id": 1}
         mock_post.return_value = mock_response
 
         # 使用 body 参数
         ast = parse('let result = http.post(url="https://api.example.com", body={name: "test"})')
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         # 验证 mock 调用使用了 json 参数（内部映射）
         mock_post.assert_called_once_with(
-            "https://api.example.com",
-            json={'name': 'test'},
-            timeout=30,
-            headers=None
+            "https://api.example.com", json={"name": "test"}, timeout=30, headers=None
         )
 
         # 验证返回值
         result = interpreter.symbol_table.get("result", 0)
         assert result.ok is True
-        assert result.data['id'] == 1
+        assert result.data["id"] == 1
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_http_error_returns_failed_response(self, mock_get, parse):
         """验证 HTTP 错误抛出 ExecutionError 异常（v3.2+ 行为）"""
         import requests
+
         mock_get.side_effect = requests.exceptions.RequestException("Connection timeout")
 
         # 执行应该抛出 ExecutionError
         ast = parse('let response = http.get(url="https://invalid.com")')
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         # v3.2+: HTTP 网络错误抛出异常
         with pytest.raises(ExecutionError, match="(调用方法失败|Connection timeout)"):
             interpreter.execute(program)
 
-    @patch('requests.post')
+    @patch("requests.post")
     def test_multiline_http_call_execution(self, mock_post, parse):
         """验证多行 HTTP 调用能够正确执行"""
         mock_response = Mock()
         mock_response.ok = True
         mock_response.status_code = 200
-        mock_response.headers = {'content-type': 'application/json'}
-        mock_response.json.return_value = {'success': True}
+        mock_response.headers = {"content-type": "application/json"}
+        mock_response.json.return_value = {"success": True}
         mock_post.return_value = mock_response
 
         # 多行格式
@@ -429,22 +437,22 @@ class Test8_1_ExecutionValidation:
 )"""
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         # 验证参数传递正确
         mock_post.assert_called_once_with(
             "https://api.example.com",
-            json={'name': 'test', 'email': 'test@example.com'},
+            json={"name": "test", "email": "test@example.com"},
             timeout=10,
-            headers=None
+            headers=None,
         )
 
         # 验证返回值
         response = interpreter.symbol_table.get("response", 0)
         assert response.ok is True
-        assert response.data['success'] is True
+        assert response.data["success"] is True
 
     # ========================================================================
     # Random Namespace - Execution Validation
@@ -452,9 +460,9 @@ class Test8_1_ExecutionValidation:
 
     def test_random_email_returns_valid_email(self, parse):
         """验证 random.email() 返回有效的邮箱格式"""
-        ast = parse('let email = random.email()')
+        ast = parse("let email = random.email()")
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -465,9 +473,9 @@ class Test8_1_ExecutionValidation:
 
     def test_random_password_with_parameters(self, parse):
         """验证 random.password() 参数能够正确影响结果"""
-        ast = parse('let pwd = random.password(20, False)')
+        ast = parse("let pwd = random.password(20, False)")
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -477,34 +485,36 @@ class Test8_1_ExecutionValidation:
 
         # 验证不包含特殊字符
         import string
-        assert all(c in string.ascii_letters + string.digits for c in pwd), \
-            "special=False 时密码不应包含特殊字符"
+
+        assert all(
+            c in string.ascii_letters + string.digits for c in pwd
+        ), "special=False 时密码不应包含特殊字符"
 
     def test_random_uuid_returns_valid_format(self, parse):
         """验证 random.uuid() 返回有效的 UUID 格式"""
-        ast = parse('let id = random.uuid()')
+        ast = parse("let id = random.uuid()")
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         uuid = interpreter.symbol_table.get("id", 0)
         assert isinstance(uuid, str), "uuid() 必须返回字符串"
         assert len(uuid) == 36, "UUID 长度必须是 36"
-        assert uuid.count('-') == 4, "UUID 必须包含 4 个连字符"
+        assert uuid.count("-") == 4, "UUID 必须包含 4 个连字符"
 
     # ========================================================================
     # Integration Tests - Complex Scenarios
     # ========================================================================
 
-    @patch('requests.post')
+    @patch("requests.post")
     def test_http_response_in_conditional(self, mock_post, parse):
         """验证 HttpResponse 对象可用于条件判断"""
         mock_response = Mock()
         mock_response.ok = True
         mock_response.status_code = 200
-        mock_response.headers = {'content-type': 'application/json'}
-        mock_response.json.return_value = {'created': True}
+        mock_response.headers = {"content-type": "application/json"}
+        mock_response.json.return_value = {"created": True}
         mock_post.return_value = mock_response
 
         code = """
@@ -515,7 +525,7 @@ if response.ok:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -523,16 +533,14 @@ if response.ok:
         success = interpreter.symbol_table.get("success", 0)
         assert success is True, "条件判断应该能够访问 response.ok"
 
-    @patch('requests.get')
+    @patch("requests.get")
     def test_http_response_data_access(self, mock_get, parse):
         """验证 HttpResponse.data 可以访问嵌套属性"""
         mock_response = Mock()
         mock_response.ok = True
         mock_response.status_code = 200
-        mock_response.headers = {'content-type': 'application/json'}
-        mock_response.json.return_value = {
-            'user': {'name': 'Alice', 'email': 'alice@example.com'}
-        }
+        mock_response.headers = {"content-type": "application/json"}
+        mock_response.json.return_value = {"user": {"name": "Alice", "email": "alice@example.com"}}
         mock_get.return_value = mock_response
 
         code = """
@@ -543,7 +551,7 @@ if response.ok:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 

@@ -21,6 +21,7 @@ import pytest
 # 3.1 Navigate To 测试
 # ============================================================================
 
+
 class TestV3_3_1_NavigateTo:
     """Navigate To 语句测试（v3.0 Python 风格）"""
 
@@ -148,6 +149,7 @@ step "测试导航":
     def test_navigate_in_if_block(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let is_admin = True
 if is_admin:
     navigate to "https://admin.example.com"
 """
@@ -180,6 +182,7 @@ navigate to f"https://example.com{path}"
 # ============================================================================
 # 3.2 Go Back/Forward 测试
 # ============================================================================
+
 
 class TestV3_3_2_GoBackForward:
     """Go Back/Forward 语句测试"""
@@ -238,6 +241,7 @@ step "浏览器历史":
     def test_go_back_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let need_back = True
 if need_back:
     go back
 """
@@ -262,6 +266,7 @@ go forward
 # ============================================================================
 # 3.3 Reload 测试
 # ============================================================================
+
 
 class TestV3_3_3_Reload:
     """Reload 语句测试"""
@@ -296,6 +301,7 @@ step "页面刷新":
     def test_reload_in_if(self, parse_v3):
         """✅ 正确：在 if 块内刷新（v3.0：无 end if）"""
         source = """
+let page_stale = True
 if page_stale:
     reload
 """
@@ -318,6 +324,7 @@ reload
 # ============================================================================
 # 综合测试
 # ============================================================================
+
 
 class TestV3_3_Integration:
     """导航功能综合测试"""
@@ -347,6 +354,8 @@ step "用户导航流程":
     def test_nested_navigation(self, parse_v3):
         """✅ 正确：嵌套块中的导航（v3.0：纯缩进）"""
         source = """
+let is_authenticated = True
+let role = "admin"
 step "嵌套导航":
     if is_authenticated:
         if role == "admin":

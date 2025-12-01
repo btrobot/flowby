@@ -9,7 +9,7 @@ from .provider import ServiceProvider
 from .errors import ServiceError
 
 __all__ = [
-    'ServiceRegistry',
-    'ServiceProvider',
-    'ServiceError',
+    "ServiceRegistry",
+    "ServiceProvider",
+    "ServiceError",
 ]

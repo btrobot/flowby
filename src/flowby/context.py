@@ -11,11 +11,9 @@ ExecutionContext 是 DSL 解释器执行的核心，包含了执行过程中的�
 
 import logging
 import re
-import os
-from pathlib import Path
 from datetime import datetime
 from typing import Dict, List, Optional, Any
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 
 from playwright.sync_api import Page, Locator
@@ -24,7 +22,6 @@ from .settings import Settings
 from .errors import ExecutionError
 from .diagnosis import DiagnosisManager, DiagnosisConfig, DEFAULT_DIAGNOSIS_CONFIG
 from .diagnosis.listeners import DiagnosisListeners
-from .diagnosis.cleanup import DiagnosisCleanup
 from .config.schema import ServicesConfig
 
 
@@ -34,10 +31,11 @@ class ExecutionStatus(Enum):
 
     表示执行上下文的当前状态
     """
-    PENDING = "pending"      # 等待开始
-    RUNNING = "running"      # 正在执行
+
+    PENDING = "pending"  # 等待开始
+    RUNNING = "running"  # 正在执行
     COMPLETED = "completed"  # 执行完成
-    FAILED = "failed"        # 执行失败
+    FAILED = "failed"  # 执行失败
     CANCELLED = "cancelled"  # 已取消
 
 
@@ -55,6 +53,7 @@ class ExecutionRecord:
         duration: 执行耗时（秒，可选）
         success: 是否成功（可选）
     """
+
     timestamp: float
     type: str
     content: str
@@ -77,7 +76,7 @@ class ScreenshotManager:
         screenshots: 已捕获的截图列表
     """
 
-    def __init__(self, task_id: str, script_name: str = 'unnamed'):
+    def __init__(self, task_id: str, script_name: str = "unnamed"):
         """
         初始化截图管理器
 
@@ -89,7 +88,6 @@ class ScreenshotManager:
         self.script_name = script_name
 
         # 按日期和任务组织：screenshots/YYYY-MM-DD/task-{task_id_short}-{timestamp}/
-        from datetime import datetime
         now = datetime.now()
         date_dir = Settings.SCREENSHOTS_DIR / now.strftime("%Y-%m-%d")
 
@@ -124,7 +122,7 @@ class ScreenshotManager:
         filepath = self.screenshot_dir / filename
 
         # 捕获截图
-        page.screenshot(path=str(filepath), full_page=fullpage, type='png')
+        page.screenshot(path=str(filepath), full_page=fullpage, type="png")
 
         # 记录
         self.screenshots.append(str(filepath))
@@ -179,10 +177,10 @@ class ExecutionContext:
         task_id: str,
         variables: Optional[Dict[str, Any]] = None,
         services_config: Optional[ServicesConfig] = None,
-        browser_name: str = 'chromium',
-        script_name: str = 'unnamed',
+        browser_name: str = "chromium",
+        script_name: str = "unnamed",
         script_path: Optional[str] = None,
-        is_interactive: bool = True
+        is_interactive: bool = True,
     ):
         """
         初始化执行上下文
@@ -231,8 +229,7 @@ class ExecutionContext:
         # === 诊断管理器 ===
         self.diagnosis_config = DEFAULT_DIAGNOSIS_CONFIG
         self.diagnosis_manager = DiagnosisManager(
-            config=self.diagnosis_config,
-            base_dir=str(Settings.SCREENSHOTS_DIR)
+            config=self.diagnosis_config, base_dir=str(Settings.SCREENSHOTS_DIR)
         )
         self.diagnosis_listeners: Optional[DiagnosisListeners] = None
 
@@ -240,6 +237,7 @@ class ExecutionContext:
         self.service_registry = None
         if services_config:
             from .services import ServiceRegistry
+
             self.service_registry = ServiceRegistry(services_config)
             self.service_registry.initialize()
 
@@ -269,6 +267,7 @@ class ExecutionContext:
         except Exception as e:
             # 环境变量加载失败不应阻止脚本执行
             import sys
+
             print(f"[警告] 加载环境变量失败: {e}", file=sys.stderr)
 
     def _deep_copy_dict(self, d: Dict[str, Any]) -> Dict[str, Any]:
@@ -282,9 +281,10 @@ class ExecutionContext:
             深拷贝后的字典
         """
         import copy
+
         return copy.deepcopy(d)
 
-    def _create_logger(self, task_id: str, script_name: str = 'unnamed') -> logging.Logger:
+    def _create_logger(self, task_id: str, script_name: str = "unnamed") -> logging.Logger:
         """
         创建任务专用日志器（按日期组织）
 
@@ -311,9 +311,7 @@ class ExecutionContext:
         # 控制台 handler
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
-        console_formatter = logging.Formatter(
-            f'[{task_id[:8]}] [%(levelname)s] %(message)s'
-        )
+        console_formatter = logging.Formatter(f"[{task_id[:8]}] [%(levelname)s] %(message)s")
         console_handler.setFormatter(console_formatter)
         logger.addHandler(console_handler)
 
@@ -328,11 +326,10 @@ class ExecutionContext:
         log_filename = f"{script_name}_{timestamp}_{short_id}.log"
         log_file = date_dir / log_filename
 
-        file_handler = logging.FileHandler(log_file, encoding='utf-8')
+        file_handler = logging.FileHandler(log_file, encoding="utf-8")
         file_handler.setLevel(logging.DEBUG)
         file_formatter = logging.Formatter(
-            '[%(asctime)s] [%(levelname)s] %(message)s',
-            datefmt='%Y-%m-%d %H:%M:%S'
+            "[%(asctime)s] [%(levelname)s] %(message)s", datefmt="%Y-%m-%d %H:%M:%S"
         )
         file_handler.setFormatter(file_formatter)
         logger.addHandler(file_handler)
@@ -347,7 +344,7 @@ class ExecutionContext:
             name: 变量名（如 "user.email" 或 "code"）
             value: 变量值
         """
-        parts = name.split('.')
+        parts = name.split(".")
 
         if len(parts) == 1:
             self.variables[name] = value
@@ -373,7 +370,7 @@ class ExecutionContext:
         Raises:
             ExecutionError: 变量不存在
         """
-        parts = name.split('.')
+        parts = name.split(".")
         current = self.variables
 
         for part in parts:
@@ -384,7 +381,7 @@ class ExecutionContext:
                     line=0,
                     statement=f"get_variable({name!r})",
                     error_type=ExecutionError.VARIABLE_NOT_FOUND,
-                    message=f"变量不存在: {name}"
+                    message=f"变量不存在: {name}",
                 )
 
         return current
@@ -408,7 +405,7 @@ class ExecutionContext:
                 line=0,
                 statement=f"call {service_path}",
                 error_type=ExecutionError.SERVICE_ERROR,
-                message="服务注册中心未初始化，请配置 services_config"
+                message="服务注册中心未初始化，请配置 services_config",
             )
 
         try:
@@ -418,7 +415,7 @@ class ExecutionContext:
                 line=0,
                 statement=f"call {service_path}",
                 error_type=ExecutionError.SERVICE_ERROR,
-                message=str(e)
+                message=str(e),
             )
 
     def resolve_variables(self, text: str) -> str:
@@ -444,11 +441,11 @@ class ExecutionContext:
             'Hello test@example.com!'
         """
         # 查找所有变量引用 {xxx.yyy.zzz}
-        pattern = r'\{([^}]+)\}'
+        pattern = r"\{([^}]+)\}"
 
         def replace_var(match):
             var_path = match.group(1)  # "user.email"
-            parts = var_path.split('.')  # ["user", "email"]
+            parts = var_path.split(".")  # ["user", "email"]
 
             # 逐层访问
             value = self.variables
@@ -458,7 +455,7 @@ class ExecutionContext:
                         line=0,
                         statement=f"resolve_variables({text!r})",
                         error_type=ExecutionError.VARIABLE_NOT_FOUND,
-                        message=f"变量 '{var_path}' 不是字典类型，无法访问属性 '{part}'"
+                        message=f"变量 '{var_path}' 不是字典类型，无法访问属性 '{part}'",
                     )
 
                 if part not in value:
@@ -466,7 +463,7 @@ class ExecutionContext:
                         line=0,
                         statement=f"resolve_variables({text!r})",
                         error_type=ExecutionError.VARIABLE_NOT_FOUND,
-                        message=f"变量未定义: {var_path}"
+                        message=f"变量未定义: {var_path}",
                     )
 
                 value = value[part]
@@ -482,7 +479,7 @@ class ExecutionContext:
                 line=0,
                 statement=f"resolve_variables({text!r})",
                 error_type=ExecutionError.RUNTIME_ERROR,
-                message=f"变量解析失败: {e}"
+                message=f"变量解析失败: {e}",
             )
 
     def add_execution_record(
@@ -490,7 +487,7 @@ class ExecutionContext:
         record_type: str,
         content: str,
         duration: Optional[float] = None,
-        success: Optional[bool] = None
+        success: Optional[bool] = None,
     ):
         """
         添加执行记录
@@ -508,7 +505,7 @@ class ExecutionContext:
             type=record_type,
             content=content,
             duration=duration,
-            success=success
+            success=success,
         )
         self.execution_history.append(record)
 
@@ -527,7 +524,7 @@ class ExecutionContext:
                 line=0,
                 statement="get_page()",
                 error_type=ExecutionError.INVALID_STATE,
-                message="浏览器未初始化，请先连接浏览器"
+                message="浏览器未初始化，请先连接浏览器",
             )
 
         # 动态获取页面对象（避免失效）
@@ -538,7 +535,7 @@ class ExecutionContext:
                 line=0,
                 statement="get_page()",
                 error_type=ExecutionError.INVALID_STATE,
-                message="无法获取页面对象"
+                message="无法获取页面对象",
             )
 
         return self.page
@@ -570,10 +567,7 @@ class ExecutionContext:
         if self.page is None:
             return
 
-        self.diagnosis_listeners = DiagnosisListeners(
-            page=self.page,
-            config=self.diagnosis_config
-        )
+        self.diagnosis_listeners = DiagnosisListeners(page=self.page, config=self.diagnosis_config)
 
     def cleanup_diagnosis_listeners(self):
         """清理诊断监听器"""
@@ -590,8 +584,7 @@ class ExecutionContext:
         """
         self.diagnosis_config = config
         self.diagnosis_manager = DiagnosisManager(
-            config=config,
-            base_dir=str(Settings.SCREENSHOTS_DIR)
+            config=config, base_dir=str(Settings.SCREENSHOTS_DIR)
         )
 
     def clear_current_element(self):
@@ -622,7 +615,7 @@ class ExecutionContext:
                 line=0,
                 statement="get_current_element()",
                 error_type=ExecutionError.INVALID_STATE,
-                message="没有选中元素，请先使用 select 语句选择元素"
+                message="没有选中元素，请先使用 select 语句选择元素",
             )
 
         return self.current_element
@@ -635,14 +628,8 @@ class ExecutionContext:
             包含执行统计信息的字典
         """
         total_records = len(self.execution_history)
-        successful_records = sum(
-            1 for r in self.execution_history
-            if r.success is True
-        )
-        failed_records = sum(
-            1 for r in self.execution_history
-            if r.success is False
-        )
+        successful_records = sum(1 for r in self.execution_history if r.success is True)
+        failed_records = sum(1 for r in self.execution_history if r.success is False)
 
         return {
             "task_id": self.task_id,

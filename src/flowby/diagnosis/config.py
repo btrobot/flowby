@@ -6,20 +6,21 @@
 
 from enum import IntEnum
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class DiagnosisLevel(IntEnum):
     """诊断级别枚举"""
-    NONE = 0      # 不输出诊断信息
-    MINIMAL = 1   # 最小: 截图 + URL
-    BASIC = 2     # 基本: + HTML源码 + 元素信息
+
+    NONE = 0  # 不输出诊断信息
+    MINIMAL = 1  # 最小: 截图 + URL
+    BASIC = 2  # 基本: + HTML源码 + 元素信息
     STANDARD = 3  # 标准: + 控制台日志 + 执行上下文 (默认)
     DETAILED = 4  # 详细: + 网络请求
-    FULL = 5      # 完整: + 性能指标 + 视口信息
+    FULL = 5  # 完整: + 性能指标 + 视口信息
 
     @classmethod
-    def from_string(cls, name: str) -> 'DiagnosisLevel':
+    def from_string(cls, name: str) -> "DiagnosisLevel":
         """从字符串解析诊断级别"""
         name_upper = name.upper()
         if hasattr(cls, name_upper):
@@ -30,26 +31,31 @@ class DiagnosisLevel(IntEnum):
 @dataclass
 class CleanupConfig:
     """清理配置"""
+
     enabled: bool = True
-    max_age_days: int = 7        # 保留天数
-    max_count: int = 100         # 最大诊断包数量
-    max_size_mb: int = 500       # 最大总大小 (MB)
+    max_age_days: int = 7  # 保留天数
+    max_count: int = 100  # 最大诊断包数量
+    max_size_mb: int = 500  # 最大总大小 (MB)
 
 
 @dataclass
 class NetworkFilterConfig:
     """网络日志过滤配置"""
-    include_assets: bool = False     # 是否包含静态资源 (js, css, images)
-    only_failed: bool = False        # 只记录失败请求
-    exclude_patterns: List[str] = field(default_factory=lambda: [
-        r'.*\.(png|jpg|jpeg|gif|svg|ico)$',
-        r'.*\.(css|woff|woff2|ttf|eot)$',
-    ])
+
+    include_assets: bool = False  # 是否包含静态资源 (js, css, images)
+    only_failed: bool = False  # 只记录失败请求
+    exclude_patterns: List[str] = field(
+        default_factory=lambda: [
+            r".*\.(png|jpg|jpeg|gif|svg|ico)$",
+            r".*\.(css|woff|woff2|ttf|eot)$",
+        ]
+    )
 
 
 @dataclass
 class ConsoleFilterConfig:
     """控制台日志过滤配置"""
+
     levels: List[str] = field(default_factory=lambda: ["error", "warning", "log"])
     max_entries: int = 100
 
@@ -57,6 +63,7 @@ class ConsoleFilterConfig:
 @dataclass
 class DiagnosisConfig:
     """诊断配置"""
+
     # 默认诊断级别
     default_level: DiagnosisLevel = DiagnosisLevel.STANDARD
 
@@ -64,12 +71,14 @@ class DiagnosisConfig:
     cleanup: CleanupConfig = field(default_factory=CleanupConfig)
 
     # 各错误类型的默认级别
-    error_levels: Dict[str, DiagnosisLevel] = field(default_factory=lambda: {
-        "ASSERTION_FAILED": DiagnosisLevel.STANDARD,
-        "ELEMENT_NOT_FOUND": DiagnosisLevel.BASIC,
-        "TIMEOUT": DiagnosisLevel.DETAILED,
-        "NAVIGATION_FAILED": DiagnosisLevel.DETAILED,
-    })
+    error_levels: Dict[str, DiagnosisLevel] = field(
+        default_factory=lambda: {
+            "ASSERTION_FAILED": DiagnosisLevel.STANDARD,
+            "ELEMENT_NOT_FOUND": DiagnosisLevel.BASIC,
+            "TIMEOUT": DiagnosisLevel.DETAILED,
+            "NAVIGATION_FAILED": DiagnosisLevel.DETAILED,
+        }
+    )
 
     # 网络日志过滤
     network_filter: NetworkFilterConfig = field(default_factory=NetworkFilterConfig)
@@ -92,42 +101,42 @@ DEFAULT_DIAGNOSIS_CONFIG = DiagnosisConfig()
 # 诊断级别对应的收集器映射
 LEVEL_COLLECTORS = {
     DiagnosisLevel.MINIMAL: [
-        'screenshot',
-        'page_info',
+        "screenshot",
+        "page_info",
     ],
     DiagnosisLevel.BASIC: [
-        'screenshot',
-        'page_info',
-        'html_source',
-        'element_info',
+        "screenshot",
+        "page_info",
+        "html_source",
+        "element_info",
     ],
     DiagnosisLevel.STANDARD: [
-        'screenshot',
-        'page_info',
-        'html_source',
-        'element_info',
-        'console_logs',
-        'context_snapshot',
+        "screenshot",
+        "page_info",
+        "html_source",
+        "element_info",
+        "console_logs",
+        "context_snapshot",
     ],
     DiagnosisLevel.DETAILED: [
-        'screenshot',
-        'page_info',
-        'html_source',
-        'element_info',
-        'console_logs',
-        'context_snapshot',
-        'network_logs',
+        "screenshot",
+        "page_info",
+        "html_source",
+        "element_info",
+        "console_logs",
+        "context_snapshot",
+        "network_logs",
     ],
     DiagnosisLevel.FULL: [
-        'screenshot',
-        'page_info',
-        'html_source',
-        'element_info',
-        'console_logs',
-        'context_snapshot',
-        'network_logs',
-        'performance_metrics',
-        'viewport_info',
+        "screenshot",
+        "page_info",
+        "html_source",
+        "element_info",
+        "console_logs",
+        "context_snapshot",
+        "network_logs",
+        "performance_metrics",
+        "viewport_info",
     ],
 }
 

@@ -30,6 +30,7 @@ class SymbolType(Enum):
     MODULE - 导入的模块别名（import alias from ..., v6.3）
     IMPORTED - 导入的成员（from ... import member, v6.3）
     """
+
     VARIABLE = "variable"
     CONSTANT = "constant"
     SYSTEM = "system"
@@ -54,12 +55,12 @@ class Symbol:
         line_number: 定义行号（用于错误报告）
         is_used: 是否被使用（v6.3 - VR-006 未使用变量警告）
     """
+
     name: str
     value: Any
     symbol_type: SymbolType
     line_number: int
     is_used: bool = False  # v6.3: VR-006 未使用变量追踪
-
 
     def mark_used(self):
         """
@@ -91,7 +92,7 @@ class Symbol:
         return self.symbol_type in (
             SymbolType.VARIABLE,
             SymbolType.LOOP_VARIABLE,  # v6.3: 循环变量可修改
-            SymbolType.PARAMETER       # v6.3: 函数参数可修改
+            SymbolType.PARAMETER,  # v6.3: 函数参数可修改
         )
 
         return (
@@ -119,9 +120,10 @@ class FunctionSymbol(Symbol):
         closure_scope: 定义时的符号表引用（闭包作用域）v5.1 新增
         source_file: 函数定义所在的文件路径（v6.0.1 新增，用于错误定位）
     """
+
     params: list = None  # 参数名列表
-    body: list = None    # 函数体 AST 节点列表
-    closure_scope: Optional['SymbolTable'] = None  # v5.1: 闭包作用域
+    body: list = None  # 函数体 AST 节点列表
+    closure_scope: Optional["SymbolTable"] = None  # v5.1: 闭包作用域
     source_file: Optional[str] = None  # v6.0.1: 函数定义所在的文件路径
 
     def __post_init__(self):
@@ -130,7 +132,6 @@ class FunctionSymbol(Symbol):
             self.params = []
         if self.body is None:
             self.body = []
-
 
     def mark_used(self):
         """
@@ -179,7 +180,7 @@ class SymbolTable:
         >>> step_table.set("count", 1, line=6)  # 修改当前作用域
     """
 
-    def __init__(self, scope_name: str = "global", parent: Optional['SymbolTable'] = None):
+    def __init__(self, scope_name: str = "global", parent: Optional["SymbolTable"] = None):
         """
         初始化符号表
 
@@ -191,13 +192,7 @@ class SymbolTable:
         self.parent: Optional[SymbolTable] = parent
         self.scope_name = scope_name
 
-    def define(
-        self,
-        name: str,
-        value: Any,
-        symbol_type: SymbolType,
-        line_number: int
-    ) -> None:
+    def define(self, name: str, value: Any, symbol_type: SymbolType, line_number: int) -> None:
         """
         在当前作用域定义新符号
 
@@ -218,11 +213,21 @@ class SymbolTable:
         # v3.0+: 检查保留字（系统命名空间和内置命名空间）
         RESERVED_SYSTEM_NAMESPACES = {
             # v3.0 系统命名空间
-            'page', 'context', 'browser', 'env', 'config',
+            "page",
+            "context",
+            "browser",
+            "env",
+            "config",
             # v1.0 内置函数命名空间
-            'Math', 'Date', 'JSON', 'UUID', 'Hash', 'Base64',
+            "Math",
+            "Date",
+            "JSON",
+            "UUID",
+            "Hash",
+            "Base64",
             # v3.1 服务命名空间
-            'random', 'http',
+            "random",
+            "http",
         }
         if name in RESERVED_SYSTEM_NAMESPACES:
             raise RuntimeError(
@@ -236,12 +241,7 @@ class SymbolTable:
                 f"(line {self.symbols[name].line_number})"
             )
 
-        symbol = Symbol(
-            name=name,
-            value=value,
-            symbol_type=symbol_type,
-            line_number=line_number
-        )
+        symbol = Symbol(name=name, value=value, symbol_type=symbol_type, line_number=line_number)
         self.symbols[name] = symbol
 
     def set(self, name: str, value: Any, line_number: int) -> None:
@@ -272,9 +272,7 @@ class SymbolTable:
         symbol = self._lookup(name)
 
         if symbol is None:
-            raise RuntimeError(
-                f"未定义的变量: {name} (line {line_number})"
-            )
+            raise RuntimeError(f"未定义的变量: {name} (line {line_number})")
 
         # 检查是否可修改
         if not symbol.is_mutable():
@@ -314,9 +312,7 @@ class SymbolTable:
         symbol = self._lookup(name)
 
         if symbol is None:
-            raise RuntimeError(
-                f"未定义的变量: {name} (line {line_number})"
-            )
+            raise RuntimeError(f"未定义的变量: {name} (line {line_number})")
 
         # v6.3: VR-006 - 标记符号已使用
         symbol.mark_used()
@@ -469,7 +465,7 @@ class SymbolTableStack:
         new_table = SymbolTable(scope_name, parent=parent)
         self.stack.append(new_table)
 
-    def enter_scope_with_parent(self, scope_name: str, parent: Optional['SymbolTable']) -> None:
+    def enter_scope_with_parent(self, scope_name: str, parent: Optional["SymbolTable"]) -> None:
         """
         进入新作用域，指定父作用域（v5.1 - 支持闭包）
 
@@ -508,13 +504,7 @@ class SymbolTableStack:
 
         self.stack.pop()
 
-    def define(
-        self,
-        name: str,
-        value: Any,
-        symbol_type: SymbolType,
-        line_number: int
-    ) -> None:
+    def define(self, name: str, value: Any, symbol_type: SymbolType, line_number: int) -> None:
         """在当前作用域定义符号"""
         self.current_scope().define(name, value, symbol_type, line_number)
 

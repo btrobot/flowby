@@ -1,6 +1,7 @@
 """
 测试前向引用行为
 """
+
 from src.flowby.lexer import Lexer
 from src.flowby.parser import Parser
 from src.flowby.interpreter import Interpreter
@@ -89,17 +90,17 @@ if __name__ == "__main__":
     print("=" * 60)
     print("测试 Flowby DSL 的前向引用行为")
     print("=" * 60)
-    
+
     print("\n1. 测试变量前向引用:")
     test_variable_forward_reference()
-    
+
     print("\n2. 测试函数前向引用:")
     test_function_forward_reference()
-    
+
     print("\n3. 测试函数后向引用:")
     test_function_backward_reference()
-    
+
     print("\n4. 测试相互递归函数:")
     test_function_mutual_recursion()
-    
+
     print("\n" + "=" * 60)

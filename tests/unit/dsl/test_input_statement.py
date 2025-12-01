@@ -6,29 +6,32 @@ Input Statement 测试 (v5.1)
 2. Parser: input() 表达式解析
 3. Evaluator: 交互/非交互模式执行
 """
+
 import pytest
 from io import StringIO
 from unittest.mock import patch, MagicMock
 
-from registration_system.dsl.lexer import Lexer, TokenType
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.ast_nodes import (
+from flowby.lexer import Lexer, TokenType
+from flowby.parser import Parser
+from flowby.ast_nodes import (
     InputExpression,
     Literal,
     LetStatement,
 )
-from registration_system.dsl.expression_evaluator import ExpressionEvaluator
-from registration_system.dsl.symbol_table import SymbolTableStack, SymbolType
-from registration_system.dsl.system_variables import SystemVariables
-from registration_system.dsl.errors import ExecutionError, ParserError
+from flowby.expression_evaluator import ExpressionEvaluator
+from flowby.symbol_table import SymbolTableStack, SymbolType
+from flowby.system_variables import SystemVariables
+from flowby.errors import ExecutionError, ParserError
 
 
 # ============================================================
 # 测试辅助类
 # ============================================================
 
+
 class MockContext:
     """模拟执行上下文"""
+
     def __init__(self, is_interactive=True):
         self.task_id = "test_task"
         self.is_interactive = is_interactive
@@ -37,6 +40,7 @@ class MockContext:
 
 class MockInterpreter:
     """模拟解释器"""
+
     def __init__(self, is_interactive=True):
         self.context = MockContext(is_interactive)
 
@@ -45,17 +49,18 @@ class MockInterpreter:
 # Lexer 测试
 # ============================================================
 
+
 class TestInputLexer:
     """测试 Lexer 对 input 关键字的识别"""
 
     def test_input_token_recognition(self):
         """测试 INPUT token 识别"""
         lexer = Lexer()
-        tokens = lexer.tokenize('input')
+        tokens = lexer.tokenize("input")
 
         assert len(tokens) == 2  # INPUT + EOF
         assert tokens[0].type == TokenType.INPUT
-        assert tokens[0].value == 'input'
+        assert tokens[0].value == "input"
 
     def test_input_in_expression(self):
         """测试 input 在表达式中的识别"""
@@ -77,6 +82,7 @@ class TestInputLexer:
 # ============================================================
 # Parser 测试
 # ============================================================
+
 
 class TestInputParser:
     """测试 Parser 对 input() 表达式的解析"""
@@ -183,7 +189,7 @@ class TestInputParser:
 
     def test_parse_input_missing_prompt(self):
         """测试缺少提示参数应抛出错误"""
-        code = 'let x = input()'
+        code = "let x = input()"
         lexer = Lexer()
         tokens = lexer.tokenize(code)
         parser = Parser()
@@ -196,6 +202,7 @@ class TestInputParser:
 # Evaluator 测试
 # ============================================================
 
+
 class TestInputEvaluator:
     """测试 ExpressionEvaluator 对 input() 的求值"""
 
@@ -205,24 +212,18 @@ class TestInputEvaluator:
         # SystemVariables 需要 context 参数
         self.mock_context = MockContext()
         self.system_variables = SystemVariables(self.mock_context)
-        self.evaluator = ExpressionEvaluator(
-            self.symbol_table,
-            self.system_variables
-        )
+        self.evaluator = ExpressionEvaluator(self.symbol_table, self.system_variables)
 
     def test_eval_input_interactive_mode(self):
         """测试交互模式下的 input()"""
         # 准备
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
         input_expr = InputExpression(
-            prompt=Literal(value="请输入: ", line=1),
-            default_value=None,
-            input_type="text",
-            line=1
+            prompt=Literal(value="请输入: ", line=1), default_value=None, input_type="text", line=1
         )
 
         # Mock 用户输入
-        with patch('builtins.input', return_value="测试输入"):
+        with patch("builtins.input", return_value="测试输入"):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == "测试输入"
@@ -234,11 +235,11 @@ class TestInputEvaluator:
             prompt=Literal(value="姓名: ", line=1),
             default_value=Literal(value="张三", line=1),
             input_type="text",
-            line=1
+            line=1,
         )
 
         # 用户输入空字符串
-        with patch('builtins.input', return_value="  "):
+        with patch("builtins.input", return_value="  "):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == "张三"
@@ -247,13 +248,10 @@ class TestInputEvaluator:
         """测试整数类型转换"""
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
         input_expr = InputExpression(
-            prompt=Literal(value="年龄: ", line=1),
-            default_value=None,
-            input_type="integer",
-            line=1
+            prompt=Literal(value="年龄: ", line=1), default_value=None, input_type="integer", line=1
         )
 
-        with patch('builtins.input', return_value="25"):
+        with patch("builtins.input", return_value="25"):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == 25
@@ -263,13 +261,10 @@ class TestInputEvaluator:
         """测试浮点数类型转换"""
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
         input_expr = InputExpression(
-            prompt=Literal(value="价格: ", line=1),
-            default_value=None,
-            input_type="float",
-            line=1
+            prompt=Literal(value="价格: ", line=1), default_value=None, input_type="float", line=1
         )
 
-        with patch('builtins.input', return_value="99.99"):
+        with patch("builtins.input", return_value="99.99"):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == 99.99
@@ -282,10 +277,10 @@ class TestInputEvaluator:
             prompt=Literal(value="密码: ", line=1),
             default_value=None,
             input_type="password",
-            line=1
+            line=1,
         )
 
-        with patch('getpass.getpass', return_value="secret123"):
+        with patch("getpass.getpass", return_value="secret123"):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == "secret123"
@@ -294,13 +289,10 @@ class TestInputEvaluator:
         """测试无效整数转换应抛出错误"""
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
         input_expr = InputExpression(
-            prompt=Literal(value="年龄: ", line=1),
-            default_value=None,
-            input_type="integer",
-            line=1
+            prompt=Literal(value="年龄: ", line=1), default_value=None, input_type="integer", line=1
         )
 
-        with patch('builtins.input', return_value="not_a_number"):
+        with patch("builtins.input", return_value="not_a_number"):
             with pytest.raises(ExecutionError) as exc_info:
                 self.evaluator.evaluate(input_expr)
 
@@ -314,7 +306,7 @@ class TestInputEvaluator:
             prompt=Literal(value="名称: ", line=1),
             default_value=Literal(value="默认名称", line=1),
             input_type="text",
-            line=1
+            line=1,
         )
 
         # 非交互模式应直接返回默认值，不调用 input()
@@ -326,10 +318,7 @@ class TestInputEvaluator:
         """测试非交互模式下无默认值（应抛出错误）"""
         self.evaluator.interpreter = MockInterpreter(is_interactive=False)
         input_expr = InputExpression(
-            prompt=Literal(value="名称: ", line=1),
-            default_value=None,
-            input_type="text",
-            line=1
+            prompt=Literal(value="名称: ", line=1), default_value=None, input_type="text", line=1
         )
 
         with pytest.raises(ExecutionError) as exc_info:
@@ -342,13 +331,10 @@ class TestInputEvaluator:
         """测试用户中断输入（Ctrl+C）"""
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
         input_expr = InputExpression(
-            prompt=Literal(value="输入: ", line=1),
-            default_value=None,
-            input_type="text",
-            line=1
+            prompt=Literal(value="输入: ", line=1), default_value=None, input_type="text", line=1
         )
 
-        with patch('builtins.input', side_effect=KeyboardInterrupt()):
+        with patch("builtins.input", side_effect=KeyboardInterrupt()):
             with pytest.raises(ExecutionError) as exc_info:
                 self.evaluator.evaluate(input_expr)
 
@@ -359,22 +345,18 @@ class TestInputEvaluator:
         self.evaluator.interpreter = MockInterpreter(is_interactive=True)
 
         # 设置变量
-        from registration_system.dsl.ast_nodes import Identifier
-        self.symbol_table.define(
-            "prompt_text",
-            "请输入姓名: ",
-            SymbolType.VARIABLE,
-            1
-        )
+        from flowby.ast_nodes import Identifier
+
+        self.symbol_table.define("prompt_text", "请输入姓名: ", SymbolType.VARIABLE, 1)
 
         input_expr = InputExpression(
             prompt=Identifier(name="prompt_text", line=1),
             default_value=None,
             input_type="text",
-            line=1
+            line=1,
         )
 
-        with patch('builtins.input', return_value="测试"):
+        with patch("builtins.input", return_value="测试"):
             result = self.evaluator.evaluate(input_expr)
 
         assert result == "测试"
@@ -383,6 +365,7 @@ class TestInputEvaluator:
 # ============================================================
 # 集成测试
 # ============================================================
+
 
 class TestInputIntegration:
     """测试 input() 的完整集成流程"""
@@ -406,7 +389,7 @@ class TestInputIntegration:
 
         # 求值
         stmt = ast.statements[0]
-        with patch('builtins.input', return_value=""):  # 空输入，使用默认值
+        with patch("builtins.input", return_value=""):  # 空输入，使用默认值
             value = evaluator.evaluate(stmt.value)
 
         assert value == "admin"

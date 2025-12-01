@@ -20,6 +20,7 @@ import pytest
 # 5.1 Select Element 测试
 # ============================================================================
 
+
 class TestV3_5_1_SelectElement:
     """Select Element 语句测试"""
 
@@ -143,6 +144,7 @@ step "元素选择":
     def test_select_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let has_filter = True
 if has_filter:
     select "div" where class equals "filtered"
 """
@@ -153,6 +155,7 @@ if has_filter:
 # ============================================================================
 # 5.2 Select Option 测试
 # ============================================================================
+
 
 class TestV3_5_2_SelectOption:
     """Select Option 语句测试"""
@@ -217,6 +220,7 @@ step "下拉选择":
     def test_select_option_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let needs_selection = True
 if needs_selection:
     select option "Premium" from "#plan-selector"
 """
@@ -240,6 +244,7 @@ select option f"Size {size}" from "#size-selector"
 # ============================================================================
 # 综合测试
 # ============================================================================
+
 
 class TestV3_5_Integration:
     """选择功能综合测试"""
@@ -267,6 +272,7 @@ step "表单填写":
     def test_conditional_selection(self, parse_v3):
         """✅ 正确：条件选择（v3.0：纯缩进）"""
         source = """
+let user_type = "admin"
 if user_type == "admin":
     select option "Administrator" from "#role-selector"
 else:
@@ -281,6 +287,8 @@ else:
     def test_nested_selection(self, parse_v3):
         """✅ 正确：嵌套块中的选择（v3.0）"""
         source = """
+let has_options = True
+let needs_filter = True
 step "复杂选择":
     if has_options:
         select "div" where class equals "active"

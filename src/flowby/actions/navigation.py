@@ -4,7 +4,6 @@
 实现页面导航相关的操作
 """
 
-import time
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -13,7 +12,7 @@ if TYPE_CHECKING:
 from ..errors import ExecutionError
 
 
-def execute_navigate_to(url: str, context: 'ExecutionContext', line: int = 0):
+def execute_navigate_to(url: str, context: "ExecutionContext", line: int = 0):
     """
     导航到指定 URL
 
@@ -31,20 +30,14 @@ def execute_navigate_to(url: str, context: 'ExecutionContext', line: int = 0):
         page = context.get_page()
 
         # 导航
-        page.goto(
-            resolved_url,
-            wait_until="networkidle",
-            timeout=30000
-        )
+        page.goto(resolved_url, wait_until="networkidle", timeout=30000)
 
         # 清空当前元素上下文
         context.clear_current_element()
 
         # 记录执行
         context.add_execution_record(
-            record_type="navigate",
-            content=f"navigate to {resolved_url}",
-            success=True
+            record_type="navigate", content=f"navigate to {resolved_url}", success=True
         )
 
         context.logger.info(f"✓ 导航成功: {resolved_url}")
@@ -58,7 +51,7 @@ def execute_navigate_to(url: str, context: 'ExecutionContext', line: int = 0):
             screenshot_path = context.screenshot_manager.capture_on_error(
                 page, "navigation_failed", line
             )
-        except:
+        except Exception:
             screenshot_path = None
 
         raise ExecutionError(
@@ -67,11 +60,11 @@ def execute_navigate_to(url: str, context: 'ExecutionContext', line: int = 0):
             error_type=ExecutionError.NAVIGATION_FAILED,
             message=f"导航失败: {error_msg}",
             file_path=context.script_path,  # v6.0.1: 添加文件路径
-            screenshot_path=screenshot_path
+            screenshot_path=screenshot_path,
         )
 
 
-def execute_go_back(context: 'ExecutionContext', line: int = 0):
+def execute_go_back(context: "ExecutionContext", line: int = 0):
     """
     返回上一页
 
@@ -88,11 +81,7 @@ def execute_go_back(context: 'ExecutionContext', line: int = 0):
         # 清空当前元素上下文
         context.clear_current_element()
 
-        context.add_execution_record(
-            record_type="navigate",
-            content="go back",
-            success=True
-        )
+        context.add_execution_record(record_type="navigate", content="go back", success=True)
 
         context.logger.info("✓ 已返回上一页")
 
@@ -102,11 +91,11 @@ def execute_go_back(context: 'ExecutionContext', line: int = 0):
             statement="go back",
             error_type=ExecutionError.NAVIGATION_FAILED,
             message=f"返回上一页失败: {e}",
-            file_path=context.script_path
+            file_path=context.script_path,
         )
 
 
-def execute_go_forward(context: 'ExecutionContext', line: int = 0):
+def execute_go_forward(context: "ExecutionContext", line: int = 0):
     """
     前进到下一页
 
@@ -123,11 +112,7 @@ def execute_go_forward(context: 'ExecutionContext', line: int = 0):
         # 清空当前元素上下文
         context.clear_current_element()
 
-        context.add_execution_record(
-            record_type="navigate",
-            content="go forward",
-            success=True
-        )
+        context.add_execution_record(record_type="navigate", content="go forward", success=True)
 
         context.logger.info("✓ 已前进到下一页")
 
@@ -137,11 +122,11 @@ def execute_go_forward(context: 'ExecutionContext', line: int = 0):
             statement="go forward",
             error_type=ExecutionError.NAVIGATION_FAILED,
             message=f"前进到下一页失败: {e}",
-            file_path=context.script_path
+            file_path=context.script_path,
         )
 
 
-def execute_reload(context: 'ExecutionContext', line: int = 0):
+def execute_reload(context: "ExecutionContext", line: int = 0):
     """
     刷新当前页面
 
@@ -158,11 +143,7 @@ def execute_reload(context: 'ExecutionContext', line: int = 0):
         # 清空当前元素上下文
         context.clear_current_element()
 
-        context.add_execution_record(
-            record_type="navigate",
-            content="reload",
-            success=True
-        )
+        context.add_execution_record(record_type="navigate", content="reload", success=True)
 
         context.logger.info("✓ 页面已刷新")
 
@@ -172,5 +153,5 @@ def execute_reload(context: 'ExecutionContext', line: int = 0):
             statement="reload",
             error_type=ExecutionError.NAVIGATION_FAILED,
             message=f"刷新页面失败: {e}",
-            file_path=context.script_path
+            file_path=context.script_path,
         )

@@ -10,8 +10,9 @@ AST Nodes v2.0 测试
 6. 循环节点 (EachLoop)
 7. 更新的节点 (IfBlock, LogStatement)
 """
+
 import pytest
-from registration_system.dsl.ast_nodes import (
+from flowby.ast_nodes import (
     # v2.0 变量语句
     LetStatement,
     ConstStatement,
@@ -41,11 +42,7 @@ class TestVariableStatements:
     def test_let_statement_creation(self):
         """测试 LetStatement 创建"""
         # Arrange & Act
-        let_stmt = LetStatement(
-            name="age",
-            value=Literal(value=25, line=1),
-            line=1
-        )
+        let_stmt = LetStatement(name="age", value=Literal(value=25, line=1), line=1)
 
         # Assert
         assert let_stmt.name == "age", "变量名应该是 age"
@@ -61,9 +58,9 @@ class TestVariableStatements:
                 left=Literal(value=10, line=1),
                 operator="+",
                 right=Literal(value=20, line=1),
-                line=1
+                line=1,
             ),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -73,11 +70,7 @@ class TestVariableStatements:
     def test_const_statement_creation(self):
         """测试 ConstStatement 创建"""
         # Arrange & Act
-        const_stmt = ConstStatement(
-            name="MAX",
-            value=Literal(value=100, line=2),
-            line=2
-        )
+        const_stmt = ConstStatement(name="MAX", value=Literal(value=100, line=2), line=2)
 
         # Assert
         assert const_stmt.name == "MAX", "常量名应该是 MAX"
@@ -93,9 +86,9 @@ class TestVariableStatements:
                 left=Identifier(name="counter", line=3),
                 operator="+",
                 right=Literal(value=1, line=3),
-                line=3
+                line=3,
             ),
-            line=3
+            line=3,
         )
 
         # Assert
@@ -106,11 +99,7 @@ class TestVariableStatements:
     def test_assignment_with_identifier(self):
         """测试 Assignment 使用标识符"""
         # Arrange & Act
-        assign = Assignment(
-            name="x",
-            value=Identifier(name="y", line=1),
-            line=1
-        )
+        assign = Assignment(name="x", value=Identifier(name="y", line=1), line=1)
 
         # Assert
         assert assign.name == "x"
@@ -121,13 +110,16 @@ class TestVariableStatements:
 class TestLiteralNode:
     """测试字面量节点"""
 
-    @pytest.mark.parametrize("value,expected_type", [
-        ("hello", str),
-        (42, int),
-        (3.14, float),
-        (True, bool),
-        (None, type(None)),
-    ])
+    @pytest.mark.parametrize(
+        "value,expected_type",
+        [
+            ("hello", str),
+            (42, int),
+            (3.14, float),
+            (True, bool),
+            (None, type(None)),
+        ],
+    )
     def test_literal_with_various_types(self, value, expected_type):
         """测试各种类型的字面量"""
         # Arrange & Act
@@ -169,13 +161,16 @@ class TestIdentifierNode:
         assert ident.name == "username", "标识符名称应该是 username"
         assert ident.line == 1, "行号应该是 1"
 
-    @pytest.mark.parametrize("name", [
-        "x",
-        "counter",
-        "user_name",
-        "MAX_VALUE",
-        "age123",
-    ])
+    @pytest.mark.parametrize(
+        "name",
+        [
+            "x",
+            "counter",
+            "user_name",
+            "MAX_VALUE",
+            "age123",
+        ],
+    )
     def test_identifier_with_various_names(self, name):
         """测试各种标识符名称"""
         # Arrange & Act
@@ -188,13 +183,16 @@ class TestIdentifierNode:
 class TestSystemVariableNode:
     """测试系统变量节点"""
 
-    @pytest.mark.parametrize("path,description", [
-        ("context.task_id", "任务ID"),
-        ("page.url", "页面URL"),
-        ("page.title", "页面标题"),
-        ("element.text", "元素文本"),
-        ("browser.name", "浏览器名称"),
-    ])
+    @pytest.mark.parametrize(
+        "path,description",
+        [
+            ("context.task_id", "任务ID"),
+            ("page.url", "页面URL"),
+            ("page.title", "页面标题"),
+            ("element.text", "元素文本"),
+            ("browser.name", "浏览器名称"),
+        ],
+    )
     def test_system_variable_paths(self, path, description):
         """测试各种系统变量路径"""
         # Arrange & Act
@@ -217,22 +215,25 @@ class TestSystemVariableNode:
 class TestBinaryOpNode:
     """测试二元运算符节点"""
 
-    @pytest.mark.parametrize("operator,description", [
-        ("+", "加法"),
-        ("-", "减法"),
-        ("*", "乘法"),
-        ("/", "除法"),
-        ("%", "取模"),
-        (">", "大于"),
-        ("<", "小于"),
-        (">=", "大于等于"),
-        ("<=", "小于等于"),
-        ("==", "等于"),
-        ("!=", "不等于"),
-        ("AND", "逻辑与"),
-        ("OR", "逻辑或"),
-        ("contains", "包含"),
-    ])
+    @pytest.mark.parametrize(
+        "operator,description",
+        [
+            ("+", "加法"),
+            ("-", "减法"),
+            ("*", "乘法"),
+            ("/", "除法"),
+            ("%", "取模"),
+            (">", "大于"),
+            ("<", "小于"),
+            (">=", "大于等于"),
+            ("<=", "小于等于"),
+            ("==", "等于"),
+            ("!=", "不等于"),
+            ("AND", "逻辑与"),
+            ("OR", "逻辑或"),
+            ("contains", "包含"),
+        ],
+    )
     def test_binary_operators(self, operator, description):
         """测试各种二元运算符"""
         # Arrange & Act
@@ -240,7 +241,7 @@ class TestBinaryOpNode:
             left=Identifier(name="a", line=1),
             operator=operator,
             right=Identifier(name="b", line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -255,7 +256,7 @@ class TestBinaryOpNode:
             left=Identifier(name="age", line=1),
             operator=">",
             right=Literal(value=18, line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -269,10 +270,7 @@ class TestBinaryOpNode:
         """测试算术运算"""
         # Arrange & Act
         bin_op = BinaryOp(
-            left=Literal(value=10, line=1),
-            operator="+",
-            right=Literal(value=20, line=1),
-            line=1
+            left=Literal(value=10, line=1), operator="+", right=Literal(value=20, line=1), line=1
         )
 
         # Assert
@@ -284,19 +282,18 @@ class TestBinaryOpNode:
 class TestUnaryOpNode:
     """测试一元运算符节点"""
 
-    @pytest.mark.parametrize("operator", [
-        "NOT",
-        "-",
-        "+",
-    ])
+    @pytest.mark.parametrize(
+        "operator",
+        [
+            "NOT",
+            "-",
+            "+",
+        ],
+    )
     def test_unary_operators(self, operator):
         """测试各种一元运算符"""
         # Arrange & Act
-        unary = UnaryOp(
-            operator=operator,
-            operand=Identifier(name="flag", line=1),
-            line=1
-        )
+        unary = UnaryOp(operator=operator, operand=Identifier(name="flag", line=1), line=1)
 
         # Assert
         assert unary.operator == operator, f"运算符应该是 {operator}"
@@ -305,11 +302,7 @@ class TestUnaryOpNode:
     def test_unary_not_operator(self):
         """测试 NOT 运算符"""
         # Arrange & Act
-        unary = UnaryOp(
-            operator="NOT",
-            operand=Identifier(name="flag", line=1),
-            line=1
-        )
+        unary = UnaryOp(operator="NOT", operand=Identifier(name="flag", line=1), line=1)
 
         # Assert
         assert unary.operator == "NOT"
@@ -318,11 +311,7 @@ class TestUnaryOpNode:
     def test_unary_negation(self):
         """测试负号运算符"""
         # Arrange & Act
-        unary = UnaryOp(
-            operator="-",
-            operand=Literal(value=42, line=1),
-            line=1
-        )
+        unary = UnaryOp(operator="-", operand=Literal(value=42, line=1), line=1)
 
         # Assert
         assert unary.operator == "-"
@@ -336,30 +325,27 @@ class TestMemberAccessNode:
     def test_member_access_creation(self):
         """测试 MemberAccess 创建"""
         # Arrange & Act
-        member = MemberAccess(
-            object=Identifier(name="user", line=1),
-            property="email",
-            line=1
-        )
+        member = MemberAccess(object=Identifier(name="user", line=1), property="email", line=1)
 
         # Assert
         assert member.property == "email", "属性名应该是 email"
         assert isinstance(member.object, Identifier), "对象应该是 Identifier"
         assert member.object.name == "user"
 
-    @pytest.mark.parametrize("object_name,property", [
-        ("user", "email"),
-        ("user", "name"),
-        ("config", "timeout"),
-        ("page", "url"),
-    ])
+    @pytest.mark.parametrize(
+        "object_name,property",
+        [
+            ("user", "email"),
+            ("user", "name"),
+            ("config", "timeout"),
+            ("page", "url"),
+        ],
+    )
     def test_various_member_accesses(self, object_name, property):
         """测试各种成员访问"""
         # Arrange & Act
         member = MemberAccess(
-            object=Identifier(name=object_name, line=1),
-            property=property,
-            line=1
+            object=Identifier(name=object_name, line=1), property=property, line=1
         )
 
         # Assert
@@ -374,9 +360,7 @@ class TestArrayAccessNode:
         """测试使用字面量索引的数组访问"""
         # Arrange & Act
         array = ArrayAccess(
-            array=Identifier(name="items", line=1),
-            index=Literal(value=0, line=1),
-            line=1
+            array=Identifier(name="items", line=1), index=Literal(value=0, line=1), line=1
         )
 
         # Assert
@@ -389,9 +373,7 @@ class TestArrayAccessNode:
         """测试使用标识符索引的数组访问"""
         # Arrange & Act
         array = ArrayAccess(
-            array=Identifier(name="items", line=1),
-            index=Identifier(name="i", line=1),
-            line=1
+            array=Identifier(name="items", line=1), index=Identifier(name="i", line=1), line=1
         )
 
         # Assert
@@ -406,8 +388,7 @@ class TestStringInterpolationNode:
         """测试简单插值"""
         # Arrange & Act
         interp = StringInterpolation(
-            parts=["Hello ", Identifier(name="username", line=1), "!"],
-            line=1
+            parts=["Hello ", Identifier(name="username", line=1), "!"], line=1
         )
 
         # Assert
@@ -424,9 +405,9 @@ class TestStringInterpolationNode:
                 "User: ",
                 Identifier(name="username", line=1),
                 ", Age: ",
-                Identifier(name="age", line=1)
+                Identifier(name="age", line=1),
             ],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -446,10 +427,10 @@ class TestStringInterpolationNode:
                     left=Identifier(name="a", line=1),
                     operator="+",
                     right=Identifier(name="b", line=1),
-                    line=1
-                )
+                    line=1,
+                ),
             ],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -469,14 +450,13 @@ class TestEachLoopNode:
             statements=[
                 LogStatement(
                     message=StringInterpolation(
-                        parts=["Item: ", Identifier(name="item", line=2)],
-                        line=2
+                        parts=["Item: ", Identifier(name="item", line=2)], line=2
                     ),
                     level="info",
-                    line=2
+                    line=2,
                 )
             ],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -499,13 +479,13 @@ class TestEachLoopNode:
                         left=Identifier(name="total", line=2),
                         operator="+",
                         right=Identifier(name="num", line=2),
-                        line=2
+                        line=2,
                     ),
-                    line=2
+                    line=2,
                 ),
-                LogStatement(message="Processing", level="debug", line=3)
+                LogStatement(message="Processing", level="debug", line=3),
             ],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -527,13 +507,11 @@ class TestUpdatedIfBlock:
                 left=Identifier(name="age", line=1),
                 operator=">",
                 right=Literal(value=18, line=1),
-                line=1
+                line=1,
             ),
-            then_statements=[
-                LogStatement(message="成年人", level="info", line=2)
-            ],
+            then_statements=[LogStatement(message="成年人", level="info", line=2)],
             else_statements=[],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -550,7 +528,7 @@ class TestUpdatedIfBlock:
                 left=Identifier(name="score", line=1),
                 operator=">=",
                 right=Literal(value=60, line=1),
-                line=1
+                line=1,
             ),
             then_statements=[
                 Assignment(name="result", value=Literal(value="pass", line=2), line=2)
@@ -558,7 +536,7 @@ class TestUpdatedIfBlock:
             else_statements=[
                 Assignment(name="result", value=Literal(value="fail", line=3), line=3)
             ],
-            line=1
+            line=1,
         )
 
         # Assert
@@ -575,27 +553,21 @@ class TestUpdatedLogStatement:
         """测试使用字符串插值的 LogStatement"""
         # Arrange & Act
         log_stmt = LogStatement(
-            message=StringInterpolation(
-                parts=["Age: ", Identifier(name="age", line=1)],
-                line=1
-            ),
+            message=StringInterpolation(parts=["Age: ", Identifier(name="age", line=1)], line=1),
             level="info",
-            line=1
+            line=1,
         )
 
         # Assert
-        assert isinstance(log_stmt.message, StringInterpolation), \
-            "消息应该是 StringInterpolation 节点"
+        assert isinstance(
+            log_stmt.message, StringInterpolation
+        ), "消息应该是 StringInterpolation 节点"
         assert log_stmt.level == "info"
 
     def test_log_statement_with_plain_string(self):
         """测试使用普通字符串的 LogStatement"""
         # Arrange & Act
-        log_stmt = LogStatement(
-            message="Simple message",
-            level="debug",
-            line=1
-        )
+        log_stmt = LogStatement(message="Simple message", level="debug", line=1)
 
         # Assert
         assert log_stmt.message == "Simple message"
@@ -614,15 +586,15 @@ class TestComplexExpressions:
                     left=Identifier(name="a", line=1),
                     operator="+",
                     right=Identifier(name="b", line=1),
-                    line=1
+                    line=1,
                 ),
                 operator="*",
                 right=Identifier(name="c", line=1),
-                line=1
+                line=1,
             ),
             operator=">",
             right=Literal(value=100, line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -639,7 +611,7 @@ class TestComplexExpressions:
             left=SystemVariable(path="page.url", line=1),
             operator="contains",
             right=Literal(value="success", line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -652,14 +624,10 @@ class TestComplexExpressions:
         """测试表达式中的成员访问 user.age > 18"""
         # Arrange & Act
         expr = BinaryOp(
-            left=MemberAccess(
-                object=Identifier(name="user", line=1),
-                property="age",
-                line=1
-            ),
+            left=MemberAccess(object=Identifier(name="user", line=1), property="age", line=1),
             operator=">",
             right=Literal(value=18, line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -672,13 +640,11 @@ class TestComplexExpressions:
         # Arrange & Act
         expr = BinaryOp(
             left=ArrayAccess(
-                array=Identifier(name="items", line=1),
-                index=Literal(value=0, line=1),
-                line=1
+                array=Identifier(name="items", line=1), index=Literal(value=0, line=1), line=1
             ),
             operator="==",
             right=Literal(value="first", line=1),
-            line=1
+            line=1,
         )
 
         # Assert
@@ -704,7 +670,7 @@ class TestNodeLineNumbers:
                 left=Identifier(name="a", line=35),
                 operator="+",
                 right=Identifier(name="b", line=35),
-                line=35
+                line=35,
             ),
             UnaryOp(operator="NOT", operand=Identifier(name="flag", line=40), line=40),
         ]
@@ -712,5 +678,6 @@ class TestNodeLineNumbers:
         # Assert
         expected_lines = [5, 10, 15, 20, 25, 30, 35, 40]
         for i, node in enumerate(nodes):
-            assert node.line == expected_lines[i], \
-                f"节点 {type(node).__name__} 的行号应该是 {expected_lines[i]}"
+            assert (
+                node.line == expected_lines[i]
+            ), f"节点 {type(node).__name__} 的行号应该是 {expected_lines[i]}"

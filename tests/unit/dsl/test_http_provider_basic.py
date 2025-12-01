@@ -7,9 +7,10 @@ HttpProvider 基础结构测试
 3. 默认配置验证
 4. 自定义配置验证
 """
+
 import pytest
-from registration_system.dsl.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
-from registration_system.dsl.services.registry import ServiceRegistry
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services.registry import ServiceRegistry
 
 
 class TestHttpProviderRegistration:
@@ -19,17 +20,8 @@ class TestHttpProviderRegistration:
     def basic_services_config(self):
         """提供基础服务配置"""
         return ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
 
     def test_http_provider_can_be_registered(self, basic_services_config):
@@ -39,8 +31,8 @@ class TestHttpProviderRegistration:
         registry.initialize()
 
         # Assert
-        assert 'http' in registry.providers, "http 提供者应该被注册"
-        assert registry.providers['http'] is not None, "http 提供者实例不应为空"
+        assert "http" in registry.providers, "http 提供者应该被注册"
+        assert registry.providers["http"] is not None, "http 提供者实例不应为空"
 
         # Cleanup
         registry.close()
@@ -53,7 +45,7 @@ class TestHttpProviderRegistration:
 
         # Assert
         assert registry is not None, "ServiceRegistry 应该创建成功"
-        assert hasattr(registry, 'providers'), "应该有 providers 属性"
+        assert hasattr(registry, "providers"), "应该有 providers 属性"
         assert isinstance(registry.providers, dict), "providers 应该是字典"
 
         # Cleanup
@@ -66,11 +58,11 @@ class TestHttpProviderRegistration:
         registry.initialize()
 
         # Act
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
         assert http_provider is not None, "HttpProvider 实例应该存在"
-        assert hasattr(http_provider, 'get_methods'), "应该有 get_methods 方法"
+        assert hasattr(http_provider, "get_methods"), "应该有 get_methods 方法"
 
         # Cleanup
         registry.close()
@@ -83,21 +75,12 @@ class TestHttpProviderMethods:
     def http_provider(self):
         """提供 HttpProvider 实例"""
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
-        provider = registry.providers.get('http')
+        provider = registry.providers.get("http")
 
         yield provider
 
@@ -119,7 +102,7 @@ class TestHttpProviderMethods:
 
         # Assert
         # HTTP 方法应该包括常见的方法
-        common_methods = ['get', 'post', 'put', 'delete']
+        common_methods = ["get", "post", "put", "delete"]
         for method in common_methods:
             assert method in methods, f"应该支持 {method} 方法"
 
@@ -131,21 +114,12 @@ class TestHttpProviderDefaultConfig:
     def http_provider_with_defaults(self):
         """提供使用默认配置的 HttpProvider 实例"""
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
-        provider = registry.providers.get('http')
+        provider = registry.providers.get("http")
 
         yield provider
 
@@ -154,18 +128,16 @@ class TestHttpProviderDefaultConfig:
     def test_default_timeout_exists(self, http_provider_with_defaults):
         """测试默认超时配置存在"""
         # Assert
-        assert hasattr(http_provider_with_defaults, 'default_timeout'), \
-            "应该有 default_timeout 属性"
-        assert http_provider_with_defaults.default_timeout is not None, \
-            "default_timeout 不应为空"
+        assert hasattr(
+            http_provider_with_defaults, "default_timeout"
+        ), "应该有 default_timeout 属性"
+        assert http_provider_with_defaults.default_timeout is not None, "default_timeout 不应为空"
 
     def test_verify_ssl_has_default(self, http_provider_with_defaults):
         """测试 SSL 验证有默认值"""
         # Assert
-        assert hasattr(http_provider_with_defaults, 'verify_ssl'), \
-            "应该有 verify_ssl 属性"
-        assert isinstance(http_provider_with_defaults.verify_ssl, bool), \
-            "verify_ssl 应该是布尔值"
+        assert hasattr(http_provider_with_defaults, "verify_ssl"), "应该有 verify_ssl 属性"
+        assert isinstance(http_provider_with_defaults.verify_ssl, bool), "verify_ssl 应该是布尔值"
 
 
 class TestHttpProviderCustomConfig:
@@ -175,24 +147,20 @@ class TestHttpProviderCustomConfig:
     def custom_config(self):
         """提供自定义配置"""
         return ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
             providers={
-                'http': ProviderConfig(
-                    type='http',
+                "http": ProviderConfig(
+                    type="http",
                     config={
-                        'default_timeout': 60,
-                        'default_headers': {
-                            'User-Agent': 'DSL-Test/1.0',
-                            'Accept': 'application/json'
+                        "default_timeout": 60,
+                        "default_headers": {
+                            "User-Agent": "DSL-Test/1.0",
+                            "Accept": "application/json",
                         },
-                        'verify_ssl': False
-                    }
+                        "verify_ssl": False,
+                    },
                 )
-            }
+            },
         )
 
     def test_custom_timeout_applied(self, custom_config):
@@ -200,11 +168,10 @@ class TestHttpProviderCustomConfig:
         # Arrange
         registry = ServiceRegistry(custom_config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
-        assert http_provider.default_timeout == 60, \
-            "自定义超时应该是 60 秒"
+        assert http_provider.default_timeout == 60, "自定义超时应该是 60 秒"
 
         # Cleanup
         registry.close()
@@ -214,15 +181,16 @@ class TestHttpProviderCustomConfig:
         # Arrange
         registry = ServiceRegistry(custom_config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
-        assert hasattr(http_provider, 'default_headers'), \
-            "应该有 default_headers 属性"
-        assert http_provider.default_headers['User-Agent'] == 'DSL-Test/1.0', \
-            "User-Agent 应该是 'DSL-Test/1.0'"
-        assert http_provider.default_headers['Accept'] == 'application/json', \
-            "Accept 应该是 'application/json'"
+        assert hasattr(http_provider, "default_headers"), "应该有 default_headers 属性"
+        assert (
+            http_provider.default_headers["User-Agent"] == "DSL-Test/1.0"
+        ), "User-Agent 应该是 'DSL-Test/1.0'"
+        assert (
+            http_provider.default_headers["Accept"] == "application/json"
+        ), "Accept 应该是 'application/json'"
 
         # Cleanup
         registry.close()
@@ -232,11 +200,10 @@ class TestHttpProviderCustomConfig:
         # Arrange
         registry = ServiceRegistry(custom_config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
-        assert http_provider.verify_ssl == False, \
-            "SSL 验证应该被禁用"
+        assert http_provider.verify_ssl == False, "SSL 验证应该被禁用"
 
         # Cleanup
         registry.close()
@@ -246,12 +213,13 @@ class TestHttpProviderCustomConfig:
         # Arrange
         registry = ServiceRegistry(custom_config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
         assert http_provider.default_timeout == 60, "超时配置应该正确"
-        assert http_provider.default_headers['User-Agent'] == 'DSL-Test/1.0', \
-            "User-Agent 配置应该正确"
+        assert (
+            http_provider.default_headers["User-Agent"] == "DSL-Test/1.0"
+        ), "User-Agent 配置应该正确"
         assert http_provider.verify_ssl == False, "SSL 验证配置应该正确"
 
         # Cleanup
@@ -265,17 +233,8 @@ class TestServiceRegistryLifecycle:
         """测试 Registry 可以被关闭"""
         # Arrange
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -288,17 +247,8 @@ class TestServiceRegistryLifecycle:
         """测试 Registry 初始化和关闭循环"""
         # Arrange
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
 
         # Act
@@ -306,7 +256,7 @@ class TestServiceRegistryLifecycle:
         registry.initialize()
 
         # Assert
-        assert 'http' in registry.providers, "初始化后应该有 http 提供者"
+        assert "http" in registry.providers, "初始化后应该有 http 提供者"
 
         # Act - Close
         registry.close()
@@ -321,23 +271,14 @@ class TestHttpProviderConfiguration:
         """测试空配置可以工作"""
         # Arrange
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
-            providers={
-                'http': ProviderConfig(
-                    type='http',
-                    config={}
-                )
-            }
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
+            providers={"http": ProviderConfig(type="http", config={})},
         )
 
         # Act
         registry = ServiceRegistry(config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
         assert http_provider is not None, "空配置应该能创建 HttpProvider"
@@ -349,26 +290,22 @@ class TestHttpProviderConfiguration:
         """测试部分配置可以工作"""
         # Arrange
         config = ServicesConfig(
-            settings=GlobalSettings(
-                timeout=30000,
-                retry_count=3,
-                retry_delay=1000
-            ),
+            settings=GlobalSettings(timeout=30000, retry_count=3, retry_delay=1000),
             providers={
-                'http': ProviderConfig(
-                    type='http',
+                "http": ProviderConfig(
+                    type="http",
                     config={
-                        'default_timeout': 45
+                        "default_timeout": 45
                         # 只配置超时，其他使用默认值
-                    }
+                    },
                 )
-            }
+            },
         )
 
         # Act
         registry = ServiceRegistry(config)
         registry.initialize()
-        http_provider = registry.providers.get('http')
+        http_provider = registry.providers.get("http")
 
         # Assert
         assert http_provider is not None, "部分配置应该能创建 HttpProvider"

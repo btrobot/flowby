@@ -17,8 +17,8 @@ from ..errors import ExecutionError
 def execute_select(
     element_type: str,
     conditions: List[Tuple[str, str, str]],
-    context: 'ExecutionContext',
-    line: int = 0
+    context: "ExecutionContext",
+    line: int = 0,
 ):
     """
     选择元素
@@ -59,7 +59,7 @@ def execute_select(
                 statement=f"select {element_type} where {conditions_str}",
                 error_type=ExecutionError.ELEMENT_NOT_FOUND,
                 message=f"未找到元素: {selector}",
-                screenshot_path=screenshot_path
+                screenshot_path=screenshot_path,
             )
 
         # 设置当前元素
@@ -68,7 +68,7 @@ def execute_select(
         context.add_execution_record(
             record_type="select",
             content=f"select {element_type} -> {selector} (找到 {count} 个)",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 选中元素: {selector} (找到 {count} 个)")
@@ -80,14 +80,12 @@ def execute_select(
             line=line,
             statement=f"select {element_type}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"选择元素失败: {e}"
+            message=f"选择元素失败: {e}",
         )
 
 
 def _build_selector(
-    element_type: str,
-    conditions: List[Tuple[str, str, str]],
-    context: 'ExecutionContext'
+    element_type: str, conditions: List[Tuple[str, str, str]], context: "ExecutionContext"
 ) -> str:
     """
     构建选择器 (支持 CSS 和 XPath)
@@ -102,24 +100,24 @@ def _build_selector(
     """
     # 检查是否有 xpath 或 css 条件
     for attr, operator, value in conditions:
-        if attr == 'xpath':
+        if attr == "xpath":
             # 如果指定了 xpath，直接使用 XPath 定位器
             resolved_value = context.resolve_variables(value)
             return f"xpath={resolved_value}"
-        elif attr == 'css':
+        elif attr == "css":
             # 如果指定了 css，直接使用 CSS 选择器（忽略 element_type）
             resolved_value = context.resolve_variables(value)
             return resolved_value  # 直接返回 CSS 选择器，不需要前缀
 
     # 元素类型映射
     type_map = {
-        'input': 'input',
-        'button': 'button',
-        'link': 'a',
-        'textarea': 'textarea',
-        'div': 'div',
-        'span': 'span',
-        'element': '*',
+        "input": "input",
+        "button": "button",
+        "link": "a",
+        "textarea": "textarea",
+        "div": "div",
+        "span": "span",
+        "element": "*",
     }
 
     base = type_map.get(element_type, element_type)
@@ -133,12 +131,14 @@ def _build_selector(
     selectors = []
     for attr, operator, value in conditions:
         # v3.1: 如果 value 是表达式对象，先求值
-        if hasattr(value, '__class__') and hasattr(value.__class__, '__name__'):
+        if hasattr(value, "__class__") and hasattr(value.__class__, "__name__"):
             # 检查是否是 Expression 对象（通过类型检查）
             from ..ast_nodes import Expression
+
             if isinstance(value, Expression):
                 # 求值表达式
                 from ..executor import evaluate_expression
+
                 resolved_value = str(evaluate_expression(value, context))
             else:
                 # 字符串或其他类型，直接解析变量
@@ -147,28 +147,25 @@ def _build_selector(
             # 字符串或其他类型，直接解析变量
             resolved_value = context.resolve_variables(value)
 
-        if attr == 'text':
+        if attr == "text":
             # 文本匹配需要特殊处理
             # 根据 operator 选择匹配方式
-            if operator == 'contains':
-                selectors.append(f":has-text(\"{resolved_value}\")")
+            if operator == "contains":
+                selectors.append(f':has-text("{resolved_value}")')
             else:  # = 或 equals
-                selectors.append(f":text-is(\"{resolved_value}\")")
-        elif attr == 'class':
+                selectors.append(f':text-is("{resolved_value}")')
+        elif attr == "class":
             selectors.append(f".{resolved_value}")
-        elif attr == 'id':
+        elif attr == "id":
             selectors.append(f"#{resolved_value}")
         else:
-            selectors.append(f"[{attr}=\"{resolved_value}\"]")
+            selectors.append(f'[{attr}="{resolved_value}"]')
 
     return base + "".join(selectors)
 
 
 def _try_alternative_locators(
-    page,
-    element_type: str,
-    conditions: List[Tuple[str, str, str]],
-    context: 'ExecutionContext'
+    page, element_type: str, conditions: List[Tuple[str, str, str]], context: "ExecutionContext"
 ):
     """
     尝试备用定位策略
@@ -184,10 +181,12 @@ def _try_alternative_locators(
     """
     for attr, operator, value in conditions:
         # v3.1: 如果 value 是表达式对象，先求值
-        if hasattr(value, '__class__') and hasattr(value.__class__, '__name__'):
+        if hasattr(value, "__class__") and hasattr(value.__class__, "__name__"):
             from ..ast_nodes import Expression
+
             if isinstance(value, Expression):
                 from ..executor import evaluate_expression
+
                 resolved_value = str(evaluate_expression(value, context))
             else:
                 resolved_value = context.resolve_variables(value)
@@ -196,47 +195,42 @@ def _try_alternative_locators(
 
         try:
             # 尝试 placeholder
-            if attr == 'placeholder':
+            if attr == "placeholder":
                 locator = page.get_by_placeholder(resolved_value)
                 if locator.count() > 0:
                     return locator
 
             # 尝试 label
-            if attr == 'label':
+            if attr == "label":
                 locator = page.get_by_label(resolved_value)
                 if locator.count() > 0:
                     return locator
 
             # 尝试 role
-            if attr == 'role':
+            if attr == "role":
                 locator = page.get_by_role(resolved_value)
                 if locator.count() > 0:
                     return locator
 
             # 尝试 test id
-            if attr == 'testid':
+            if attr == "testid":
                 locator = page.get_by_test_id(resolved_value)
                 if locator.count() > 0:
                     return locator
 
             # 尝试文本
-            if attr == 'text':
+            if attr == "text":
                 locator = page.get_by_text(resolved_value)
                 if locator.count() > 0:
                     return locator
 
-        except:
+        except Exception:
             continue
 
     return None
 
 
-def execute_type(
-    text: str,
-    mode: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_type(text: str, mode: Optional[str], context: "ExecutionContext", line: int = 0):
     """
     输入文本
 
@@ -283,7 +277,7 @@ def execute_type(
         context.add_execution_record(
             record_type="type",
             content=f"type {mode or 'slowly'} '{resolved_text[:20]}...'",
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ 输入完成")
@@ -295,15 +289,12 @@ def execute_type(
             line=line,
             statement=f"type {text}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"输入失败: {e}"
+            message=f"输入失败: {e}",
         )
 
 
 def execute_click(
-    click_type: str,
-    wait_duration: Optional[float],
-    context: 'ExecutionContext',
-    line: int = 0
+    click_type: str, wait_duration: Optional[float], context: "ExecutionContext", line: int = 0
 ):
     """
     点击元素
@@ -344,7 +335,7 @@ def execute_click(
         context.add_execution_record(
             record_type="click",
             content=f"{click_type}" + (f" and wait {wait_duration}s" if wait_duration else ""),
-            success=True
+            success=True,
         )
 
         context.logger.info(f"✓ {click_type} 完成")
@@ -358,7 +349,7 @@ def execute_click(
             screenshot_path = context.screenshot_manager.capture_on_error(
                 page, "click_failed", line
             )
-        except:
+        except Exception:
             screenshot_path = None
 
         raise ExecutionError(
@@ -366,15 +357,11 @@ def execute_click(
             statement=click_type,
             error_type=ExecutionError.RUNTIME_ERROR,
             message=f"点击失败: {e}",
-            screenshot_path=screenshot_path
+            screenshot_path=screenshot_path,
         )
 
 
-def execute_hover(
-    selector: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_hover(selector: Optional[str], context: "ExecutionContext", line: int = 0):
     """
     悬停在元素上
 
@@ -399,9 +386,7 @@ def execute_hover(
         time.sleep(random.uniform(0.3, 0.8))
 
         context.add_execution_record(
-            record_type="hover",
-            content=f"hover {selector or 'current'}",
-            success=True
+            record_type="hover", content=f"hover {selector or 'current'}", success=True
         )
 
         context.logger.info(f"✓ 悬停完成")
@@ -413,11 +398,11 @@ def execute_hover(
             line=line,
             statement=f"hover {selector or ''}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"悬停失败: {e}"
+            message=f"悬停失败: {e}",
         )
 
 
-def execute_clear(context: 'ExecutionContext', line: int = 0):
+def execute_clear(context: "ExecutionContext", line: int = 0):
     """
     清空输入框
 
@@ -431,11 +416,7 @@ def execute_clear(context: 'ExecutionContext', line: int = 0):
         element = context.get_current_element().first
         element.clear()
 
-        context.add_execution_record(
-            record_type="clear",
-            content="clear",
-            success=True
-        )
+        context.add_execution_record(record_type="clear", content="clear", success=True)
 
         context.logger.info("✓ 已清空")
 
@@ -446,11 +427,11 @@ def execute_clear(context: 'ExecutionContext', line: int = 0):
             line=line,
             statement="clear",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"清空失败: {e}"
+            message=f"清空失败: {e}",
         )
 
 
-def execute_press(key_name: str, context: 'ExecutionContext', line: int = 0):
+def execute_press(key_name: str, context: "ExecutionContext", line: int = 0):
     """
     按下键盘按键
 
@@ -465,11 +446,7 @@ def execute_press(key_name: str, context: 'ExecutionContext', line: int = 0):
         element = context.get_current_element().first
         element.press(key_name)
 
-        context.add_execution_record(
-            record_type="press",
-            content=f"press {key_name}",
-            success=True
-        )
+        context.add_execution_record(record_type="press", content=f"press {key_name}", success=True)
 
         context.logger.info(f"✓ 按键 {key_name} 完成")
 
@@ -480,15 +457,12 @@ def execute_press(key_name: str, context: 'ExecutionContext', line: int = 0):
             line=line,
             statement=f"press {key_name}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"按键失败: {e}"
+            message=f"按键失败: {e}",
         )
 
 
 def execute_scroll(
-    target: str,
-    selector: Optional[str],
-    context: 'ExecutionContext',
-    line: int = 0
+    target: str, selector: Optional[str], context: "ExecutionContext", line: int = 0
 ):
     """
     滚动页面
@@ -516,9 +490,7 @@ def execute_scroll(
         time.sleep(0.5)
 
         context.add_execution_record(
-            record_type="scroll",
-            content=f"scroll to {target} {selector or ''}",
-            success=True
+            record_type="scroll", content=f"scroll to {target} {selector or ''}", success=True
         )
 
         context.logger.info(f"✓ 滚动完成")
@@ -528,16 +500,11 @@ def execute_scroll(
             line=line,
             statement=f"scroll to {target}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"滚动失败: {e}"
+            message=f"滚动失败: {e}",
         )
 
 
-def execute_check(
-    action: str,
-    selector: str,
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_check(action: str, selector: str, context: "ExecutionContext", line: int = 0):
     """
     复选框操作
 
@@ -560,9 +527,7 @@ def execute_check(
             element.uncheck()
 
         context.add_execution_record(
-            record_type="check",
-            content=f"{action} {resolved_selector}",
-            success=True
+            record_type="check", content=f"{action} {resolved_selector}", success=True
         )
 
         context.logger.info(f"✓ {action} 完成")
@@ -572,16 +537,11 @@ def execute_check(
             line=line,
             statement=f"{action} {selector}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"{action} 失败: {e}"
+            message=f"{action} 失败: {e}",
         )
 
 
-def execute_upload(
-    file_path: str,
-    selector: str,
-    context: 'ExecutionContext',
-    line: int = 0
-):
+def execute_upload(file_path: str, selector: str, context: "ExecutionContext", line: int = 0):
     """
     文件上传
 
@@ -602,9 +562,7 @@ def execute_upload(
         element.set_input_files(resolved_path)
 
         context.add_execution_record(
-            record_type="upload",
-            content=f"upload {resolved_path}",
-            success=True
+            record_type="upload", content=f"upload {resolved_path}", success=True
         )
 
         context.logger.info(f"✓ 上传完成")
@@ -614,15 +572,12 @@ def execute_upload(
             line=line,
             statement=f"upload file {file_path}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"上传失败: {e}"
+            message=f"上传失败: {e}",
         )
 
 
 def execute_select_option(
-    option_value: str,
-    selector: str,
-    context: 'ExecutionContext',
-    line: int = 0
+    option_value: str, selector: str, context: "ExecutionContext", line: int = 0
 ):
     """
     选择下拉框选项
@@ -644,9 +599,7 @@ def execute_select_option(
         element.select_option(resolved_value)
 
         context.add_execution_record(
-            record_type="select_option",
-            content=f"select option {resolved_value}",
-            success=True
+            record_type="select_option", content=f"select option {resolved_value}", success=True
         )
 
         context.logger.info(f"✓ 选择完成")
@@ -656,5 +609,5 @@ def execute_select_option(
             line=line,
             statement=f"select option {option_value}",
             error_type=ExecutionError.RUNTIME_ERROR,
-            message=f"选择选项失败: {e}"
+            message=f"选择选项失败: {e}",
         )

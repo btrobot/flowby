@@ -22,10 +22,7 @@ class PlaywrightWrapper:
         self.page: Optional[Page] = None
 
     def launch(
-        self,
-        browser_type: str = "chromium",
-        headless: bool = False,
-        **launch_options
+        self, browser_type: str = "chromium", headless: bool = False, **launch_options
     ) -> Page:
         """
         Launch a browser and return the page

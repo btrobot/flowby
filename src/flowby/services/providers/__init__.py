@@ -10,6 +10,6 @@ from .http import HttpProvider
 
 # 内置提供者注册表
 BUILTIN_PROVIDERS: Dict[str, Type[ServiceProvider]] = {
-    'random': RandomProvider,
-    'http': HttpProvider,
+    "random": RandomProvider,
+    "http": HttpProvider,
 }

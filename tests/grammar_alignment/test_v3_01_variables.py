@@ -20,6 +20,7 @@ import pytest
 # 1.1 Let Declaration 测试
 # ============================================================================
 
+
 class TestV3_1_1_LetDeclaration:
     """Let 声明测试（Python 数据类型）"""
 
@@ -118,8 +119,7 @@ class TestV3_1_1_LetDeclaration:
         source = "let active = true"
         result = parse_v3(source)
         assert result.success == False, "小写 true 应该报错"
-        assert "True" in result.error or "布尔" in result.error, \
-            "错误提示应提及 True"
+        assert "True" in result.error or "布尔" in result.error, "错误提示应提及 True"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -130,8 +130,7 @@ class TestV3_1_1_LetDeclaration:
         source = "let data = null"
         result = parse_v3(source)
         assert result.success == False, "null 应该报错"
-        assert "None" in result.error or "null" in result.error.lower(), \
-            "错误提示应提及 None"
+        assert "None" in result.error or "null" in result.error.lower(), "错误提示应提及 None"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -141,8 +140,9 @@ class TestV3_1_1_LetDeclaration:
         source = "let x ="
         result = parse_v3(source)
         assert result.success == False, "let 缺少初始值应该报错"
-        assert "表达式" in result.error or "expression" in result.error.lower() or "值" in result.error, \
-            "错误提示应提及缺少表达式或值"
+        assert (
+            "表达式" in result.error or "expression" in result.error.lower() or "值" in result.error
+        ), "错误提示应提及缺少表达式或值"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -152,13 +152,13 @@ class TestV3_1_1_LetDeclaration:
         source = "let x 10"
         result = parse_v3(source)
         assert result.success == False, "let 缺少等号应该报错"
-        assert "=" in result.error or "等号" in result.error, \
-            "错误提示应提及缺少等号"
+        assert "=" in result.error or "等号" in result.error, "错误提示应提及缺少等号"
 
 
 # ============================================================================
 # 1.2 Const Declaration 测试
 # ============================================================================
+
 
 class TestV3_1_2_ConstDeclaration:
     """Const 声明测试（Python 数据类型）"""
@@ -228,18 +228,18 @@ class TestV3_1_2_ConstDeclaration:
         # 这只是约定，语法层面应该都允许
         sources = [
             "const MAX_VALUE = 100",  # 推荐
-            "const maxValue = 100",   # 也应该允许
+            "const maxValue = 100",  # 也应该允许
             "const max_value = 100",  # 也应该允许
         ]
         for source in sources:
             result = parse_v3(source)
-            assert result.success == True, \
-                f"const 的各种命名风格都应该被允许：{source}"
+            assert result.success == True, f"const 的各种命名风格都应该被允许：{source}"
 
 
 # ============================================================================
 # 1.3 Assignment 测试
 # ============================================================================
+
 
 class TestV3_1_3_Assignment:
     """赋值语句测试"""
@@ -287,7 +287,7 @@ class TestV3_1_3_Assignment:
     @pytest.mark.feature("1.3")
     def test_assignment_expression(self, parse_v3):
         """✅ 正确：赋值表达式"""
-        source = "count = count + 1"
+        source = "let count = 0\ncount = count + 1"
         result = parse_v3(source)
         assert result.success == True, "赋值表达式应该正确解析"
 
@@ -306,41 +306,46 @@ class TestV3_1_3_Assignment:
 # 综合测试：变量声明与 Python 风格
 # ============================================================================
 
+
 class TestV3_Variables_PythonStyle:
     """变量声明的 Python 风格综合测试"""
 
     @pytest.mark.v3
     @pytest.mark.syntax
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("source", [
-        "let x = True",
-        "let y = False",
-        "let z = None",
-        "const FLAG = True",
-        "const VALUE = None",
-        "active = False",
-    ])
+    @pytest.mark.parametrize(
+        "source",
+        [
+            "let x = True",
+            "let y = False",
+            "let z = None",
+            "const FLAG = True",
+            "const VALUE = None",
+            "active = False",
+        ],
+    )
     def test_python_style_values(self, parse_v3, source):
         """✅ 验证：Python 风格值应该都能正确解析"""
         result = parse_v3(source)
-        assert result.success == True, \
-            f"Python 风格值应该正确解析：{source}"
+        assert result.success == True, f"Python 风格值应该正确解析：{source}"
 
     @pytest.mark.v3
     @pytest.mark.syntax
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("source", [
-        "let x = true",
-        "let y = false",
-        "let z = null",
-        "const FLAG = true",
-        "active = null",
-    ])
+    @pytest.mark.parametrize(
+        "source",
+        [
+            "let x = true",
+            "let y = false",
+            "let z = null",
+            "const FLAG = true",
+            "active = null",
+        ],
+    )
     def test_non_python_style_values_error(self, parse_v3, source):
         """❌ 验证：非 Python 风格值应该报错"""
         result = parse_v3(source)
-        assert result.success == False, \
-            f"非 Python 风格值应该报错：{source}"
+        assert result.success == False, f"非 Python 风格值应该报错：{source}"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -357,8 +362,7 @@ let user = {
 }
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "复杂的 Python 风格对象应该正确解析"
+        assert result.success == True, "复杂的 Python 风格对象应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -373,8 +377,7 @@ let data = None
 const MAX = 100
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "多个声明语句应该正确解析"
+        assert result.success == True, "多个声明语句应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -388,13 +391,13 @@ step "test":
     let z = None
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "step 块内的 Python 风格声明应该正确解析"
+        assert result.success == True, "step 块内的 Python 风格声明应该正确解析"
 
 
 # ============================================================================
 # 边界情况测试
 # ============================================================================
+
 
 class TestV3_Variables_EdgeCases:
     """变量声明的边界情况测试"""
@@ -414,8 +417,7 @@ class TestV3_Variables_EdgeCases:
         """✅ 正确：嵌套数组包含 Python 风格值"""
         source = "let data = [[True, False], [None, None]]"
         result = parse_v3(source)
-        assert result.success == True, \
-            "嵌套数组内的 Python 风格值应该正确解析"
+        assert result.success == True, "嵌套数组内的 Python 风格值应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -430,10 +432,9 @@ class TestV3_Variables_EdgeCases:
     @pytest.mark.python_aligned
     def test_let_with_nested_object_python_values(self, parse_v3):
         """✅ 正确：嵌套对象包含 Python 风格值"""
-        source = 'let user = {profile: {verified: True, premium: False}}'
+        source = "let user = {profile: {verified: True, premium: False}}"
         result = parse_v3(source)
-        assert result.success == True, \
-            "嵌套对象内的 Python 风格值应该正确解析"
+        assert result.success == True, "嵌套对象内的 Python 风格值应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax

@@ -6,4 +6,4 @@ Flowby DSL 国际化（i18n）系统
 
 from .messages import get_message, set_language, get_current_language
 
-__all__ = ['get_message', 'set_language', 'get_current_language']
+__all__ = ["get_message", "set_language", "get_current_language"]

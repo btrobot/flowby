@@ -20,13 +20,15 @@ from threading import Lock
 
 class CircuitBreakerState(Enum):
     """断路器状态"""
-    CLOSED = "CLOSED"      # 正常状态，请求正常通过
-    OPEN = "OPEN"          # 断开状态，请求直接失败
+
+    CLOSED = "CLOSED"  # 正常状态，请求正常通过
+    OPEN = "OPEN"  # 断开状态，请求直接失败
     HALF_OPEN = "HALF_OPEN"  # 半开状态，允许少量探测请求
 
 
 class CircuitBreakerError(Exception):
     """断路器开启时的异常"""
+
     def __init__(self, message: str, fallback_result: Any = None):
         super().__init__(message)
         self.fallback_result = fallback_result
@@ -60,12 +62,12 @@ class CircuitBreaker:
         self.config = config or {}
 
         # 阈值配置
-        self.failure_threshold = self.config.get('failure_threshold', 5)
-        self.success_threshold = self.config.get('success_threshold', 2)
-        self.recovery_timeout = self.config.get('recovery_timeout', 60)
-        self.window_size = self.config.get('window_size', 100)
-        self.failure_rate_threshold = self.config.get('failure_rate_threshold', 0.5)
-        self.fallback = self.config.get('fallback')
+        self.failure_threshold = self.config.get("failure_threshold", 5)
+        self.success_threshold = self.config.get("success_threshold", 2)
+        self.recovery_timeout = self.config.get("recovery_timeout", 60)
+        self.window_size = self.config.get("window_size", 100)
+        self.failure_rate_threshold = self.config.get("failure_rate_threshold", 0.5)
+        self.fallback = self.config.get("fallback")
 
         # 状态
         self.state = CircuitBreakerState.CLOSED
@@ -86,12 +88,7 @@ class CircuitBreaker:
         # 线程安全
         self._lock = Lock()
 
-    def execute(
-        self,
-        operation_name: str,
-        func: Callable,
-        logger: Optional[Any] = None
-    ) -> Any:
+    def execute(self, operation_name: str, func: Callable, logger: Optional[Any] = None) -> Any:
         """
         执行操作（带断路器保护）
 
@@ -158,12 +155,7 @@ class CircuitBreaker:
             if self.consecutive_successes >= self.success_threshold:
                 self._transition_to_closed(operation_name, logger)
 
-    def _on_failure(
-        self,
-        operation_name: str,
-        exception: Exception,
-        logger: Optional[Any]
-    ) -> None:
+    def _on_failure(self, operation_name: str, exception: Exception, logger: Optional[Any]) -> None:
         """
         记录失败调用
 
@@ -186,11 +178,7 @@ class CircuitBreaker:
             # 半开状态下任何失败都会重新打开断路器
             self._transition_to_open(operation_name, logger)
 
-    def _check_failure_threshold(
-        self,
-        operation_name: str,
-        logger: Optional[Any]
-    ) -> None:
+    def _check_failure_threshold(self, operation_name: str, logger: Optional[Any]) -> None:
         """
         检查失败阈值，决定是否打开断路器
 
@@ -224,11 +212,7 @@ class CircuitBreaker:
                 if elapsed >= self.recovery_timeout:
                     self._transition_to_half_open()
 
-    def _transition_to_open(
-        self,
-        operation_name: str,
-        logger: Optional[Any]
-    ) -> None:
+    def _transition_to_open(self, operation_name: str, logger: Optional[Any]) -> None:
         """
         转换到 OPEN 状态
 
@@ -254,11 +238,7 @@ class CircuitBreaker:
         self.consecutive_failures = 0
         self.state_transitions += 1
 
-    def _transition_to_closed(
-        self,
-        operation_name: str,
-        logger: Optional[Any]
-    ) -> None:
+    def _transition_to_closed(self, operation_name: str, logger: Optional[Any]) -> None:
         """
         转换到 CLOSED 状态
 
@@ -311,8 +291,7 @@ class CircuitBreaker:
             "total_successes": self.total_successes,
             "total_failures": self.total_failures,
             "success_rate": (
-                self.total_successes / self.total_calls
-                if self.total_calls > 0 else 0.0
+                self.total_successes / self.total_calls if self.total_calls > 0 else 0.0
             ),
             "failure_rate": self._get_failure_rate(),
             "consecutive_failures": self.consecutive_failures,

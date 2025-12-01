@@ -17,9 +17,9 @@ from .manager import DiagnosisManager
 from .cleanup import DiagnosisCleanup
 
 __all__ = [
-    'DiagnosisLevel',
-    'DiagnosisConfig',
-    'DEFAULT_DIAGNOSIS_CONFIG',
-    'DiagnosisManager',
-    'DiagnosisCleanup',
+    "DiagnosisLevel",
+    "DiagnosisConfig",
+    "DEFAULT_DIAGNOSIS_CONFIG",
+    "DiagnosisManager",
+    "DiagnosisCleanup",
 ]

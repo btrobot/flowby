@@ -17,14 +17,15 @@ Reference: grammar/DESIGN-V3.md #2, grammar/V3-EBNF.md
 """
 
 import pytest
-from registration_system.dsl.ast_nodes import Program
-from registration_system.dsl.interpreter import Interpreter
-from registration_system.dsl.context import ExecutionContext
+from flowby.ast_nodes import Program
+from flowby.interpreter import Interpreter
+from flowby.context import ExecutionContext
 
 
 # ============================================================================
 # 2.1 Step Block 测试（无 end step）
 # ============================================================================
+
 
 class TestV3_2_1_StepBlock:
     """Step 块测试（纯缩进，无 end step）"""
@@ -61,6 +62,7 @@ step "登录流程":
     def test_step_with_nested_if(self, parse_v3):
         """✅ 正确：step 块内嵌套 if"""
         source = """
+let status = "active"
 step "检查状态":
     if status == "active":
         log "用户活跃"
@@ -126,8 +128,9 @@ end step
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end step 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字或缩进"
+        assert (
+            "end" in result.error.lower() or "缩进" in result.error
+        ), "错误提示应提及 end 关键字或缩进"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -139,13 +142,15 @@ step "test":
 """
         result = parse_v3(source)
         assert result.success == False, "空 step 块应该报错"
-        assert "块" in result.error or "body" in result.error.lower() or "语句" in result.error, \
-            "错误提示应提及空块"
+        assert (
+            "块" in result.error or "body" in result.error.lower() or "语句" in result.error
+        ), "错误提示应提及空块"
 
 
 # ============================================================================
 # 2.2 If-Else 测试（无 end if）
 # ============================================================================
+
 
 class TestV3_2_2_IfElse:
     """If-Else 块测试（纯缩进，无 end if）"""
@@ -156,6 +161,7 @@ class TestV3_2_2_IfElse:
     def test_if_basic(self, parse_v3):
         """✅ 正确：基本 if 语句（无 end if）"""
         source = """
+let x = 1
 if x > 0:
     let y = 1
 """
@@ -168,10 +174,12 @@ if x > 0:
     def test_if_else(self, parse_v3):
         """✅ 正确：if-else 语句"""
         source = """
+let x = 1
+let y = 0
 if x > 0:
-    let y = 1
+    y = 1
 else:
-    let y = 0
+    y = 0
 """
         result = parse_v3(source)
         assert result.success == True, "if-else 语句应该正确解析"
@@ -182,14 +190,16 @@ else:
     def test_if_else_if(self, parse_v3):
         """✅ 正确：if-else if 链"""
         source = """
+let score = 85
+let grade = ""
 if score > 90:
-    let grade = "A"
+    grade = "A"
 else if score > 80:
-    let grade = "B"
+    grade = "B"
 else if score > 70:
-    let grade = "C"
+    grade = "C"
 else:
-    let grade = "F"
+    grade = "F"
 """
         result = parse_v3(source)
         assert result.success == True, "if-else if 链应该正确解析"
@@ -201,6 +211,7 @@ else:
     def test_if_with_python_bool(self, parse_v3):
         """✅ 正确：if 条件使用 Python 布尔值"""
         source = """
+let active = True
 if active == True:
     log "激活"
 else:
@@ -216,6 +227,7 @@ else:
     def test_if_with_none_check(self, parse_v3):
         """✅ 正确：if 条件检查 None"""
         source = """
+let data = None
 if data == None:
     log "数据为空"
 else:
@@ -230,13 +242,16 @@ else:
     def test_nested_if(self, parse_v3):
         """✅ 正确：嵌套 if 语句"""
         source = """
+let x = 1
+let y = 1
+let z = 0
 if x > 0:
     if y > 0:
-        let z = 1
+        z = 1
     else:
-        let z = 2
+        z = 2
 else:
-    let z = 3
+    z = 3
 """
         result = parse_v3(source)
         assert result.success == True, "嵌套 if 语句应该正确解析"
@@ -247,6 +262,9 @@ else:
     def test_if_with_complex_condition(self, parse_v3):
         """✅ 正确：if 复杂条件"""
         source = """
+let x = 1
+let y = 5
+let z = 5
 if x > 0 and y < 10 or z == 5:
     let result = True
 """
@@ -259,14 +277,14 @@ if x > 0 and y < 10 or z == 5:
     def test_if_with_end_keyword_error(self, parse_v3):
         """❌ 错误：if 语句使用 end if 应报错"""
         source = """
+let x = 1
 if x > 0:
     let y = 1
 end if
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end if 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -279,13 +297,13 @@ if x > 0
 """
         result = parse_v3(source)
         assert result.success == False, "if 缺少冒号应该报错"
-        assert ":" in result.error or "冒号" in result.error, \
-            "错误提示应提及冒号"
+        assert ":" in result.error or "冒号" in result.error, "错误提示应提及冒号"
 
 
 # ============================================================================
 # 2.3 When-Otherwise 测试（无 end when）
 # ============================================================================
+
 
 class TestV3_2_3_WhenOtherwise:
     """When-Otherwise 块测试（纯缩进，无 end when）"""
@@ -296,11 +314,13 @@ class TestV3_2_3_WhenOtherwise:
     def test_when_basic(self, parse_v3):
         """✅ 正确：基本 when 语句（无 end when）"""
         source = """
+let status = "active"
+let x = 0
 when status:
     "active":
-        let x = 1
+        x = 1
     "inactive":
-        let x = 2
+        x = 2
 """
         result = parse_v3(source)
         assert result.success == True, "基本 when 语句应该正确解析"
@@ -311,13 +331,15 @@ when status:
     def test_when_with_otherwise(self, parse_v3):
         """✅ 正确：when 带 otherwise 分支"""
         source = """
+let status = "pending"
+let x = 0
 when status:
     "pending":
-        let x = 1
+        x = 1
     "processing":
-        let x = 2
+        x = 2
     otherwise:
-        let x = 3
+        x = 3
 """
         result = parse_v3(source)
         assert result.success == True, "when 带 otherwise 应该正确解析"
@@ -328,6 +350,7 @@ when status:
     def test_when_multiple_cases(self, parse_v3):
         """✅ 正确：when 多个分支"""
         source = """
+let code = "200"
 when code:
     "200":
         log "成功"
@@ -347,6 +370,8 @@ when code:
     def test_when_nested_statements(self, parse_v3):
         """✅ 正确：when 分支内嵌套语句"""
         source = """
+let status = "active"
+let score = 95
 when status:
     "active":
         if score > 90:
@@ -365,6 +390,7 @@ when status:
     def test_when_with_end_keyword_error(self, parse_v3):
         """❌ 错误：when 语句使用 end when 应报错"""
         source = """
+let status = "active"
 when status:
     "active":
         let x = 1
@@ -372,8 +398,7 @@ end when
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end when 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -397,6 +422,7 @@ when status
     def test_when_or_pattern_basic(self, parse_v3):
         """✅ 正确：基本 OR 模式（v3.1）"""
         source = """
+let status = "active"
 when status:
     "active" | "verified":
         log "Access granted"
@@ -413,6 +439,7 @@ when status:
     def test_when_or_pattern_numbers(self, parse_v3):
         """✅ 正确：数字 OR 模式（v3.1）"""
         source = """
+let http_status = 200
 when http_status:
     200 | 201 | 204:
         log "Success"
@@ -431,6 +458,8 @@ when http_status:
     def test_when_or_pattern_mixed(self, parse_v3):
         """✅ 正确：混合 OR 模式和单值（v3.1）"""
         source = """
+let user_role = "admin"
+let access_level = ""
 when user_role:
     "admin" | "moderator":
         access_level = "high"
@@ -449,6 +478,7 @@ when user_role:
     def test_when_or_pattern_three_values(self, parse_v3):
         """✅ 正确：三个值的 OR 模式（v3.1）"""
         source = """
+let priority = 1
 when priority:
     1 | 2 | 3:
         log "High priority"
@@ -465,6 +495,7 @@ when priority:
 # 2.4 For-Each Loop 测试（无 end for）
 # ============================================================================
 
+
 class TestV3_2_4_ForEachLoop:
     """For-Each 循环测试（纯缩进，无 end for）"""
 
@@ -474,6 +505,7 @@ class TestV3_2_4_ForEachLoop:
     def test_for_basic(self, parse_v3):
         """✅ 正确：基本 for 循环（无 end for）"""
         source = """
+let items = [1, 2, 3]
 for item in items:
     log f"Item: {item}"
 """
@@ -486,6 +518,7 @@ for item in items:
     def test_for_multiple_statements(self, parse_v3):
         """✅ 正确：for 循环包含多个语句"""
         source = """
+let users = [{"name": "Alice", "email": "a@b.com"}]
 for user in users:
     log f"用户: {user.name}"
     let email = user.email
@@ -500,6 +533,7 @@ for user in users:
     def test_for_with_nested_if(self, parse_v3):
         """✅ 正确：for 循环内嵌套 if"""
         source = """
+let items = [1, -1, 2]
 for item in items:
     if item > 0:
         log f"正数: {item}"
@@ -515,6 +549,7 @@ for item in items:
     def test_nested_for_loops(self, parse_v3):
         """✅ 正确：嵌套 for 循环"""
         source = """
+let matrix = [[1, 2], [3, 4]]
 for row in matrix:
     for col in row:
         log f"值: {col}"
@@ -529,6 +564,7 @@ for row in matrix:
     def test_for_looks_like_python(self, parse_v3):
         """✅ 验证：for 循环看起来像 Python"""
         source = """
+let users = [{"active": True, "name": "Alice"}]
 for user in users:
     if user.active == True:
         log f"Active: {user.name}"
@@ -543,14 +579,14 @@ for user in users:
     def test_for_with_end_keyword_error(self, parse_v3):
         """❌ 错误：for 循环使用 end for 应报错"""
         source = """
+let items = [1, 2, 3]
 for item in items:
     log item
 end for
 """
         result = parse_v3(source)
         assert result.success == False, "使用 end for 应该报错"
-        assert "end" in result.error.lower() or "缩进" in result.error, \
-            "错误提示应提及 end 关键字"
+        assert "end" in result.error.lower() or "缩进" in result.error, "错误提示应提及 end 关键字"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -568,6 +604,7 @@ for item in items
 # ============================================================================
 # 综合测试：控制流组合
 # ============================================================================
+
 
 class TestV3_ControlFlow_Complex:
     """控制流复杂组合测试"""
@@ -601,6 +638,7 @@ step "复杂流程":
     def test_python_style_control_flow(self, parse_v3):
         """✅ 验证：Python 风格的控制流"""
         source = """
+let user = {"active": True, "roles": ["admin"]}
 step "用户验证":
     if user == None:
         log "用户不存在"
@@ -618,14 +656,15 @@ step "用户验证":
             log "用户未激活"
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "Python 风格的控制流应该正确解析"
+        assert result.success == True, "Python 风格的控制流应该正确解析"
 
     @pytest.mark.v3
     @pytest.mark.syntax
     def test_deep_nesting(self, parse_v3):
         """✅ 正确：深层嵌套（5层）"""
         source = """
+let list1 = ["1", "2"]
+let list2 = [1, 2]
 step "level1":
     for a in list1:
         if a > 0:
@@ -643,31 +682,25 @@ step "level1":
 # Python 对齐验证
 # ============================================================================
 
+
 class TestV3_ControlFlow_PythonAlignment:
     """控制流 Python 对齐验证"""
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("dsl_code,python_equiv", [
-        (
-            "if x > 0:\n    let y = 1",
-            "if x > 0:\n    y = 1"
-        ),
-        (
-            "for item in items:\n    log item",
-            "for item in items:\n    print(item)"
-        ),
-        (
-            "if x:\n    let a = 1\nelse:\n    let a = 2",
-            "if x:\n    a = 1\nelse:\n    a = 2"
-        ),
-    ])
+    @pytest.mark.parametrize(
+        "dsl_code,python_equiv",
+        [
+            ("let x = 1\nif x > 0:\n    let y = 1", "if x > 0:\n    y = 1"),
+            ("let items = [1, 2]\nfor item in items:\n    log item", "for item in items:\n    print(item)"),
+            ("let x = 1\nlet a = 0\nif x:\n    a = 1\nelse:\n    a = 2", "if x:\n    a = 1\nelse:\n    a = 2"),
+        ],
+    )
     def test_structure_matches_python(self, parse_v3, dsl_code, python_equiv):
         """✅ 验证：结构与 Python 匹配"""
         # DSL 代码应该能解析
         result = parse_v3(dsl_code)
-        assert result.success == True, \
-            f"DSL 代码应该像 Python 一样解析：{dsl_code}"
+        assert result.success == True, f"DSL 代码应该像 Python 一样解析：{dsl_code}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
@@ -675,13 +708,13 @@ class TestV3_ControlFlow_PythonAlignment:
         """✅ 验证：像 Python 一样没有 end 关键字"""
         # Python 程序员的直觉写法
         source = """
+let users = [{"active": True, "name": "Alice"}]
 for user in users:
     if user.active:
         log f"Active user: {user.name}"
 """
         result = parse_v3(source)
-        assert result.success == True, \
-            "Python 程序员的直觉写法应该能正确解析"
+        assert result.success == True, "Python 程序员的直觉写法应该能正确解析"
 
 
 # ============================================================================
@@ -742,6 +775,7 @@ for user in users:
 # ============================================================================
 # v4.0 enumerate() 和多变量循环测试
 # ============================================================================
+
 
 class TestV4_Enumerate:
     """v4.0: enumerate() 函数和多变量循环测试"""
@@ -826,7 +860,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -845,7 +879,7 @@ for index, item in enumerate(items, start=1):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -866,7 +900,7 @@ for key, value in pairs:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -889,7 +923,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -910,7 +944,7 @@ for index, item in enumerate(items):
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
@@ -928,7 +962,7 @@ for key, value in pairs:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(Exception, match="解包值数量不匹配"):
@@ -945,7 +979,7 @@ for key, value in items:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
 
         with pytest.raises(Exception, match="无法解包类型"):
@@ -963,10 +997,9 @@ for item in items:
 """
         ast = parse(code)
         program = self._make_program(ast)
-        context = ExecutionContext('test-task')
+        context = ExecutionContext("test-task")
         interpreter = Interpreter(context)
         interpreter.execute(program)
 
         result = interpreter.symbol_table.get("result", [])
         assert result == [1, 2, 3]
-

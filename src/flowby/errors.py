@@ -12,8 +12,10 @@ DSL 异常定义
 
 from typing import Optional, List
 from dataclasses import dataclass
+
 try:
     from colorama import Fore, Style, init
+
     # 初始化 colorama（Windows 支持）
     init(autoreset=True)
     COLORS_AVAILABLE = True
@@ -24,8 +26,10 @@ except ImportError:
         GREEN = ""
         YELLOW = ""
         CYAN = ""
+
     class Style:
         RESET_ALL = ""
+
     COLORS_AVAILABLE = False
 
 
@@ -57,7 +61,7 @@ class DSLError(Exception):
         source_lines: Optional[List[str]] = None,
         expected: Optional[str] = None,
         actual: Optional[str] = None,
-        suggestion: Optional[str] = None
+        suggestion: Optional[str] = None,
     ):
         self.line = line
         self.column = column
@@ -81,6 +85,7 @@ class DSLError(Exception):
         # v6.0.1: 如果有文件路径，显示文件名
         if self.file_path:
             from pathlib import Path
+
             file_name = Path(self.file_path).name
             title += f"文件 {Fore.CYAN}{file_name}{Style.RESET_ALL}, "
 
@@ -164,7 +169,7 @@ class LexerError(DSLError):
         file_path: Optional[str] = None,
         source_line: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
-        suggestion: Optional[str] = None
+        suggestion: Optional[str] = None,
     ):
         # 如果只提供了 source_line，转换为 source_lines
         if source_line and not source_lines:
@@ -177,7 +182,7 @@ class LexerError(DSLError):
             message=message,
             file_path=file_path,  # v6.0.1
             source_lines=source_lines,
-            suggestion=suggestion
+            suggestion=suggestion,
         )
 
         # 保留向后兼容性
@@ -212,7 +217,7 @@ class ParserError(DSLError):
         file_path: Optional[str] = None,
         expected: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
-        suggestion: Optional[str] = None
+        suggestion: Optional[str] = None,
     ):
         self.token_type = token_type
         self.token_value = token_value
@@ -231,7 +236,7 @@ class ParserError(DSLError):
             source_lines=source_lines,
             expected=expected,
             actual=actual,
-            suggestion=suggestion
+            suggestion=suggestion,
         )
 
 
@@ -273,7 +278,7 @@ class ExecutionError(DSLError):
         file_path: Optional[str] = None,
         screenshot_path: Optional[str] = None,
         source_lines: Optional[List[str]] = None,
-        suggestion: Optional[str] = None
+        suggestion: Optional[str] = None,
     ):
         self.statement = statement
         self.screenshot_path = screenshot_path
@@ -290,7 +295,7 @@ class ExecutionError(DSLError):
             message=full_message,
             file_path=file_path,  # v6.0.1
             source_lines=source_lines,
-            suggestion=suggestion
+            suggestion=suggestion,
         )
 
 
@@ -343,10 +348,8 @@ class ResourceError(Exception):
 
 # 便捷函数
 
-def format_error_with_context(
-    error: Exception,
-    flow_content: str
-) -> str:
+
+def format_error_with_context(error: Exception, flow_content: str) -> str:
     """
     格式化错误消息，包含源代码上下文
 
@@ -365,7 +368,7 @@ def format_error_with_context(
         return str(error)
 
     # 对于其他异常类型，尝试提取行号
-    lines = flow_content.split('\n')
+    lines = flow_content.split("\n")
 
     if isinstance(error, (LexerError, ParserError, ExecutionError)):
         line_no = error.line
@@ -407,6 +410,7 @@ class ReturnException(Exception):
     Attributes:
         value: 返回值
     """
+
     def __init__(self, value=None):
         self.value = value
         super().__init__(f"return {value}")
@@ -443,6 +447,7 @@ class Warning:
         ... )
         >>> print(w.format())
     """
+
     warning_code: str
     message: str
     line: int

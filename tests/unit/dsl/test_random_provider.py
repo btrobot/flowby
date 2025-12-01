@@ -11,14 +11,11 @@ RandomProvider 单元测试
 7. choice 随机选择
 8. 自定义配置测试
 """
+
 import pytest
 import re
-from registration_system.dsl.config.schema import (
-    ServicesConfig,
-    GlobalSettings,
-    ProviderConfig
-)
-from registration_system.dsl.services import ServiceRegistry, ServiceError
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services import ServiceRegistry, ServiceError
 
 
 class TestPasswordGeneration:
@@ -29,12 +26,7 @@ class TestPasswordGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -65,26 +57,20 @@ class TestPasswordGeneration:
     def test_password_without_special_characters(self, registry):
         """测试不包含特殊字符的密码"""
         # Arrange
-        special_chars = '!@#$%^&*()_+-='
+        special_chars = "!@#$%^&*()_+-="
 
         # Act
         password = registry.call("random.password", length=16, special=False)
 
         # Assert
         assert len(password) == 16, "密码长度应该是 16"
-        assert not any(c in special_chars for c in password), \
-            "不应包含特殊字符"
+        assert not any(c in special_chars for c in password), "不应包含特殊字符"
 
     def test_password_only_numeric(self, registry):
         """测试纯数字密码生成"""
         # Arrange & Act
         password = registry.call(
-            "random.password",
-            length=8,
-            special=False,
-            upper=False,
-            lower=False,
-            digits=True
+            "random.password", length=8, special=False, upper=False, lower=False, digits=True
         )
 
         # Assert
@@ -100,8 +86,7 @@ class TestPasswordGeneration:
         passwords = [registry.call("random.password") for _ in range(num_passwords)]
 
         # Assert
-        assert len(set(passwords)) == num_passwords, \
-            "生成的密码应该各不相同"
+        assert len(set(passwords)) == num_passwords, "生成的密码应该各不相同"
 
     @pytest.mark.parametrize("length", [8, 12, 16, 20, 24])
     def test_password_various_lengths(self, registry, length):
@@ -121,12 +106,7 @@ class TestUsernameGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -140,8 +120,7 @@ class TestUsernameGeneration:
         # Assert
         assert len(username) == 8, "默认用户名长度应该是 8"
         assert username.isalnum(), "应该只包含字母和数字"
-        assert username.islower() or any(c.isdigit() for c in username), \
-            "应该包含小写字母或数字"
+        assert username.islower() or any(c.isdigit() for c in username), "应该包含小写字母或数字"
 
     def test_username_with_prefix_and_suffix(self, registry):
         """测试带前缀和后缀的用户名"""
@@ -151,18 +130,14 @@ class TestUsernameGeneration:
         suffix = "_test"
 
         # Act
-        username = registry.call(
-            "random.username",
-            length=length,
-            prefix=prefix,
-            suffix=suffix
-        )
+        username = registry.call("random.username", length=length, prefix=prefix, suffix=suffix)
 
         # Assert
         assert username.startswith(prefix), f"应该以 {prefix} 开头"
         assert username.endswith(suffix), f"应该以 {suffix} 结尾"
-        assert len(username) == length + len(prefix) + len(suffix), \
-            "总长度应该是 length + prefix + suffix"
+        assert len(username) == length + len(prefix) + len(
+            suffix
+        ), "总长度应该是 length + prefix + suffix"
 
     def test_username_custom_length(self, registry):
         """测试自定义长度用户名"""
@@ -175,21 +150,19 @@ class TestUsernameGeneration:
         # Assert
         assert len(username) == length, f"用户名长度应该是 {length}"
 
-    @pytest.mark.parametrize("length,prefix,suffix", [
-        (8, "test_", ""),
-        (10, "", "_user"),
-        (6, "u_", "_001"),
-        (12, "admin_", "_prod"),
-    ])
+    @pytest.mark.parametrize(
+        "length,prefix,suffix",
+        [
+            (8, "test_", ""),
+            (10, "", "_user"),
+            (6, "u_", "_001"),
+            (12, "admin_", "_prod"),
+        ],
+    )
     def test_username_various_combinations(self, registry, length, prefix, suffix):
         """测试各种前缀后缀组合"""
         # Act
-        username = registry.call(
-            "random.username",
-            length=length,
-            prefix=prefix,
-            suffix=suffix
-        )
+        username = registry.call("random.username", length=length, prefix=prefix, suffix=suffix)
 
         # Assert
         if prefix:
@@ -207,12 +180,7 @@ class TestStringGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -280,13 +248,16 @@ class TestStringGeneration:
         assert s.isupper(), "应该只包含大写字母"
         assert s.isalpha(), "应该只包含字母"
 
-    @pytest.mark.parametrize("charset,validator", [
-        ("alpha", lambda s: s.isalpha()),
-        ("numeric", lambda s: s.isdigit()),
-        ("alphanumeric", lambda s: s.isalnum()),
-        ("lower", lambda s: s.islower() and s.isalpha()),
-        ("upper", lambda s: s.isupper() and s.isalpha()),
-    ])
+    @pytest.mark.parametrize(
+        "charset,validator",
+        [
+            ("alpha", lambda s: s.isalpha()),
+            ("numeric", lambda s: s.isdigit()),
+            ("alphanumeric", lambda s: s.isalnum()),
+            ("lower", lambda s: s.islower() and s.isalpha()),
+            ("upper", lambda s: s.isupper() and s.isalpha()),
+        ],
+    )
     def test_string_various_charsets(self, registry, charset, validator):
         """测试各种字符集"""
         # Arrange
@@ -308,12 +279,7 @@ class TestNumberGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -351,21 +317,23 @@ class TestNumberGeneration:
         # Assert
         assert min_val <= num <= max_val, f"数字应该在 {min_val}-{max_val} 范围内"
 
-    @pytest.mark.parametrize("min_val,max_val", [
-        (0, 10),
-        (50, 100),
-        (-50, 50),
-        (-100, -50),
-        (1000, 2000),
-    ])
+    @pytest.mark.parametrize(
+        "min_val,max_val",
+        [
+            (0, 10),
+            (50, 100),
+            (-50, 50),
+            (-100, -50),
+            (1000, 2000),
+        ],
+    )
     def test_number_various_ranges(self, registry, min_val, max_val):
         """测试各种数字范围"""
         # Act
         num = registry.call("random.number", min_val=min_val, max_val=max_val)
 
         # Assert
-        assert min_val <= num <= max_val, \
-            f"数字应该在 {min_val}-{max_val} 范围内"
+        assert min_val <= num <= max_val, f"数字应该在 {min_val}-{max_val} 范围内"
 
 
 class TestEmailGeneration:
@@ -376,12 +344,7 @@ class TestEmailGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -394,8 +357,7 @@ class TestEmailGeneration:
 
         # Assert
         assert "@example.com" in email, "默认域名应该是 example.com"
-        assert re.match(r'^[a-z0-9]+@example\.com$', email), \
-            "邮箱格式应该正确"
+        assert re.match(r"^[a-z0-9]+@example\.com$", email), "邮箱格式应该正确"
 
     def test_email_custom_domain(self, registry):
         """测试自定义域名邮箱生成"""
@@ -421,12 +383,15 @@ class TestEmailGeneration:
         username = email.split("@")[0]
         assert len(username) == length, f"用户名长度应该是 {length}"
 
-    @pytest.mark.parametrize("domain,length", [
-        ("example.com", 8),
-        ("test.org", 10),
-        ("mail.com", 12),
-        ("custom.net", 15),
-    ])
+    @pytest.mark.parametrize(
+        "domain,length",
+        [
+            ("example.com", 8),
+            ("test.org", 10),
+            ("mail.com", 12),
+            ("custom.net", 15),
+        ],
+    )
     def test_email_various_combinations(self, registry, domain, length):
         """测试各种域名和长度组合"""
         # Act
@@ -446,12 +411,7 @@ class TestPhoneGeneration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -475,15 +435,10 @@ class TestPhoneGeneration:
         length = 11
 
         # Act
-        phone = registry.call(
-            "random.phone",
-            country_code=country_code,
-            length=length
-        )
+        phone = registry.call("random.phone", country_code=country_code, length=length)
 
         # Assert
-        assert phone.startswith(f"+{country_code}"), \
-            f"国家代码应该是 +{country_code}"
+        assert phone.startswith(f"+{country_code}"), f"国家代码应该是 +{country_code}"
         digits = phone[3:]  # 去掉 +86
         assert len(digits) == length, f"去掉国家代码后应该是 {length} 位"
 
@@ -496,27 +451,25 @@ class TestPhoneGeneration:
         for _ in range(num_tests):
             phone = registry.call("random.phone")
             first_digit = phone[2]  # 跳过 +1
-            assert first_digit != '0', "第一位数字不应该是 0"
+            assert first_digit != "0", "第一位数字不应该是 0"
 
-    @pytest.mark.parametrize("country_code,length", [
-        ("1", 10),
-        ("86", 11),
-        ("44", 10),
-        ("81", 10),
-    ])
+    @pytest.mark.parametrize(
+        "country_code,length",
+        [
+            ("1", 10),
+            ("86", 11),
+            ("44", 10),
+            ("81", 10),
+        ],
+    )
     def test_phone_various_country_codes(self, registry, country_code, length):
         """测试各种国家代码"""
         # Act
-        phone = registry.call(
-            "random.phone",
-            country_code=country_code,
-            length=length
-        )
+        phone = registry.call("random.phone", country_code=country_code, length=length)
 
         # Assert
-        assert phone.startswith(f"+{country_code}"), \
-            f"国家代码应该是 +{country_code}"
-        digits = phone[len(country_code) + 1:]  # 去掉 +XX
+        assert phone.startswith(f"+{country_code}"), f"国家代码应该是 +{country_code}"
+        digits = phone[len(country_code) + 1 :]  # 去掉 +XX
         assert len(digits) == length, f"号码长度应该是 {length}"
 
 
@@ -528,12 +481,7 @@ class TestChoiceFunction:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -561,12 +509,15 @@ class TestChoiceFunction:
         # Assert
         assert choice == "", "空选项应该返回空字符串"
 
-    @pytest.mark.parametrize("options", [
-        (["option1", "option2", "option3"]),
-        (["A", "B", "C", "D"]),
-        (["1", "2", "3"]),
-        (["red", "green", "blue", "yellow"]),
-    ])
+    @pytest.mark.parametrize(
+        "options",
+        [
+            (["option1", "option2", "option3"]),
+            (["A", "B", "C", "D"]),
+            (["1", "2", "3"]),
+            (["red", "green", "blue", "yellow"]),
+        ],
+    )
     def test_choice_various_options(self, registry, options):
         """测试各种选项列表"""
         # Act
@@ -584,12 +535,7 @@ class TestRegistryIntegration:
         """提供 ServiceRegistry 实例"""
         config = ServicesConfig(
             settings=GlobalSettings(),
-            providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={}
-                )
-            }
+            providers={"random": ProviderConfig(type="random", config={})},
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -630,14 +576,10 @@ class TestCustomConfiguration:
         config = ServicesConfig(
             settings=GlobalSettings(),
             providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={
-                        'charset_lower': 'abc',
-                        'charset_numeric': '123'
-                    }
+                "random": ProviderConfig(
+                    type="random", config={"charset_lower": "abc", "charset_numeric": "123"}
                 )
-            }
+            },
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -646,8 +588,7 @@ class TestCustomConfiguration:
         # 生成的用户名应该只包含自定义字符集 'abc123'
         for _ in range(10):
             username = registry.call("random.username", length=10)
-            assert all(c in 'abc123' for c in username), \
-                "用户名应该只包含自定义字符集中的字符"
+            assert all(c in "abc123" for c in username), "用户名应该只包含自定义字符集中的字符"
 
     def test_custom_config_affects_string_generation(self):
         """测试自定义配置影响字符串生成"""
@@ -655,14 +596,10 @@ class TestCustomConfiguration:
         config = ServicesConfig(
             settings=GlobalSettings(),
             providers={
-                'random': ProviderConfig(
-                    type='random',
-                    config={
-                        'charset_lower': 'xyz',
-                        'charset_numeric': '789'
-                    }
+                "random": ProviderConfig(
+                    type="random", config={"charset_lower": "xyz", "charset_numeric": "789"}
                 )
-            }
+            },
         )
         registry = ServiceRegistry(config)
         registry.initialize()
@@ -672,5 +609,4 @@ class TestCustomConfiguration:
 
         # Assert
         assert len(s) == 20, "字符串长度应该正确"
-        assert all(c in 'xyz' for c in s), \
-            "字符串应该只包含自定义的小写字符集"
+        assert all(c in "xyz" for c in s), "字符串应该只包含自定义的小写字符集"

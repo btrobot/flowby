@@ -52,7 +52,9 @@ class DiagnosisReportGenerator:
 
         # 性能指标
         if "performance_metrics" in collected_data:
-            sections.append(self._generate_performance_metrics(collected_data["performance_metrics"]))
+            sections.append(
+                self._generate_performance_metrics(collected_data["performance_metrics"])
+            )
 
         # 视口信息
         if "viewport_info" in collected_data:
@@ -167,9 +169,9 @@ class DiagnosisReportGenerator:
             lines.append("\n### 日志详情")
 
             # 按类型分组
-            errors_list = [l for l in logs if l.get("type") == "error"]
-            warnings_list = [l for l in logs if l.get("type") == "warning"]
-            others = [l for l in logs if l.get("type") not in ("error", "warning")]
+            errors_list = [entry for entry in logs if entry.get("type") == "error"]
+            warnings_list = [entry for entry in logs if entry.get("type") == "warning"]
+            others = [entry for entry in logs if entry.get("type") not in ("error", "warning")]
 
             if errors_list:
                 lines.append("\n#### 错误")
@@ -203,8 +205,9 @@ class DiagnosisReportGenerator:
         requests = network_data.get("requests", [])
         if requests:
             # 只显示失败和错误的请求
-            problem_requests = [r for r in requests
-                               if r.get("failed", False) or r.get("status", 200) >= 400]
+            problem_requests = [
+                r for r in requests if r.get("failed", False) or r.get("status", 200) >= 400
+            ]
 
             if problem_requests:
                 lines.append("\n### 问题请求")
@@ -252,7 +255,9 @@ class DiagnosisReportGenerator:
             lines.append("\n### 最近执行记录")
             for record in records[-10:]:
                 success = "✓" if record.get("success", True) else "✗"
-                lines.append(f"- [{success}] {record.get('type', '')}: {record.get('content', '')[:50]}")
+                lines.append(
+                    f"- [{success}] {record.get('type', '')}: {record.get('content', '')[:50]}"
+                )
 
         return "\n".join(lines)
 
@@ -298,8 +303,12 @@ class DiagnosisReportGenerator:
                 lines.append(f"\n**错误**: {viewport_data['error']}")
             return "\n".join(lines)
 
-        lines.append(f"\n**窗口大小**: {viewport.get('windowWidth', 0)} x {viewport.get('windowHeight', 0)}")
-        lines.append(f"**文档大小**: {viewport.get('documentWidth', 0)} x {viewport.get('documentHeight', 0)}")
+        lines.append(
+            f"\n**窗口大小**: {viewport.get('windowWidth', 0)} x {viewport.get('windowHeight', 0)}"
+        )
+        lines.append(
+            f"**文档大小**: {viewport.get('documentWidth', 0)} x {viewport.get('documentHeight', 0)}"
+        )
         lines.append(f"**滚动位置**: ({viewport.get('scrollX', 0)}, {viewport.get('scrollY', 0)})")
         lines.append(f"**设备像素比**: {viewport.get('devicePixelRatio', 1)}")
 

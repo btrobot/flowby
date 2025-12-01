@@ -16,7 +16,7 @@ import time
 import json
 import yaml
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Callable
+from typing import Dict, Any, Optional, List
 from collections import defaultdict
 
 
@@ -28,12 +28,7 @@ class MockRecorder:
         self.calls = defaultdict(list)  # operation_id -> [calls]
         self.total_calls = 0
 
-    def record(
-        self,
-        operation_id: str,
-        kwargs: Dict[str, Any],
-        response: Any
-    ) -> None:
+    def record(self, operation_id: str, kwargs: Dict[str, Any], response: Any) -> None:
         """
         记录 Mock 调用
 
@@ -42,11 +37,9 @@ class MockRecorder:
             kwargs: 调用参数
             response: Mock 响应
         """
-        self.calls[operation_id].append({
-            'timestamp': time.time(),
-            'kwargs': kwargs,
-            'response': response
-        })
+        self.calls[operation_id].append(
+            {"timestamp": time.time(), "kwargs": kwargs, "response": response}
+        )
         self.total_calls += 1
 
     def get_calls(self, operation_id: str) -> List[Dict]:
@@ -130,11 +123,11 @@ class MockDataLoader:
         # 根据文件扩展名选择加载器
         suffix = path.suffix.lower()
 
-        if suffix == '.json':
-            with open(path, 'r', encoding='utf-8') as f:
+        if suffix == ".json":
+            with open(path, "r", encoding="utf-8") as f:
                 return json.load(f)
-        elif suffix in ['.yaml', '.yml']:
-            with open(path, 'r', encoding='utf-8') as f:
+        elif suffix in [".yaml", ".yml"]:
+            with open(path, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f)
         else:
             raise ValueError(f"不支持的 Mock 数据文件格式: {suffix}")
@@ -159,16 +152,10 @@ class MockDataLoader:
             return data
         elif isinstance(data, dict):
             # 递归处理字典
-            return {
-                k: MockDataLoader.apply_template(v, variables)
-                for k, v in data.items()
-            }
+            return {k: MockDataLoader.apply_template(v, variables) for k, v in data.items()}
         elif isinstance(data, list):
             # 递归处理列表
-            return [
-                MockDataLoader.apply_template(item, variables)
-                for item in data
-            ]
+            return [MockDataLoader.apply_template(item, variables) for item in data]
         else:
             return data
 
@@ -213,13 +200,13 @@ class MockHandler:
             }
         """
         self.config = config or {}
-        self.enabled = self.config.get('enabled', False)
-        self.mode = self.config.get('mode', 'auto')
-        self.delay = self.config.get('delay', 0)
-        self.responses = self.config.get('responses', {})
-        self.errors = self.config.get('errors', {})
-        self.record_calls = self.config.get('record_calls', False)
-        self.base_path = self.config.get('base_path', '')
+        self.enabled = self.config.get("enabled", False)
+        self.mode = self.config.get("mode", "auto")
+        self.delay = self.config.get("delay", 0)
+        self.responses = self.config.get("responses", {})
+        self.errors = self.config.get("errors", {})
+        self.record_calls = self.config.get("record_calls", False)
+        self.base_path = self.config.get("base_path", "")
 
         # 调用记录器
         self.recorder = MockRecorder() if self.record_calls else None
@@ -241,10 +228,7 @@ class MockHandler:
         return operation_id in self.responses or operation_id in self.errors
 
     def get_mock_response(
-        self,
-        operation_id: str,
-        kwargs: Dict[str, Any],
-        logger: Optional[Any] = None
+        self, operation_id: str, kwargs: Dict[str, Any], logger: Optional[Any] = None
     ) -> Any:
         """
         获取 Mock 响应
@@ -283,11 +267,7 @@ class MockHandler:
 
         raise ValueError(f"没有找到操作的 Mock 配置: {operation_id}")
 
-    def _build_success_response(
-        self,
-        config: Dict[str, Any],
-        kwargs: Dict[str, Any]
-    ) -> Any:
+    def _build_success_response(self, config: Dict[str, Any], kwargs: Dict[str, Any]) -> Any:
         """
         构建成功响应
 
@@ -299,8 +279,8 @@ class MockHandler:
             Mock 响应数据
         """
         # 如果配置了文件，从文件加载
-        if 'file' in config:
-            file_path = config['file']
+        if "file" in config:
+            file_path = config["file"]
             # 如果是相对路径，加上基础路径
             if self.base_path and not Path(file_path).is_absolute():
                 file_path = str(Path(self.base_path) / file_path)
@@ -314,8 +294,8 @@ class MockHandler:
             return data
 
         # 如果配置了 data，直接返回
-        if 'data' in config:
-            data = config['data']
+        if "data" in config:
+            data = config["data"]
 
             # 如果 data 是函数，调用它
             if callable(data):
@@ -328,8 +308,8 @@ class MockHandler:
             return data
 
         # 如果配置了 factory，调用工厂函数
-        if 'factory' in config:
-            factory = config['factory']
+        if "factory" in config:
+            factory = config["factory"]
             if callable(factory):
                 return factory(**kwargs)
 
@@ -354,21 +334,15 @@ class MockHandler:
 
         # 创建一个模拟的 Response 对象
         response = Response()
-        response.status_code = config.get('status', 500)
-        response._content = json.dumps({
-            'error': config.get('message', 'Mock error'),
-            'detail': config.get('detail', '')
-        }).encode('utf-8')
+        response.status_code = config.get("status", 500)
+        response._content = json.dumps(
+            {"error": config.get("message", "Mock error"), "detail": config.get("detail", "")}
+        ).encode("utf-8")
 
         # 抛出 HTTPError
         raise HTTPError(response=response)
 
-    def record_call(
-        self,
-        operation_id: str,
-        kwargs: Dict[str, Any],
-        response: Any
-    ) -> None:
+    def record_call(self, operation_id: str, kwargs: Dict[str, Any], response: Any) -> None:
         """
         记录调用
 
@@ -385,9 +359,7 @@ class MockHandler:
         return self.recorder
 
 
-def create_mock_handler(
-    config: Optional[Dict[str, Any]] = None
-) -> Optional[MockHandler]:
+def create_mock_handler(config: Optional[Dict[str, Any]] = None) -> Optional[MockHandler]:
     """
     创建 Mock 处理器（工厂函数）
 
@@ -400,7 +372,7 @@ def create_mock_handler(
     if not config:
         return None
 
-    if not config.get('enabled', False):
+    if not config.get("enabled", False):
         return None
 
     return MockHandler(config)

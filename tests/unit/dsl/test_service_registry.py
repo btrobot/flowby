@@ -8,18 +8,11 @@ Service Registry 单元测试
 4. 错误处理
 5. 资源管理
 """
+
 import pytest
 from typing import List, Any
-from registration_system.dsl.config.schema import (
-    ServicesConfig,
-    GlobalSettings,
-    ProviderConfig
-)
-from registration_system.dsl.services import (
-    ServiceRegistry,
-    ServiceProvider,
-    ServiceError
-)
+from flowby.config.schema import ServicesConfig, GlobalSettings, ProviderConfig
+from flowby.services import ServiceRegistry, ServiceProvider, ServiceError
 
 
 class MockProvider(ServiceProvider):
@@ -37,26 +30,26 @@ class MockProvider(ServiceProvider):
 
     def get_methods(self) -> List[str]:
         """返回支持的方法列表"""
-        return ['echo', 'add', 'fail', 'get_config']
+        return ["echo", "add", "fail", "get_config"]
 
     def echo(self, message: str) -> str:
         """回显消息"""
-        self.call_history.append(('echo', {'message': message}))
+        self.call_history.append(("echo", {"message": message}))
         return message
 
     def add(self, a: int, b: int) -> int:
         """加法运算"""
-        self.call_history.append(('add', {'a': a, 'b': b}))
+        self.call_history.append(("add", {"a": a, "b": b}))
         return a + b
 
     def fail(self) -> None:
         """故意失败的方法"""
-        self.call_history.append(('fail', {}))
+        self.call_history.append(("fail", {}))
         raise ValueError("Intentional failure")
 
     def get_config(self, key: str) -> Any:
         """获取配置值"""
-        self.call_history.append(('get_config', {'key': key}))
+        self.call_history.append(("get_config", {"key": key}))
         return self.config.get(key)
 
     def close(self):
@@ -91,11 +84,10 @@ class TestProviderRegistration:
         registry = ServiceRegistry(config)
 
         # Act
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Assert
-        assert 'mock' in registry._provider_classes, \
-            "提供者类应该被注册"
+        assert "mock" in registry._provider_classes, "提供者类应该被注册"
 
     def test_register_multiple_provider_classes(self, config):
         """测试注册多个提供者类"""
@@ -104,25 +96,24 @@ class TestProviderRegistration:
         initial_count = len(registry._provider_classes)
 
         # Act
-        registry.register_provider_class('mock', MockProvider)
-        registry.register_provider_class('failing', FailingProvider)
+        registry.register_provider_class("mock", MockProvider)
+        registry.register_provider_class("failing", FailingProvider)
 
         # Assert
-        assert 'mock' in registry._provider_classes
-        assert 'failing' in registry._provider_classes
-        assert len(registry._provider_classes) == initial_count + 2, \
-            "应该在初始提供者基础上增加 2 个新提供者"
+        assert "mock" in registry._provider_classes
+        assert "failing" in registry._provider_classes
+        assert (
+            len(registry._provider_classes) == initial_count + 2
+        ), "应该在初始提供者基础上增加 2 个新提供者"
 
-    @pytest.mark.parametrize("provider_type,provider_class", [
-        ("mock", MockProvider),
-        ("failing", FailingProvider),
-    ])
-    def test_register_various_provider_types(
-        self,
-        config,
-        provider_type,
-        provider_class
-    ):
+    @pytest.mark.parametrize(
+        "provider_type,provider_class",
+        [
+            ("mock", MockProvider),
+            ("failing", FailingProvider),
+        ],
+    )
+    def test_register_various_provider_types(self, config, provider_type, provider_class):
         """测试注册各种提供者类型"""
         # Arrange
         registry = ServiceRegistry(config)
@@ -145,11 +136,11 @@ class TestProviderInitialization:
         if providers_data:
             for name, data in providers_data.items():
                 providers[name] = ProviderConfig(
-                    type=data.get('type', 'mock'),
-                    config=data.get('config', {}),
-                    timeout=data.get('timeout'),
-                    retry_count=data.get('retry_count'),
-                    retry_delay=data.get('retry_delay')
+                    type=data.get("type", "mock"),
+                    config=data.get("config", {}),
+                    timeout=data.get("timeout"),
+                    retry_count=data.get("retry_count"),
+                    retry_delay=data.get("retry_delay"),
                 )
 
         return ServicesConfig(settings=settings, providers=providers)
@@ -157,65 +148,61 @@ class TestProviderInitialization:
     def test_initialize_single_provider(self):
         """测试初始化单个提供者"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'mock', 'config': {'key': 'value'}}
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {"key": "value"}}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        assert 'test' in registry.providers, "提供者应该被初始化"
-        assert registry.providers['test'].initialized, "提供者应该处于已初始化状态"
+        assert "test" in registry.providers, "提供者应该被初始化"
+        assert registry.providers["test"].initialized, "提供者应该处于已初始化状态"
 
     def test_initialize_multiple_providers(self):
         """测试初始化多个提供者"""
         # Arrange
-        config = self._create_config({
-            'provider1': {'type': 'mock', 'config': {}},
-            'provider2': {'type': 'mock', 'config': {}}
-        })
+        config = self._create_config(
+            {
+                "provider1": {"type": "mock", "config": {}},
+                "provider2": {"type": "mock", "config": {}},
+            }
+        )
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
         assert len(registry.providers) == 2, "应该初始化 2 个提供者"
-        assert 'provider1' in registry.providers
-        assert 'provider2' in registry.providers
+        assert "provider1" in registry.providers
+        assert "provider2" in registry.providers
 
     def test_initialized_provider_has_correct_config(self):
         """测试初始化的提供者有正确的配置"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'mock', 'config': {'api_key': 'secret123'}}
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {"api_key": "secret123"}}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        provider = registry.providers['test']
-        assert provider.config.get('api_key') == 'secret123', \
-            "提供者应该有正确的配置"
+        provider = registry.providers["test"]
+        assert provider.config.get("api_key") == "secret123", "提供者应该有正确的配置"
 
     @pytest.mark.parametrize("num_providers", [1, 2, 3, 5])
     def test_initialize_various_numbers_of_providers(self, num_providers):
         """测试初始化不同数量的提供者"""
         # Arrange
         providers_data = {
-            f'provider{i}': {'type': 'mock', 'config': {}}
-            for i in range(num_providers)
+            f"provider{i}": {"type": "mock", "config": {}} for i in range(num_providers)
         }
         config = self._create_config(providers_data)
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
@@ -227,25 +214,23 @@ class TestProviderInitialization:
 class TestProviderRetrieval:
     """测试提供者获取"""
 
-    def _create_registry_with_provider(self, provider_name='test'):
+    def _create_registry_with_provider(self, provider_name="test"):
         """创建带有提供者的 registry"""
         settings = GlobalSettings()
-        providers = {
-            provider_name: ProviderConfig(type='mock', config={})
-        }
+        providers = {provider_name: ProviderConfig(type="mock", config={})}
         config = ServicesConfig(settings=settings, providers=providers)
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
         return registry
 
     def test_get_existing_provider(self):
         """测试获取存在的提供者"""
         # Arrange
-        registry = self._create_registry_with_provider('test')
+        registry = self._create_registry_with_provider("test")
 
         # Act
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
 
         # Assert
         assert provider is not None, "应该返回提供者"
@@ -254,20 +239,23 @@ class TestProviderRetrieval:
     def test_get_provider_not_found(self):
         """测试获取不存在的提供者"""
         # Arrange
-        registry = self._create_registry_with_provider('test')
+        registry = self._create_registry_with_provider("test")
 
         # Act & Assert
         with pytest.raises(ServiceError) as exc_info:
-            registry.get_provider('nonexistent')
+            registry.get_provider("nonexistent")
 
         assert "不存在" in str(exc_info.value), "错误消息应该包含'不存在'"
 
-    @pytest.mark.parametrize("provider_name", [
-        "test",
-        "email",
-        "sms",
-        "random",
-    ])
+    @pytest.mark.parametrize(
+        "provider_name",
+        [
+            "test",
+            "email",
+            "sms",
+            "random",
+        ],
+    )
     def test_get_various_providers(self, provider_name):
         """测试获取各种提供者"""
         # Arrange
@@ -288,12 +276,10 @@ class TestServiceCalling:
     def registry(self):
         """提供已初始化的 registry"""
         settings = GlobalSettings()
-        providers = {
-            'test': ProviderConfig(type='mock', config={'api_key': 'secret'})
-        }
+        providers = {"test": ProviderConfig(type="mock", config={"api_key": "secret"})}
         config = ServicesConfig(settings=settings, providers=providers)
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
         return registry
 
@@ -328,17 +314,20 @@ class TestServiceCalling:
         registry.call("test.add", a=1, b=2)
 
         # Assert
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
         assert len(provider.call_history) == 2, "应该记录 2 次调用"
-        assert provider.call_history[0] == ('echo', {'message': 'hello'})
-        assert provider.call_history[1] == ('add', {'a': 1, 'b': 2})
+        assert provider.call_history[0] == ("echo", {"message": "hello"})
+        assert provider.call_history[1] == ("add", {"a": 1, "b": 2})
 
-    @pytest.mark.parametrize("method,params,expected", [
-        ("echo", {"message": "test"}, "test"),
-        ("echo", {"message": "hello world"}, "hello world"),
-        ("add", {"a": 10, "b": 20}, 30),
-        ("add", {"a": 100, "b": 200}, 300),
-    ])
+    @pytest.mark.parametrize(
+        "method,params,expected",
+        [
+            ("echo", {"message": "test"}, "test"),
+            ("echo", {"message": "hello world"}, "hello world"),
+            ("add", {"a": 10, "b": 20}, 30),
+            ("add", {"a": 100, "b": 200}, 300),
+        ],
+    )
     def test_various_method_calls(self, registry, method, params, expected):
         """测试各种方法调用"""
         # Act
@@ -355,12 +344,10 @@ class TestServiceCallingErrors:
     def registry(self):
         """提供已初始化的 registry"""
         settings = GlobalSettings()
-        providers = {
-            'test': ProviderConfig(type='mock', config={})
-        }
+        providers = {"test": ProviderConfig(type="mock", config={})}
         config = ServicesConfig(settings=settings, providers=providers)
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
         return registry
 
@@ -389,12 +376,15 @@ class TestServiceCallingErrors:
         error_message = str(exc_info.value)
         assert "调用失败" in error_message or "Intentional failure" in error_message
 
-    @pytest.mark.parametrize("invalid_path", [
-        "no_dot",
-        "too.many.dots",
-        "..empty",
-        "nonexistent.method",
-    ])
+    @pytest.mark.parametrize(
+        "invalid_path",
+        [
+            "no_dot",
+            "too.many.dots",
+            "..empty",
+            "nonexistent.method",
+        ],
+    )
     def test_various_invalid_paths(self, registry, invalid_path):
         """测试各种无效路径"""
         # Act & Assert
@@ -413,11 +403,11 @@ class TestConfigurationInheritance:
         if providers_data:
             for name, data in providers_data.items():
                 providers[name] = ProviderConfig(
-                    type=data.get('type', 'mock'),
-                    config=data.get('config', {}),
-                    timeout=data.get('timeout'),
-                    retry_count=data.get('retry_count'),
-                    retry_delay=data.get('retry_delay')
+                    type=data.get("type", "mock"),
+                    config=data.get("config", {}),
+                    timeout=data.get("timeout"),
+                    retry_count=data.get("retry_count"),
+                    retry_delay=data.get("retry_delay"),
                 )
 
         return ServicesConfig(settings=settings, providers=providers)
@@ -425,17 +415,15 @@ class TestConfigurationInheritance:
     def test_provider_inherits_global_settings(self):
         """测试提供者继承全局设置"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'mock', 'config': {}}
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {}}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
         assert provider.timeout == 5000, "应该继承全局 timeout"
         assert provider.retry_count == 2, "应该继承全局 retry_count"
         assert provider.retry_delay == 100, "应该继承全局 retry_delay"
@@ -443,65 +431,55 @@ class TestConfigurationInheritance:
     def test_provider_overrides_timeout(self):
         """测试提供者覆盖 timeout"""
         # Arrange
-        config = self._create_config({
-            'test': {
-                'type': 'mock',
-                'config': {},
-                'timeout': 10000
-            }
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {}, "timeout": 10000}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
         assert provider.timeout == 10000, "应该使用覆盖的 timeout"
         assert provider.retry_count == 2, "未覆盖的应该使用全局值"
 
     def test_provider_overrides_retry_count(self):
         """测试提供者覆盖 retry_count"""
         # Arrange
-        config = self._create_config({
-            'test': {
-                'type': 'mock',
-                'config': {},
-                'retry_count': 5
-            }
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {}, "retry_count": 5}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
         assert provider.retry_count == 5, "应该使用覆盖的 retry_count"
         assert provider.timeout == 5000, "未覆盖的应该使用全局值"
 
     def test_provider_overrides_all_settings(self):
         """测试提供者覆盖所有设置"""
         # Arrange
-        config = self._create_config({
-            'test': {
-                'type': 'mock',
-                'config': {},
-                'timeout': 10000,
-                'retry_count': 5,
-                'retry_delay': 200
+        config = self._create_config(
+            {
+                "test": {
+                    "type": "mock",
+                    "config": {},
+                    "timeout": 10000,
+                    "retry_count": 5,
+                    "retry_delay": 200,
+                }
             }
-        })
+        )
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
 
         # Act
         registry.initialize()
 
         # Assert
-        provider = registry.get_provider('test')
+        provider = registry.get_provider("test")
         assert provider.timeout == 10000
         assert provider.retry_count == 5
         assert provider.retry_delay == 200
@@ -517,8 +495,7 @@ class TestErrorHandling:
 
         for name, data in providers_data.items():
             providers[name] = ProviderConfig(
-                type=data.get('type', 'mock'),
-                config=data.get('config', {})
+                type=data.get("type", "mock"), config=data.get("config", {})
             )
 
         return ServicesConfig(settings=settings, providers=providers)
@@ -526,9 +503,7 @@ class TestErrorHandling:
     def test_unknown_provider_type(self):
         """测试未知的提供者类型"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'unknown', 'config': {}}
-        })
+        config = self._create_config({"test": {"type": "unknown", "config": {}}})
         registry = ServiceRegistry(config)
 
         # Act & Assert
@@ -540,11 +515,9 @@ class TestErrorHandling:
     def test_provider_initialization_failure(self):
         """测试提供者初始化失败"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'failing', 'config': {}}
-        })
+        config = self._create_config({"test": {"type": "failing", "config": {}}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('failing', FailingProvider)
+        registry.register_provider_class("failing", FailingProvider)
 
         # Act & Assert
         with pytest.raises(ServiceError) as exc_info:
@@ -564,8 +537,7 @@ class TestResourceManagement:
 
         for name, data in providers_data.items():
             providers[name] = ProviderConfig(
-                type=data.get('type', 'mock'),
-                config=data.get('config', {})
+                type=data.get("type", "mock"), config=data.get("config", {})
             )
 
         return ServicesConfig(settings=settings, providers=providers)
@@ -573,13 +545,11 @@ class TestResourceManagement:
     def test_close_single_provider(self):
         """测试关闭单个提供者"""
         # Arrange
-        config = self._create_config({
-            'test': {'type': 'mock', 'config': {}}
-        })
+        config = self._create_config({"test": {"type": "mock", "config": {}}})
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
-        provider = registry.providers['test']
+        provider = registry.providers["test"]
 
         # Act
         registry.close()
@@ -591,15 +561,14 @@ class TestResourceManagement:
     def test_close_multiple_providers(self):
         """测试关闭多个提供者"""
         # Arrange
-        config = self._create_config({
-            'test1': {'type': 'mock', 'config': {}},
-            'test2': {'type': 'mock', 'config': {}}
-        })
+        config = self._create_config(
+            {"test1": {"type": "mock", "config": {}}, "test2": {"type": "mock", "config": {}}}
+        )
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
-        provider1 = registry.providers['test1']
-        provider2 = registry.providers['test2']
+        provider1 = registry.providers["test1"]
+        provider2 = registry.providers["test2"]
 
         # Act
         registry.close()
@@ -614,16 +583,15 @@ class TestResourceManagement:
         """测试关闭不同数量的提供者"""
         # Arrange
         providers_data = {
-            f'provider{i}': {'type': 'mock', 'config': {}}
-            for i in range(num_providers)
+            f"provider{i}": {"type": "mock", "config": {}} for i in range(num_providers)
         }
         config = self._create_config(providers_data)
         registry = ServiceRegistry(config)
-        registry.register_provider_class('mock', MockProvider)
+        registry.register_provider_class("mock", MockProvider)
         registry.initialize()
 
         # 保存所有提供者引用
-        providers = [registry.providers[f'provider{i}'] for i in range(num_providers)]
+        providers = [registry.providers[f"provider{i}"] for i in range(num_providers)]
 
         # Act
         registry.close()
@@ -677,11 +645,14 @@ class TestServiceError:
         message = str(error)
         assert "原始错误" in message, "错误消息应该包含原始错误信息"
 
-    @pytest.mark.parametrize("message,provider,method", [
-        ("连接失败", "email", "send"),
-        ("超时", "sms", "get_code"),
-        ("认证失败", "random", "password"),
-    ])
+    @pytest.mark.parametrize(
+        "message,provider,method",
+        [
+            ("连接失败", "email", "send"),
+            ("超时", "sms", "get_code"),
+            ("认证失败", "random", "password"),
+        ],
+    )
     def test_various_error_combinations(self, message, provider, method):
         """测试各种错误组合"""
         # Act

@@ -25,6 +25,7 @@ import pytest
 # 布尔类型测试（Python 风格）
 # ============================================================================
 
+
 class TestV3_DataTypes_Boolean:
     """布尔类型：True/False（Python 风格）"""
 
@@ -51,7 +52,7 @@ class TestV3_DataTypes_Boolean:
     @pytest.mark.python_aligned
     def test_true_in_expression(self, parse_v3):
         """✅ 正确：表达式中的 True"""
-        source = "let result = active == True"
+        source = "let active = True\nlet result = active == True"
         result = parse_v3(source)
         assert result.success == True, "表达式中的 True 应该正确解析"
 
@@ -61,6 +62,7 @@ class TestV3_DataTypes_Boolean:
     def test_false_in_condition(self, parse_v3):
         """✅ 正确：条件中的 False"""
         source = """
+let verified = False
 if verified == False:
     log "未验证"
 """
@@ -93,8 +95,9 @@ if verified == False:
         source = "let active = true"
         result = parse_v3(source)
         assert result.success == False, "小写 true 应该报错"
-        assert "True" in result.error or "布尔" in result.error, \
-            f"错误提示应提及 True，实际：{result.error}"
+        assert (
+            "True" in result.error or "布尔" in result.error
+        ), f"错误提示应提及 True，实际：{result.error}"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -119,6 +122,7 @@ if verified == False:
 # None 类型测试（Python 风格）
 # ============================================================================
 
+
 class TestV3_DataTypes_None:
     """None 类型（Python 风格）"""
 
@@ -136,7 +140,7 @@ class TestV3_DataTypes_None:
     @pytest.mark.python_aligned
     def test_none_in_comparison(self, parse_v3):
         """✅ 正确：None 比较"""
-        source = "let is_empty = data == None"
+        source = "let data = None\nlet is_empty = data == None"
         result = parse_v3(source)
         assert result.success == True, "None 比较应该正确解析"
 
@@ -146,6 +150,7 @@ class TestV3_DataTypes_None:
     def test_none_in_condition(self, parse_v3):
         """✅ 正确：条件中的 None"""
         source = """
+let value = None
 if value == None:
     log "值为空"
 """
@@ -157,7 +162,7 @@ if value == None:
     @pytest.mark.python_aligned
     def test_none_not_equal(self, parse_v3):
         """✅ 正确：None 不等于"""
-        source = "let has_value = data != None"
+        source = "let data = 1\nlet has_value = data != None"
         result = parse_v3(source)
         assert result.success == True, "None 不等于应该正确解析"
 
@@ -169,8 +174,9 @@ if value == None:
         source = "let data = null"
         result = parse_v3(source)
         assert result.success == False, "null 应该报错"
-        assert "None" in result.error or "null" in result.error.lower(), \
-            f"错误提示应提及 None，实际：{result.error}"
+        assert (
+            "None" in result.error or "null" in result.error.lower()
+        ), f"错误提示应提及 None，实际：{result.error}"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -194,6 +200,7 @@ if value == None:
 # ============================================================================
 # 数字类型测试
 # ============================================================================
+
 
 class TestV3_DataTypes_Number:
     """数字类型：整数、浮点数"""
@@ -259,6 +266,7 @@ class TestV3_DataTypes_Number:
 # 字符串类型测试（v3.0: f-string 显式插值）
 # ============================================================================
 
+
 class TestV3_DataTypes_String:
     """字符串类型：普通字符串、f-string"""
 
@@ -291,7 +299,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_interpolation(self, parse_v3):
         """✅ 正确：f-string 插值（Python 风格）"""
-        source = 'log f"Count: {count}"'
+        source = 'let count = 10\nlog f"Count: {count}"'
         result = parse_v3(source)
         assert result.success == True, "f-string 应该正确解析"
 
@@ -300,7 +308,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_multiple_interpolations(self, parse_v3):
         """✅ 正确：f-string 多个插值"""
-        source = 'log f"User {name} has {count} items"'
+        source = 'let name = "Alice"\nlet count = 5\nlog f"User {name} has {count} items"'
         result = parse_v3(source)
         assert result.success == True, "f-string 多个插值应该正确解析"
 
@@ -309,7 +317,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_with_expression(self, parse_v3):
         """✅ 正确：f-string 内表达式"""
-        source = 'log f"Total: {count + 1}"'
+        source = 'let count = 5\nlog f"Total: {count + 1}"'
         result = parse_v3(source)
         assert result.success == True, "f-string 内表达式应该正确解析"
 
@@ -318,10 +326,9 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_plain_string_no_interpolation(self, parse_v3):
         """✅ 正确：普通字符串不插值（无 f 前缀）"""
-        source = 'log "Count: {count}"'  # 无 f 前缀
+        source = 'let count = 5\nlog "Count: {count}"'  # 无 f 前缀，{count}是字面量
         result = parse_v3(source)
-        assert result.success == True, \
-            "普通字符串（无f前缀）应该正确解析为字面量"
+        assert result.success == True, "普通字符串（无f前缀）应该正确解析为字面量"
 
     @pytest.mark.v3
     @pytest.mark.syntax
@@ -335,6 +342,7 @@ class TestV3_DataTypes_String:
 # ============================================================================
 # 数组类型测试
 # ============================================================================
+
 
 class TestV3_DataTypes_Array:
     """数组类型：Python 风格列表"""
@@ -412,6 +420,7 @@ class TestV3_DataTypes_Array:
 # 对象类型测试
 # ============================================================================
 
+
 class TestV3_DataTypes_Object:
     """对象类型：Python 风格字典"""
 
@@ -469,7 +478,7 @@ class TestV3_DataTypes_Object:
     @pytest.mark.syntax
     def test_object_trailing_comma(self, parse_v3):
         """✅ 正确：尾随逗号"""
-        source = 'let data = {a: 1, b: 2,}'  # 尾随逗号
+        source = "let data = {a: 1, b: 2,}"  # 尾随逗号
         result = parse_v3(source)
         # 尾随逗号支持取决于实现
         assert result is not None
@@ -478,6 +487,7 @@ class TestV3_DataTypes_Object:
 # ============================================================================
 # 综合测试：复杂数据结构
 # ============================================================================
+
 
 class TestV3_DataTypes_Complex:
     """复杂数据结构综合测试"""
@@ -513,7 +523,7 @@ let appConfig = {
     @pytest.mark.python_aligned
     def test_all_types_in_array(self, parse_v3):
         """✅ 正确：数组包含所有类型"""
-        source = '''
+        source = """
 let mixed = [
     42,
     3.14,
@@ -524,7 +534,7 @@ let mixed = [
     [1, 2, 3],
     {key: "value"}
 ]
-'''
+"""
         result = parse_v3(source)
         assert result.success == True, "包含所有类型的数组应该正确解析"
 
@@ -533,7 +543,7 @@ let mixed = [
     @pytest.mark.python_aligned
     def test_user_profile_realistic(self, parse_v3):
         """✅ 正确：真实用户配置示例"""
-        source = '''
+        source = """
 let user = {
     id: 12345,
     name: "张三",
@@ -552,7 +562,7 @@ let user = {
         tags: ["vip", "early-adopter"]
     }
 }
-'''
+"""
         result = parse_v3(source)
         assert result.success == True, "真实用户配置应该正确解析"
 
@@ -561,41 +571,46 @@ let user = {
 # Python 对齐验证
 # ============================================================================
 
+
 class TestV3_DataTypes_PythonAlignment:
     """数据类型 Python 对齐验证"""
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("dsl_value,python_value", [
-        ("True", "True"),
-        ("False", "False"),
-        ("None", "None"),
-        ("[1, 2, 3]", "[1, 2, 3]"),
-        ('{"a": 1}', "{'a': 1}"),
-    ])
+    @pytest.mark.parametrize(
+        "dsl_value,python_value",
+        [
+            ("True", "True"),
+            ("False", "False"),
+            ("None", "None"),
+            ("[1, 2, 3]", "[1, 2, 3]"),
+            ('{"a": 1}', "{'a': 1}"),
+        ],
+    )
     def test_values_match_python(self, parse_v3, dsl_value, python_value):
         """✅ 验证：数据类型与 Python 匹配"""
         source = f"let x = {dsl_value}"
         result = parse_v3(source)
-        assert result.success == True, \
-            f"DSL 值应该像 Python 一样：{dsl_value}"
+        assert result.success == True, f"DSL 值应该像 Python 一样：{dsl_value}"
 
     @pytest.mark.v3
     @pytest.mark.python_aligned
-    @pytest.mark.parametrize("wrong_value", [
-        "true",
-        "false",
-        "null",
-        "TRUE",
-        "FALSE",
-        "NULL",
-    ])
+    @pytest.mark.parametrize(
+        "wrong_value",
+        [
+            "true",
+            "false",
+            "null",
+            "TRUE",
+            "FALSE",
+            "NULL",
+        ],
+    )
     def test_non_python_values_error(self, parse_v3, wrong_value):
         """❌ 验证：非 Python 风格值报错"""
         source = f"let x = {wrong_value}"
         result = parse_v3(source)
-        assert result.success == False, \
-            f"非 Python 风格值应该报错：{wrong_value}"
+        assert result.success == False, f"非 Python 风格值应该报错：{wrong_value}"
 
 
 # ============================================================================

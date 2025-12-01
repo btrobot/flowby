@@ -17,7 +17,7 @@ from .config import DiagnosisConfig, DEFAULT_DIAGNOSIS_CONFIG
 class DiagnosisListeners:
     """诊断信息监听器"""
 
-    def __init__(self, page: 'Page', config: DiagnosisConfig = None):
+    def __init__(self, page: "Page", config: DiagnosisConfig = None):
         """
         初始化监听器
 
@@ -42,7 +42,7 @@ class DiagnosisListeners:
         self.page.on("response", self._on_response)
         self.page.on("requestfailed", self._on_request_failed)
 
-    def _on_console(self, msg: 'ConsoleMessage'):
+    def _on_console(self, msg: "ConsoleMessage"):
         """处理控制台消息"""
         msg_type = msg.type
         allowed_levels = self.config.console_filter.levels
@@ -70,12 +70,12 @@ class DiagnosisListeners:
                     "line": location.get("lineNumber", 0),
                     "column": location.get("columnNumber", 0),
                 }
-        except:
+        except Exception:
             pass
 
         self.console_logs.append(log_entry)
 
-    def _on_request(self, request: 'Request'):
+    def _on_request(self, request: "Request"):
         """处理请求开始"""
         url = request.url
 
@@ -95,7 +95,7 @@ class DiagnosisListeners:
             "timestamp": datetime.now().isoformat(),
         }
 
-    def _on_response(self, response: 'Response'):
+    def _on_response(self, response: "Response"):
         """处理响应"""
         request = response.request
         request_id = self._get_request_id(request)
@@ -123,7 +123,7 @@ class DiagnosisListeners:
         self.network_logs.append(log_entry)
         del self._request_map[request_id]
 
-    def _on_request_failed(self, request: 'Request'):
+    def _on_request_failed(self, request: "Request"):
         """处理请求失败"""
         request_id = self._get_request_id(request)
 
@@ -153,7 +153,7 @@ class DiagnosisListeners:
         if request_id in self._request_map:
             del self._request_map[request_id]
 
-    def _get_request_id(self, request: 'Request') -> str:
+    def _get_request_id(self, request: "Request") -> str:
         """生成请求唯一标识"""
         return f"{request.method}:{request.url}:{id(request)}"
 
@@ -177,5 +177,5 @@ class DiagnosisListeners:
             self.page.remove_listener("request", self._on_request)
             self.page.remove_listener("response", self._on_response)
             self.page.remove_listener("requestfailed", self._on_request_failed)
-        except:
+        except Exception:
             pass

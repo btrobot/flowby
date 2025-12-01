@@ -27,7 +27,7 @@ class TestV3_10_1_Log:
     @pytest.mark.python_aligned
     def test_log_fstring(self, parse_v3):
         """✅ 正确：f-string 日志（v3.0 Python 风格）"""
-        source = 'log f"用户名: {username}"'
+        source = 'let username = "admin"\nlog f"用户名: {username}"'
         result = parse_v3(source)
         assert result.success == True
 
@@ -36,7 +36,7 @@ class TestV3_10_1_Log:
     @pytest.mark.python_aligned
     def test_log_fstring_multiple_vars(self, parse_v3):
         """✅ 正确：多变量 f-string"""
-        source = 'log f"分数: {score}, 等级: {grade}"'
+        source = 'let score = 95\nlet grade = "A"\nlog f"分数: {score}, 等级: {grade}"'
         result = parse_v3(source)
         assert result.success == True
 
@@ -45,7 +45,7 @@ class TestV3_10_1_Log:
     @pytest.mark.python_aligned
     def test_log_fstring_expression(self, parse_v3):
         """✅ 正确：表达式 f-string"""
-        source = 'log f"计算结果: {x + y * 2}"'
+        source = 'let x = 5\nlet y = 3\nlog f"计算结果: {x + y * 2}"'
         result = parse_v3(source)
         assert result.success == True
 
@@ -64,6 +64,7 @@ class TestV3_10_1_Log:
     def test_log_in_step(self, parse_v3):
         """✅ 正确：step 块内（无 end step）"""
         source = """
+let username = "admin"
 step "日志输出":
     log "步骤开始"
     log f"用户: {username}"
@@ -148,6 +149,7 @@ class TestV3_10_Integration:
     def test_log_and_screenshot_workflow(self, parse_v3):
         """✅ 正确：日志+截图工作流（v3.0 Python 风格）"""
         source = """
+let test_name = "homepage"
 step "测试流程":
     log f"开始测试: {test_name}"
     screenshot as "start"
@@ -166,6 +168,7 @@ step "测试流程":
         """✅ 正确：条件日志（True/False Python 风格）"""
         source = """
 let debug = True
+let details = "debug info"
 if debug == True:
     log f"调试信息: {details}"
     screenshot as "debug"

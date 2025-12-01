@@ -13,7 +13,7 @@ class ServiceError(Exception):
         message: str,
         provider: Optional[str] = None,
         method: Optional[str] = None,
-        cause: Optional[Exception] = None
+        cause: Optional[Exception] = None,
     ):
         """
         初始化服务错误

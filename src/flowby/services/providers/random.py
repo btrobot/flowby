@@ -15,14 +15,14 @@ class RandomProvider(ServiceProvider):
     def initialize(self) -> None:
         """初始化提供者"""
         # 获取自定义字符集或使用默认值
-        self.charset_lower = self.config.get('charset_lower', string.ascii_lowercase)
-        self.charset_upper = self.config.get('charset_upper', string.ascii_uppercase)
-        self.charset_numeric = self.config.get('charset_numeric', string.digits)
-        self.charset_special = self.config.get('charset_special', '!@#$%^&*()_+-=')
+        self.charset_lower = self.config.get("charset_lower", string.ascii_lowercase)
+        self.charset_upper = self.config.get("charset_upper", string.ascii_uppercase)
+        self.charset_numeric = self.config.get("charset_numeric", string.digits)
+        self.charset_special = self.config.get("charset_special", "!@#$%^&*()_+-=")
 
     def get_methods(self) -> List[str]:
         """获取支持的方法列表"""
-        return ['password', 'username', 'string', 'number', 'email', 'phone', 'choice']
+        return ["password", "username", "string", "number", "email", "phone", "choice"]
 
     def password(
         self,
@@ -30,7 +30,7 @@ class RandomProvider(ServiceProvider):
         special: bool = True,
         upper: bool = True,
         lower: bool = True,
-        digits: bool = True
+        digits: bool = True,
     ) -> str:
         """
         生成随机密码
@@ -78,14 +78,9 @@ class RandomProvider(ServiceProvider):
         # 打乱顺序
         random.shuffle(password_chars)
 
-        return ''.join(password_chars)
+        return "".join(password_chars)
 
-    def username(
-        self,
-        length: int = 8,
-        prefix: str = "",
-        suffix: str = ""
-    ) -> str:
+    def username(self, length: int = 8, prefix: str = "", suffix: str = "") -> str:
         """
         生成随机用户名
 
@@ -99,15 +94,11 @@ class RandomProvider(ServiceProvider):
         """
         # 用户名只包含小写字母和数字
         chars = self.charset_lower + self.charset_numeric
-        random_part = ''.join(random.choice(chars) for _ in range(length))
+        random_part = "".join(random.choice(chars) for _ in range(length))
 
         return f"{prefix}{random_part}{suffix}"
 
-    def string(
-        self,
-        length: int = 8,
-        charset: str = "alpha"
-    ) -> str:
+    def string(self, length: int = 8, charset: str = "alpha") -> str:
         """
         生成随机字符串
 
@@ -135,12 +126,16 @@ class RandomProvider(ServiceProvider):
         elif charset == "alphanumeric":
             chars = self.charset_lower + self.charset_upper + self.charset_numeric
         elif charset == "all":
-            chars = (self.charset_lower + self.charset_upper +
-                    self.charset_numeric + self.charset_special)
+            chars = (
+                self.charset_lower
+                + self.charset_upper
+                + self.charset_numeric
+                + self.charset_special
+            )
         else:
             chars = self.charset_lower + self.charset_upper
 
-        return ''.join(random.choice(chars) for _ in range(length))
+        return "".join(random.choice(chars) for _ in range(length))
 
     def number(self, min_val: int = 0, max_val: int = 100) -> int:
         """
@@ -182,7 +177,7 @@ class RandomProvider(ServiceProvider):
         """
         # 确保第一位不是0
         first_digit = random.choice("123456789")
-        remaining = ''.join(random.choice(self.charset_numeric) for _ in range(length - 1))
+        remaining = "".join(random.choice(self.charset_numeric) for _ in range(length - 1))
 
         return f"+{country_code}{first_digit}{remaining}"
 

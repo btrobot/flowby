@@ -21,6 +21,7 @@ import pytest
 # 4.1 Wait Duration 测试
 # ============================================================================
 
+
 class TestV3_4_1_WaitDuration:
     """Wait Duration 语句测试"""
 
@@ -99,6 +100,7 @@ step "时间等待":
     def test_wait_in_if(self, parse_v3):
         """✅ 正确：在 if 块内等待（v3.0：无 end if）"""
         source = """
+let slow_loading = True
 if slow_loading:
     wait 5s
 """
@@ -109,6 +111,7 @@ if slow_loading:
 # ============================================================================
 # 4.2 Wait Element 测试
 # ============================================================================
+
 
 class TestV3_4_2_WaitElement:
     """Wait Element 语句测试"""
@@ -206,6 +209,7 @@ step "元素等待":
     def test_wait_for_element_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let needs_confirmation = True
 if needs_confirmation:
     wait for element "#confirm-button" to be visible
 """
@@ -216,6 +220,7 @@ if needs_confirmation:
 # ============================================================================
 # 4.3 Wait Navigation 测试
 # ============================================================================
+
 
 class TestV3_4_3_WaitNavigation:
     """Wait Navigation 语句测试"""
@@ -314,6 +319,7 @@ wait for navigation wait for networkidle
 # 综合测试
 # ============================================================================
 
+
 class TestV3_4_Integration:
     """等待功能综合测试"""
 
@@ -340,6 +346,7 @@ step "表单提交":
     def test_conditional_waits(self, parse_v3):
         """✅ 正确：条件等待（v3.0：纯缩进）"""
         source = """
+let slow_network = True
 if slow_network:
     wait for element "#content" timeout 30s
 else:
@@ -354,6 +361,7 @@ else:
     def test_nested_waits_in_blocks(self, parse_v3):
         """✅ 正确：嵌套块中的等待（v3.0）"""
         source = """
+let is_mobile = True
 step "复杂等待流程":
     if is_mobile:
         wait 2s

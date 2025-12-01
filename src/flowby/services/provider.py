@@ -19,7 +19,7 @@ class ServiceProvider(ABC):
         settings: GlobalSettings,
         timeout: Optional[int] = None,
         retry_count: Optional[int] = None,
-        retry_delay: Optional[int] = None
+        retry_delay: Optional[int] = None,
     ):
         """
         初始化提供者
@@ -49,7 +49,6 @@ class ServiceProvider(ABC):
         Raises:
             ServiceError: 初始化失败
         """
-        pass
 
     @abstractmethod
     def get_methods(self) -> List[str]:
@@ -59,7 +58,6 @@ class ServiceProvider(ABC):
         Returns:
             方法名列表
         """
-        pass
 
     def call_method(self, method: str, **kwargs) -> Any:
         """
@@ -76,18 +74,10 @@ class ServiceProvider(ABC):
             ServiceError: 方法不存在或调用失败
         """
         if method not in self.get_methods():
-            raise ServiceError(
-                f"方法 '{method}' 不存在",
-                provider=self.name,
-                method=method
-            )
+            raise ServiceError(f"方法 '{method}' 不存在", provider=self.name, method=method)
 
         if not hasattr(self, method):
-            raise ServiceError(
-                f"方法 '{method}' 未实现",
-                provider=self.name,
-                method=method
-            )
+            raise ServiceError(f"方法 '{method}' 未实现", provider=self.name, method=method)
 
         method_func = getattr(self, method)
 
@@ -96,16 +86,10 @@ class ServiceProvider(ABC):
         except ServiceError:
             raise
         except Exception as e:
-            raise ServiceError(
-                f"方法调用失败: {e}",
-                provider=self.name,
-                method=method,
-                cause=e
-            )
+            raise ServiceError(f"方法调用失败: {e}", provider=self.name, method=method, cause=e)
 
     def close(self) -> None:
         """关闭提供者，释放资源"""
-        pass
 
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(name={self.name!r})"

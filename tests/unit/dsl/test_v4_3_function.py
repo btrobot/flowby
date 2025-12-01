@@ -11,14 +11,15 @@ v4.3 函数定义和调用测试
 7. 递归检测
 8. 错误处理
 """
+
 import pytest
 import uuid
-from registration_system.dsl.lexer import Lexer
-from registration_system.dsl.parser import Parser
-from registration_system.dsl.interpreter import Interpreter, ReturnException
-from registration_system.dsl.context import ExecutionContext
-from registration_system.dsl.errors import ExecutionError
-from registration_system.dsl.symbol_table import SymbolType
+from flowby.lexer import Lexer
+from flowby.parser import Parser
+from flowby.interpreter import Interpreter, ReturnException
+from flowby.context import ExecutionContext
+from flowby.errors import ExecutionError
+from flowby.symbol_table import SymbolType
 
 
 def create_context():
