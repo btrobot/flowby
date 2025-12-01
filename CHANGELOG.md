@@ -8,6 +8,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **VR-002 Const Reassignment Checking** (v6.3) - Parser-stage const protection
+  - Prevents modification of const-declared variables
+  - Detects violations before runtime execution
+  - Error messages include original definition line number
+  - Suggests using 'let' for mutable variables
+  - 8 dedicated test cases
+- **VR-004 System Variable Readonly** (v6.3) - System variable protection
+  - Prevents modification of system variables (page, env, response)
+  - Checked before const validation (higher priority)
+  - Clear error messages explaining readonly nature
+  - 6 dedicated test cases + 11 combined tests
 - **VR-001 Variable Undefined Checking** (v6.3) - Parser-stage variable validation
   - Detects undefined variables before runtime
   - Comprehensive error messages with VR-001 violation markers
@@ -35,7 +46,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Interactive input expression (v5.1)
 - Browser automation with Playwright
 - Built-in HTTP client and random data services
-- Comprehensive test suite (1124+ tests)
+- Comprehensive test suite (1149+ tests)
 - Complete grammar documentation
 - Example scripts and tutorials
 
