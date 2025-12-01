@@ -1654,64 +1654,72 @@ class Parser:
     # ============================================================
 
     def _parse_let_statement(self) -> LetStatement:
-        """解析 let 语句"""
+        """
+        解析 let 语句
+
+        v6.3: 添加 VR-003 检查
+        """
         line = self._peek().line
         self._consume(TokenType.LET, "期望 'let'")
         name_token = self._consume_identifier_or_keyword("期望变量名")
 
-        # VR规则检查：变量重定义
-        # 只检查当前作用域，允许变量遮蔽
-        is_duplicate = self.symbol_table_stack.exists_in_current_scope(name_token.value)
-        if is_duplicate:
-            self.violations.append(Violation(
-                rule_id="VR-VAR-003",
-                message=f"变量 '{name_token.value}' 重复声明",
-                line_number=line,
-                severity="ERROR"
-            ))
+        # v6.3: VR-003 检查 - 同一作用域不能重复声明
+        # 只检查当前作用域，允许变量遮蔽（在子作用域声明同名变量）
+        if self.symbol_table_stack.exists_in_current_scope(name_token.value):
+            raise ParserError(
+                line,
+                0,  # 列号暂不可用
+                "IDENTIFIER",
+                name_token.value,
+                f"变量 '{name_token.value}' 重复声明（VR-003 违规）",
+                f"同一作用域内不能声明同名变量。如需在子作用域使用同名变量，请在嵌套块中声明"
+            )
 
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
         value = self._parse_expression()
 
-        # 将变量添加到符号表（只在不是重复定义时添加）
-        if not is_duplicate:
-            self.symbol_table_stack.define(
-                name=name_token.value,
-                value=None,  # 值在运行时计算，这里不存储
-                symbol_type=SymbolType.VARIABLE,
-                line_number=line
-            )
+        # 将变量添加到符号表
+        self.symbol_table_stack.define(
+            name=name_token.value,
+            value=None,  # 值在运行时计算，这里不存储
+            symbol_type=SymbolType.VARIABLE,
+            line_number=line
+        )
 
         return LetStatement(name=name_token.value, value=value, line=line)
 
     def _parse_const_statement(self) -> ConstStatement:
-        """解析 const 语句"""
+        """
+        解析 const 语句
+
+        v6.3: 添加 VR-003 检查
+        """
         line = self._peek().line
         self._consume(TokenType.CONST, "期望 'const'")
         name_token = self._consume_identifier_or_keyword("期望常量名")
 
-        # VR规则检查：常量重定义
-        # 只检查当前作用域，允许常量遮蔽
-        is_duplicate = self.symbol_table_stack.exists_in_current_scope(name_token.value)
-        if is_duplicate:
-            self.violations.append(Violation(
-                rule_id="VR-VAR-003",
-                message=f"常量 '{name_token.value}' 重复声明",
-                line_number=line,
-                severity="ERROR"
-            ))
+        # v6.3: VR-003 检查 - 同一作用域不能重复声明
+        # 只检查当前作用域，允许常量遮蔽（在子作用域声明同名常量）
+        if self.symbol_table_stack.exists_in_current_scope(name_token.value):
+            raise ParserError(
+                line,
+                0,  # 列号暂不可用
+                "IDENTIFIER",
+                name_token.value,
+                f"常量 '{name_token.value}' 重复声明（VR-003 违规）",
+                f"同一作用域内不能声明同名常量。如需在子作用域使用同名常量，请在嵌套块中声明"
+            )
 
         self._consume(TokenType.EQUALS_SIGN, "期望 '='")
         value = self._parse_expression()
 
-        # 将常量添加到符号表（只在不是重复定义时添加）
-        if not is_duplicate:
-            self.symbol_table_stack.define(
-                name=name_token.value,
-                value=None,
-                symbol_type=SymbolType.CONSTANT,
-                line_number=line
-            )
+        # 将常量添加到符号表
+        self.symbol_table_stack.define(
+            name=name_token.value,
+            value=None,
+            symbol_type=SymbolType.CONSTANT,
+            line_number=line
+        )
 
         return ConstStatement(name=name_token.value, value=value, line=line)
 
