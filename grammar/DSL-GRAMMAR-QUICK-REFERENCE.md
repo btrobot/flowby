@@ -256,9 +256,16 @@ wait_duration ::= "wait" [ "for" ] expression [ ("seconds" | "milliseconds" | "s
 
 **示例：**
 ```flow
+# 字面量（向后兼容）
 wait 2 seconds
 wait for 1000 ms
 wait 5
+
+# 表达式（v6.0.2 新增）
+wait delay_time s                  # 变量
+wait (retry * 2) s                 # 算术表达式
+wait (base_delay + offset) ms      # 复杂表达式
+# 注意：使用表达式时，时间单位是必需的
 ```
 
 ### Wait 元素

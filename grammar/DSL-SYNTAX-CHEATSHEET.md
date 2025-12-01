@@ -144,7 +144,7 @@ end for
 
 | 语法 | 说明 | 示例 |
 |------|------|------|
-| `wait N [UNIT]` | 等待时长 | `wait 2 seconds`<br>`wait 1000 ms` |
+| `wait EXPR [UNIT]` | 等待时长（v6.0.2 支持表达式） | `wait 2 seconds`<br>`wait delay_time s`<br>`wait (retry * 2) s` |
 | `wait for element SEL` | 等待元素出现 | `wait for element "#username"` |
 | `wait for element SEL to be STATE` | 等待元素状态 | `wait for element ".modal" to be visible` |
 | `wait for navigation` | 等待导航完成 | `wait for navigation` |
@@ -152,6 +152,11 @@ end for
 **时间单位：**
 - `seconds` / `s` - 秒
 - `milliseconds` / `ms` - 毫秒
+
+**v6.0.2 新特性：**
+- 支持数值表达式：`wait delay_time s`, `wait (retry * 2) s`
+- 使用表达式时，时间单位是**必需的**（避免歧义）
+- 字面量形式仍然向后兼容：`wait 2s`, `wait 500ms`
 
 **元素状态：**
 - `visible` - 可见

@@ -36,14 +36,92 @@ PATCH: Bug 修复，向后兼容
 
 ## 🎯 当前版本
 
-**语法版本**: `6.0.0` (已发布)
-**发布日期**: 2025-11-30
+**语法版本**: `6.0.2` (已发布)
+**发布日期**: 2025-12-01
 **项目版本**: main
 **状态**: ✅ Released
 
 ---
 
 ## 📜 版本历史
+
+---
+
+## [6.0.2] - 2025-12-01
+
+### ✨ 新增功能 (MINOR - Backward Compatible)
+
+#### Wait 语句表达式支持 (v6.0.2)
+
+**Feature ID**: DSL-WAIT-EXPRESSION-001
+
+**功能描述**:
+wait 语句现在支持数值表达式，不再仅限于字面量。
+
+**新增语法**:
+```dsl
+# ✅ 变量表达式
+wait delay_time s
+wait ms_delay ms
+
+# ✅ 算术表达式
+wait (retry * 2) s
+wait (100 + 100) ms
+
+# ✅ 复杂表达式
+wait (base * multiplier + 0.5) s
+```
+
+**向后兼容**:
+```dsl
+# ✅ 现有语法仍然有效
+wait 2s
+wait 500ms
+wait 1.5 seconds
+```
+
+**限制**:
+- 使用表达式时，时间单位是**必需的**（避免歧义）
+- 表达式必须求值为数值类型（int 或 float）
+
+**变更影响**:
+- ✅ **向后兼容**: 100%，现有代码无需修改
+- ✅ **新增灵活性**: 支持动态延迟时间
+- ✅ **类型安全**: 运行时验证表达式结果
+
+**实现细节**:
+- `WaitDurationStatement` AST 节点支持 Expression 类型
+- Parser 新增表达式解析分支
+- Interpreter 运行时求值并类型检查
+- 支持所有时间单位：s, ms, seconds, milliseconds
+
+**测试覆盖**:
+- ✅ 字面量（向后兼容）
+- ✅ 变量表达式
+- ✅ 算术表达式
+- ✅ 复杂表达式
+- ✅ 类型错误检测
+
+---
+
+## [6.0.1] - 2025-11-30
+
+### 🐛 Bug 修复 (PATCH)
+
+#### 行号计算和错误定位修复 (v6.0.1)
+
+**修复问题**:
+- Lexer 行号重复计算导致错误报告不准确
+- 缺少跨模块文件路径跟踪
+- PlaywrightWrapper 缺少 get_page() 方法
+- Resource API 错误字符串处理
+
+**修复内容**:
+- 移除 `_handle_indentation()` 中的冗余行号增加
+- 所有错误类添加 `file_path` 参数
+- FunctionSymbol 添加 `source_file` 字段
+- 添加 PlaywrightWrapper.get_page() 方法
+- Resource API 自动检测错误字符串
 
 ---
 

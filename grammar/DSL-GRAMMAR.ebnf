@@ -218,10 +218,18 @@ wait_statement = wait_duration
                | wait_for_navigation
                ;
 
-(* Wait Duration *)
+(* Wait Duration - v6.0.2: 支持数值表达式 *)
 wait_duration = "wait" [ "for" ] expression [ time_unit ] ;
 
 time_unit = "seconds" | "milliseconds" | "s" | "ms" ;
+
+(* Semantics (v6.0.2):
+   - Literal form (backward compatible): wait 2s, wait 500ms
+   - Expression form (v6.0.2 new): wait delay_time s, wait (retry * 2) s
+   - Time unit is REQUIRED when using expressions (to avoid ambiguity)
+   - Expression must evaluate to numeric type (int or float)
+   - Unit conversion: ms → seconds / 1000, s → seconds
+*)
 
 (* Wait For Element *)
 wait_for_element = "wait" "for" "element" selector
