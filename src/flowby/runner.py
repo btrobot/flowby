@@ -356,7 +356,24 @@ def main():
         help="Dry-Run 模式：只检查脚本语法和语义，不执行操作"
     )
 
+    parser.add_argument(
+        "--lang",
+        default=None,
+        choices=['zh', 'en'],
+        help="设置错误消息语言 (zh=中文, en=English)。也可通过环境变量 FLOWBY_LANG 设置"
+    )
+
     args = parser.parse_args()
+
+    # 设置语言
+    if args.lang:
+        import os
+        os.environ['FLOWBY_LANG'] = args.lang
+        try:
+            from .i18n import set_language
+            set_language(args.lang)
+        except ImportError:
+            pass  # i18n 模块可选
 
     # 生成任务 ID
     if args.task_id:
