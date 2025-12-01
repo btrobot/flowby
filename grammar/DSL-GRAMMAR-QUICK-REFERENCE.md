@@ -1,7 +1,7 @@
 # DSL Grammar Reference - Quick Guide
 
-> **Version**: 5.1
-> **Generated**: 2025-11-30
+> **Version**: 6.6
+> **Generated**: 2025-12-01
 > **Complete EBNF**: See [DSL-GRAMMAR.ebnf](./DSL-GRAMMAR.ebnf)
 
 ---
@@ -1323,7 +1323,393 @@ for attempt in range(1, max_retries + 1):
 
 ---
 
-## 15. 注释
+## 15. Lambda Expressions (v6.4)
+
+### 基本语法
+
+```bnf
+lambda_expression ::= lambda_parameters "=>" expression
+
+lambda_parameters ::= IDENTIFIER                  # Single: x => expr
+                    | "(" ")"                     # No params: () => expr
+                    | "(" identifier_list ")"     # Multiple: (x, y) => expr
+```
+
+### 示例
+
+```flow
+# Lambda 定义
+let double = x => x * 2
+let add = (x, y) => x + y
+let is_positive = x => x > 0
+
+# Lambda 调用
+log double(5)          # 10
+log add(3, 7)          # 10
+log is_positive(-5)    # False
+
+# 作为参数传递（与集合方法配合使用）
+let numbers = [1, 2, 3, 4, 5]
+let evens = numbers.filter(x => x % 2 == 0)      # [2, 4]
+let doubled = numbers.map(x => x * 2)            # [2, 4, 6, 8, 10]
+let sum = numbers.reduce((acc, x) => acc + x, 0) # 15
+```
+
+### 特性
+
+- ✅ 闭包支持（捕获外层作用域变量）
+- ✅ 作为参数传递
+- ✅ 存储在变量中
+- ✅ 表达式体（单一表达式返回）
+- ❌ 不支持语句块（只能是单一表达式）
+
+---
+
+## 16. Collection Methods (v6.4, v6.5)
+
+### Core Collection Methods (v6.4)
+
+#### filter() - 过滤数组
+
+```bnf
+filter_method ::= expression "." "filter" "(" predicate ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5, 6]
+let evens = numbers.filter(x => x % 2 == 0)       # [2, 4, 6]
+let large = numbers.filter(x => x > 3)            # [4, 5, 6]
+```
+
+#### map() - 转换数组
+
+```bnf
+map_method ::= expression "." "map" "(" transform ")"
+```
+
+```flow
+let numbers = [1, 2, 3]
+let doubled = numbers.map(x => x * 2)             # [2, 4, 6]
+let squared = numbers.map(x => x * x)             # [1, 4, 9]
+```
+
+#### reduce() - 累积值
+
+```bnf
+reduce_method ::= expression "." "reduce" "(" reducer "," initial ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4]
+let sum = numbers.reduce((acc, x) => acc + x, 0)  # 10
+let product = numbers.reduce((acc, x) => acc * x, 1)  # 24
+```
+
+#### find() - 查找元素
+
+```bnf
+find_method ::= expression "." "find" "(" predicate ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let found = numbers.find(x => x > 3)              # 4
+let notFound = numbers.find(x => x > 10)          # None
+```
+
+#### findIndex() - 查找索引
+
+```bnf
+findIndex_method ::= expression "." "findIndex" "(" predicate ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let index = numbers.findIndex(x => x > 3)         # 3
+let notFound = numbers.findIndex(x => x > 10)     # -1
+```
+
+#### some() - 任意匹配
+
+```bnf
+some_method ::= expression "." "some" "(" predicate ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let hasEven = numbers.some(x => x % 2 == 0)       # True
+let hasNegative = numbers.some(x => x < 0)        # False
+```
+
+#### every() - 全部匹配
+
+```bnf
+every_method ::= expression "." "every" "(" predicate ")"
+```
+
+```flow
+let numbers = [2, 4, 6, 8]
+let allEven = numbers.every(x => x % 2 == 0)      # True
+let allPositive = numbers.every(x => x > 0)       # True
+```
+
+### Extended Collection Methods (v6.5)
+
+#### sort() - 排序数组
+
+```bnf
+sort_method ::= expression "." "sort" "(" [ comparator ] ")"
+```
+
+```flow
+let numbers = [3, 1, 4, 1, 5, 9]
+let sorted = numbers.sort()                        # [1, 1, 3, 4, 5, 9]
+
+let users = [{name: "Bob", age: 30}, {name: "Alice", age: 25}]
+let byAge = users.sort((a, b) => a.age - b.age)    # 按年龄排序
+```
+
+#### reverse() - 反转数组
+
+```bnf
+reverse_method ::= expression "." "reverse" "(" ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let reversed = numbers.reverse()                   # [5, 4, 3, 2, 1]
+```
+
+#### slice() - 切片数组
+
+```bnf
+slice_method ::= expression "." "slice" "(" start [ "," end ] ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let slice1 = numbers.slice(1, 3)                   # [2, 3]
+let slice2 = numbers.slice(2)                      # [3, 4, 5]
+```
+
+#### join() - 连接为字符串
+
+```bnf
+join_method ::= expression "." "join" "(" separator ")"
+```
+
+```flow
+let words = ["Hello", "Flowby", "DSL"]
+let sentence = words.join(" ")                     # "Hello Flowby DSL"
+let csv = ["a", "b", "c"].join(",")                # "a,b,c"
+```
+
+#### unique() - 去重
+
+```bnf
+unique_method ::= expression "." "unique" "(" ")"
+```
+
+```flow
+let numbers = [1, 2, 2, 3, 1, 4, 3]
+let unique = numbers.unique()                      # [1, 2, 3, 4]
+```
+
+#### length() - 获取长度
+
+```bnf
+length_method ::= expression "." "length" "(" ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5]
+let count = numbers.length()                       # 5
+```
+
+### 方法链式调用
+
+```flow
+let numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+# 链式调用
+let result = numbers
+    .filter(x => x > 5)                            # [6, 7, 8, 9, 10]
+    .map(x => x * 2)                               # [12, 14, 16, 18, 20]
+    .reduce((acc, x) => acc + x, 0)                # 80
+
+# 复杂链式
+let stats = [85, 92, 78, 95, 88, 91]
+    .filter(x => x >= 80)                          # [85, 92, 95, 88, 91]
+    .sort()                                        # [85, 88, 91, 92, 95]
+    .slice(0, 3)                                   # [85, 88, 91]
+```
+
+---
+
+## 17. Utility Functions (v6.6)
+
+### String Methods (v6.6)
+
+#### capitalize() - 首字母大写
+
+```bnf
+capitalize_method ::= expression "." "capitalize" "(" ")"
+```
+
+```flow
+let title = "hello world"
+let capitalized = title.capitalize()               # "Hello world"
+```
+
+#### padStart() - 左填充
+
+```bnf
+padStart_method ::= expression "." "padStart" "(" length "," fillStr ")"
+```
+
+```flow
+let id = "5"
+let paddedId = id.padStart(3, "0")                 # "005"
+```
+
+#### padEnd() - 右填充
+
+```bnf
+padEnd_method ::= expression "." "padEnd" "(" length "," fillStr ")"
+```
+
+```flow
+let code = "A"
+let paddedCode = code.padEnd(4, "0")               # "A000"
+```
+
+#### repeat() - 重复字符串
+
+```bnf
+repeat_method ::= expression "." "repeat" "(" count ")"
+```
+
+```flow
+let pattern = "="
+let line = pattern.repeat(40)                      # "======...======"
+let laugh = "ha".repeat(3)                         # "hahaha"
+```
+
+### Array Utility Methods (v6.6)
+
+#### flatten() - 展平嵌套数组
+
+```bnf
+flatten_method ::= expression "." "flatten" "(" [ depth ] ")"
+```
+
+```flow
+let nested = [[1, 2], [3, 4], [5, 6]]
+let flat = nested.flatten()                        # [1, 2, 3, 4, 5, 6]
+
+let deep = [1, [2, [3, [4]]]]
+let flat2 = deep.flatten(2)                        # [1, 2, 3, [4]]
+```
+
+#### chunk() - 分块数组
+
+```bnf
+chunk_method ::= expression "." "chunk" "(" size ")"
+```
+
+```flow
+let numbers = [1, 2, 3, 4, 5, 6, 7]
+let chunks = numbers.chunk(3)                      # [[1, 2, 3], [4, 5, 6], [7]]
+```
+
+### Dictionary Methods (v6.6)
+
+#### keys() - 获取键列表
+
+```bnf
+keys_method ::= expression "." "keys" "(" ")"
+```
+
+```flow
+let user = {name: "Alice", age: 30, city: "NYC"}
+let keys = user.keys()                             # ["name", "age", "city"]
+```
+
+#### values() - 获取值列表
+
+```bnf
+values_method ::= expression "." "values" "(" ")"
+```
+
+```flow
+let scores = {math: 95, english: 88, science: 92}
+let values = scores.values()                       # [95, 88, 92]
+```
+
+#### entries() - 获取键值对
+
+```bnf
+entries_method ::= expression "." "entries" "(" ")"
+```
+
+```flow
+let user = {name: "Alice", age: 30}
+let entries = user.entries()                       # [["name", "Alice"], ["age", 30]]
+```
+
+### Global Utility Functions (v6.6)
+
+#### zip() - 合并数组
+
+```flow
+let ids = [1, 2, 3]
+let names = ["Alice", "Bob", "Charlie"]
+let combined = zip(ids, names)                     # [[1, "Alice"], [2, "Bob"], [3, "Charlie"]]
+```
+
+#### sleep() - 暂停执行
+
+```flow
+log "Starting..."
+sleep(2)                                           # 暂停 2 秒
+log "Done!"
+```
+
+### 实战示例
+
+```flow
+# 数据转换管道
+let users = [
+    {name: "alice", age: 25, active: True},
+    {name: "bob", age: 30, active: False},
+    {name: "charlie", age: 35, active: True}
+]
+
+let activeUsers = users
+    .filter(u => u.active)
+    .map(u => u.name.capitalize())
+    .join(", ")
+
+log "Active users: {activeUsers}"                  # "Alice, Charlie"
+
+# 数据格式化
+let headers = ["ID", "Name", "Score"]
+let row = [1, "Alice", 95]
+let pairs = zip(headers, row)                      # [["ID", 1], ["Name", "Alice"], ["Score", 95]]
+
+# 批量处理
+let items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let batches = items.chunk(3)
+
+for batch in batches:
+    log "Processing: {batch}"
+    sleep(0.5)
+end for
+```
+
+---
+
+## 18. 注释
 
 ```flow
 # 单行注释
@@ -1410,5 +1796,5 @@ end step
 ---
 
 **完整 EBNF 语法**: [DSL-GRAMMAR.ebnf](./DSL-GRAMMAR.ebnf)
-**版本**: 4.3
-**最后更新**: 2025-11-29
+**版本**: 6.6
+**最后更新**: 2025-12-01

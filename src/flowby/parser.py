@@ -2648,9 +2648,25 @@ class Parser:
                 # 否则作为标识符处理（用于 select input 等场景）
                 return Identifier(name="input", line=line)
 
-        # 标识符 (变量引用)
+        # 标识符 (变量引用) 或 Lambda 表达式 (x => expr)
         if self._match(TokenType.IDENTIFIER):
             name = self._previous().value
+            # v6.4: 检查是否是单参数 Lambda 表达式
+            if self._check(TokenType.ARROW):
+                self._advance()  # 消耗 =>
+                # 创建新作用域并注册参数（避免 VR-001 错误）
+                self.symbol_table_stack.enter_scope(f"lambda_param_line_{line}")
+                try:
+                    self.symbol_table_stack.define(
+                        name=name,
+                        value=None,  # Parser 阶段不需要实际值
+                        symbol_type=SymbolType.VARIABLE,
+                        line_number=line
+                    )
+                    body = self._parse_expression()
+                    return LambdaExpression(parameters=[name], body=body, line=line)
+                finally:
+                    self.symbol_table_stack.exit_scope()
             return Identifier(name=name, line=line)
 
         # v3.0: 允许某些关键字作为标识符（常用属性名）
@@ -2660,11 +2676,60 @@ class Parser:
             name = keyword_token.value
             return Identifier(name=name, line=line)
 
-        # 括号表达式
+        # 括号表达式 或 多参数 Lambda (v6.4)
         if self._match(TokenType.LPAREN):
-            expr = self._parse_expression()
-            self._consume(TokenType.RPAREN, "期望 ')'")
-            return expr
+            # 向前看：检查是否是多参数 Lambda
+            # 格式: (param1, param2) => expr
+            saved_pos = self.current
+            try:
+                # 尝试解析参数列表
+                params = []
+                # 允许空参数列表
+                if not self._check(TokenType.RPAREN):
+                    # 第一个参数
+                    if self._check(TokenType.IDENTIFIER):
+                        params.append(self._advance().value)
+                        # 后续参数
+                        while self._match(TokenType.COMMA):
+                            if self._check(TokenType.IDENTIFIER):
+                                params.append(self._advance().value)
+                            else:
+                                # 不是标识符，不是 Lambda
+                                raise Exception("Not a lambda")
+                    else:
+                        # 不是标识符，不是 Lambda
+                        raise Exception("Not a lambda")
+
+                # 检查右括号和箭头
+                if self._check(TokenType.RPAREN):
+                    self._advance()
+                    if self._check(TokenType.ARROW):
+                        # 确认是 Lambda！
+                        self._advance()  # 消耗 =>
+                        # 创建新作用域并注册所有参数（避免 VR-001 错误）
+                        self.symbol_table_stack.enter_scope(f"lambda_params_line_{line}")
+                        try:
+                            for param in params:
+                                self.symbol_table_stack.define(
+                                    name=param,
+                                    value=None,  # Parser 阶段不需要实际值
+                                    symbol_type=SymbolType.VARIABLE,
+                                    line_number=line
+                                )
+                            body = self._parse_expression()
+                            return LambdaExpression(parameters=params, body=body, line=line)
+                        finally:
+                            self.symbol_table_stack.exit_scope()
+
+                # 不是 Lambda，回退
+                raise Exception("Not a lambda")
+
+            except:
+                # 回退到括号位置，按普通括号表达式处理
+                self.current = saved_pos
+                expr = self._parse_expression()
+                self._consume(TokenType.RPAREN, "期望 ')'")
+                return expr
 
         # 无法识别的表达式
         token = self._peek()

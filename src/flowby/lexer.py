@@ -228,6 +228,7 @@ class TokenType(Enum):
     RBRACE = auto()          # }
     DOT = auto()             # .
     PIPE = auto()            # | (v3.1: OR pattern in when statement)
+    ARROW = auto()           # => (Lambda 表达式, v6.4)
 
     # === 特殊 ===
     NEWLINE = auto()         # \n
@@ -539,6 +540,10 @@ class Lexer:
             if self._peek() == '=':
                 self._advance()
                 self.tokens.append(Token(TokenType.EQ, '==', start_line, start_column))
+            # 检查 => (Lambda 表达式, v6.4)
+            elif self._peek() == '>':
+                self._advance()
+                self.tokens.append(Token(TokenType.ARROW, '=>', start_line, start_column))
             else:
                 self.tokens.append(Token(TokenType.EQUALS_SIGN, '=', start_line, start_column))
             return

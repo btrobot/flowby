@@ -861,6 +861,79 @@ def Resource(spec_file: str, context: 'ExecutionContext' = None, **kwargs) -> 'R
         )
 
 
+# ============================================================
+# v6.6: 实用工具函数
+# ============================================================
+
+def sleep(seconds: float) -> None:
+    """
+    暂停执行指定秒数
+
+    Args:
+        seconds: 暂停的秒数（可以是小数）
+
+    Example:
+        sleep(1.5)  # 暂停 1.5 秒
+    """
+    import time
+    # 使用 builtins 中的 int 和 float 类型
+    import builtins
+    if not isinstance(seconds, (builtins.int, builtins.float)):
+        from .errors import ExecutionError
+        raise ExecutionError(
+            line=0,
+            statement="sleep",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message=f"sleep() 需要数字参数，但得到 {type(seconds).__name__}"
+        )
+    if seconds < 0:
+        from .errors import ExecutionError
+        raise ExecutionError(
+            line=0,
+            statement="sleep",
+            error_type=ExecutionError.RUNTIME_ERROR,
+            message=f"sleep() 时间不能为负数，但得到 {seconds}"
+        )
+    time.sleep(seconds)
+
+
+def zip(*arrays) -> list:
+    """
+    将多个数组合并成键值对数组
+
+    Args:
+        *arrays: 多个数组
+
+    Returns:
+        合并后的数组 [[item1_from_arr1, item1_from_arr2, ...], ...]
+
+    Example:
+        zip([1, 2, 3], ["a", "b", "c"]) => [[1, "a"], [2, "b"], [3, "c"]]
+    """
+    if len(arrays) == 0:
+        return []
+
+    # 验证所有参数都是列表
+    for i, arr in enumerate(arrays):
+        if not isinstance(arr, list):
+            from .errors import ExecutionError
+            raise ExecutionError(
+                line=0,
+                statement="zip",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"zip() 的第 {i+1} 个参数必须是数组，但得到 {type(arr).__name__}"
+            )
+
+    # 使用最短数组的长度
+    min_length = min(len(arr) for arr in arrays)
+
+    result = []
+    for i in range(min_length):
+        result.append([arr[i] for arr in arrays])
+
+    return result
+
+
 # 导出全局函数
 BUILTIN_FUNCTIONS = {
     'Number': Number,
@@ -890,4 +963,7 @@ BUILTIN_FUNCTIONS = {
     'find': find,
     # v6.0: Resource 构造函数（替代 resource 语句）
     'Resource': Resource,
+    # v6.6: 实用工具函数
+    'sleep': sleep,
+    'zip': zip,
 }

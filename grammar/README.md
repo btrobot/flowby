@@ -2,8 +2,8 @@
 
 > **Flowby 语法文档中心** - Elegant Web Automation DSL
 >
-> **Version**: v5.1
-> **Last Updated**: 2025-11-30
+> **Version**: v6.6
+> **Last Updated**: 2025-12-01
 > **Status**: ✅ Stable
 
 ---
@@ -350,9 +350,9 @@ git log --oneline -- grammar/MASTER.md
 ### 语法版本
 
 ```
-当前版本:     v5.1 (2025-11-30)
+当前版本:     v6.6 (2025-12-01)
 稳定性:       ✅ Stable
-下一版本:     v5.2 (计划中)
+下一版本:     v6.7 (计划中)
 ```
 
 ### 特性统计
@@ -364,6 +364,9 @@ git log --oneline -- grammar/MASTER.md
 模块系统:         ✅ 支持
 OpenAPI 集成:     ✅ 支持 (5 phases)
 Input 表达式:     ✅ 支持
+Lambda 表达式:    ✅ 支持 (v6.4)
+集合方法:         ✅ 20+ 方法 (v6.4, v6.5, v6.6)
+实用工具函数:     ✅ 11 个函数/方法 (v6.6)
 ```
 
 ### 实现状态
@@ -476,8 +479,8 @@ MIT License - 详见 [LICENSE](../LICENSE)
 
 ---
 
-**Version**: v5.1
-**Last Updated**: 2025-11-30
+**Version**: v6.6
+**Last Updated**: 2025-12-01
 **Status**: ✅ Stable
 **Maintainer**: Flowby Contributors
 

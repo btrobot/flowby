@@ -1124,6 +1124,55 @@ class FunctionCall(Expression):
 
 
 @dataclass
+class LambdaExpression(Expression):
+    """
+    Lambda 表达式（箭头函数）(v6.4)
+
+    语法:
+        # 单参数
+        x => x * 2
+        x => x + 1
+
+        # 多参数
+        (x, y) => x + y
+        (a, b) => a * b
+
+        # 表达式体（自动返回）
+        x => x * x
+
+        # 块体（需要显式 return）
+        (x, y) => {
+            let sum = x + y
+            return sum * 2
+        }
+
+    用途:
+    - 集合操作：filter, map, reduce
+    - 回调函数
+    - 短函数定义
+
+    示例:
+        # 过滤偶数
+        let evens = numbers.filter(x => x % 2 == 0)
+
+        # 映射平方
+        let squares = numbers.map(x => x * x)
+
+        # 归约求和
+        let sum = numbers.reduce((acc, x) => acc + x, 0)
+
+    Attributes:
+        parameters: 参数名列表 (List[str])
+        body: 函数体，可以是：
+             - Expression: 单个表达式（自动返回）
+             - List[ASTNode]: 语句块（需要显式 return）
+        line: 行号
+    """
+    parameters: List[str] = field(default_factory=list)
+    body: Any = None  # Expression or List[ASTNode]
+
+
+@dataclass
 class ArrayLiteral(Expression):
     """
     数组字面量表达式 (v2.0)

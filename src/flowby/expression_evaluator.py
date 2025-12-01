@@ -29,6 +29,7 @@ from .ast_nodes import (
     ObjectLiteral,
     StringInterpolation,
     InputExpression,  # v5.1
+    LambdaExpression,  # v6.4
 )
 from .symbol_table import SymbolTableStack, FunctionSymbol
 from .system_variables import SystemVariables
@@ -126,6 +127,9 @@ class ExpressionEvaluator:
 
         elif isinstance(expr, InputExpression):
             return self._eval_input(expr)
+
+        elif isinstance(expr, LambdaExpression):
+            return self._eval_lambda(expr)
 
         else:
             raise ExecutionError(
@@ -322,6 +326,61 @@ class ExpressionEvaluator:
         # v3.2: 求值命名参数
         kwargs = {key: self.evaluate(value) for key, value in expr.kwargs.items()}
 
+        # v6.4: 处理列表集合操作方法
+        if isinstance(obj, list):
+            if expr.method_name == 'filter':
+                return self._list_filter(obj, args, expr.line)
+            elif expr.method_name == 'map':
+                return self._list_map(obj, args, expr.line)
+            elif expr.method_name == 'reduce':
+                return self._list_reduce(obj, args, expr.line)
+            elif expr.method_name == 'find':
+                return self._list_find(obj, args, expr.line)
+            elif expr.method_name == 'findIndex':
+                return self._list_findIndex(obj, args, expr.line)
+            elif expr.method_name == 'some':
+                return self._list_some(obj, args, expr.line)
+            elif expr.method_name == 'every':
+                return self._list_every(obj, args, expr.line)
+            # v6.5: 扩展集合方法
+            elif expr.method_name == 'sort':
+                return self._list_sort(obj, args, expr.line)
+            elif expr.method_name == 'reverse':
+                return self._list_reverse(obj, args, expr.line)
+            elif expr.method_name == 'slice':
+                return self._list_slice(obj, args, expr.line)
+            elif expr.method_name == 'join':
+                return self._list_join(obj, args, expr.line)
+            elif expr.method_name == 'unique':
+                return self._list_unique(obj, args, expr.line)
+            elif expr.method_name == 'length':
+                return self._list_length(obj, args, expr.line)
+            # v6.6: 数组工具方法
+            elif expr.method_name == 'flatten':
+                return self._list_flatten(obj, args, expr.line)
+            elif expr.method_name == 'chunk':
+                return self._list_chunk(obj, args, expr.line)
+
+        # v6.6: 字符串方法
+        if isinstance(obj, str):
+            if expr.method_name == 'capitalize':
+                return self._str_capitalize(obj, args, expr.line)
+            elif expr.method_name == 'padStart':
+                return self._str_padStart(obj, args, expr.line)
+            elif expr.method_name == 'padEnd':
+                return self._str_padEnd(obj, args, expr.line)
+            elif expr.method_name == 'repeat':
+                return self._str_repeat(obj, args, expr.line)
+
+        # v6.6: 字典方法
+        if isinstance(obj, dict):
+            if expr.method_name == 'keys':
+                return self._dict_keys(obj, args, expr.line)
+            elif expr.method_name == 'values':
+                return self._dict_values(obj, args, expr.line)
+            elif expr.method_name == 'entries':
+                return self._dict_entries(obj, args, expr.line)
+
         # 尝试调用原生方法
         if hasattr(obj, expr.method_name):
             method = getattr(obj, expr.method_name)
@@ -467,7 +526,7 @@ class ExpressionEvaluator:
                     message=f"调用内置函数失败: {e}"
                 )
 
-        # 2. 然后检查是否是用户定义的函数
+        # 2. 然后检查是否是用户定义的函数或 Lambda 闭包 (v6.4)
         if self.interpreter is None:
             raise ExecutionError(
                 line=expr.line,
@@ -478,6 +537,17 @@ class ExpressionEvaluator:
 
         # 求值参数
         args = [self.evaluate(arg) for arg in expr.arguments]
+
+        # v6.4: 检查是否是 Lambda 闭包（Python callable）
+        # Lambda 表达式求值后返回 Python 函数对象，可以直接调用
+        if self.symbol_table.exists(func_name):
+            try:
+                value = self.symbol_table.get(func_name, line_number=expr.line)
+                if callable(value):
+                    # 直接调用 Lambda 闭包
+                    return value(*args)
+            except KeyError:
+                pass  # 符号不存在，继续尝试用户定义的函数
 
         # 调用用户定义的函数
         try:
@@ -809,6 +879,854 @@ class ExpressionEvaluator:
                 message=f"未知的一元运算符: {operator}",
                 file_path=self._get_current_file()
             )
+
+    def _eval_lambda(self, expr: LambdaExpression) -> Any:
+        """
+        求值 Lambda 表达式（v6.4）
+
+        Lambda 表达式返回一个可调用对象（闭包）。
+
+        Args:
+            expr: LambdaExpression 节点
+
+        Returns:
+            可调用的 Python 函数对象
+        """
+        # 捕获当前作用域（闭包）
+        captured_scope = self.symbol_table.current_scope()
+
+        # 创建 Lambda 函数
+        def lambda_function(*args):
+            # 检查参数数量
+            if len(args) != len(expr.parameters):
+                raise ExecutionError(
+                    line=expr.line,
+                    statement=f"Lambda 调用",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message=f"Lambda 期望 {len(expr.parameters)} 个参数，实际传入 {len(args)} 个"
+                )
+
+            # 创建新作用域用于 Lambda 执行
+            self.symbol_table.enter_scope(f"lambda_line_{expr.line}")
+
+            try:
+                # 绑定参数到作用域
+                from .symbol_table import SymbolType
+                for param, arg in zip(expr.parameters, args):
+                    self.symbol_table.define(
+                        name=param,
+                        value=arg,
+                        symbol_type=SymbolType.VARIABLE,
+                        line_number=expr.line
+                    )
+
+                # 执行函数体（表达式）
+                result = self.evaluate(expr.body)
+                return result
+
+            finally:
+                # 退出 Lambda 作用域
+                self.symbol_table.exit_scope()
+
+        return lambda_function
+
+    # ============================================================
+    # v6.4: 列表集合操作方法
+    # ============================================================
+
+    def _list_filter(self, lst: list, args: list, line: int) -> list:
+        """filter(predicate) - 过滤列表元素"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="filter",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="filter() 需要 1 个参数（predicate 函数）"
+            )
+
+        predicate = args[0]
+        if not callable(predicate):
+            raise ExecutionError(
+                line=line,
+                statement="filter",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="filter() 的参数必须是函数"
+            )
+
+        result = []
+        for item in lst:
+            if predicate(item):
+                result.append(item)
+        return result
+
+    def _list_map(self, lst: list, args: list, line: int) -> list:
+        """map(transform) - 映射列表元素"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="map",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="map() 需要 1 个参数（transform 函数）"
+            )
+
+        transform = args[0]
+        if not callable(transform):
+            raise ExecutionError(
+                line=line,
+                statement="map",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="map() 的参数必须是函数"
+            )
+
+        result = []
+        for item in lst:
+            result.append(transform(item))
+        return result
+
+    def _list_reduce(self, lst: list, args: list, line: int) -> Any:
+        """reduce(reducer, initial) - 归约列表"""
+        if len(args) < 1 or len(args) > 2:
+            raise ExecutionError(
+                line=line,
+                statement="reduce",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="reduce() 需要 1-2 个参数（reducer 函数, initial 值）"
+            )
+
+        reducer = args[0]
+        if not callable(reducer):
+            raise ExecutionError(
+                line=line,
+                statement="reduce",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="reduce() 的第一个参数必须是函数"
+            )
+
+        # 检查列表是否为空
+        if len(lst) == 0:
+            if len(args) == 2:
+                return args[1]  # 返回初始值
+            raise ExecutionError(
+                line=line,
+                statement="reduce",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="reduce() 不能用于空列表（除非提供初始值）"
+            )
+
+        # 确定初始值和起始索引
+        if len(args) == 2:
+            accumulator = args[1]
+            start_index = 0
+        else:
+            accumulator = lst[0]
+            start_index = 1
+
+        # 执行归约
+        for i in range(start_index, len(lst)):
+            accumulator = reducer(accumulator, lst[i])
+
+        return accumulator
+
+    def _list_find(self, lst: list, args: list, line: int) -> Any:
+        """find(predicate) - 查找第一个匹配元素"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="find",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="find() 需要 1 个参数（predicate 函数）"
+            )
+
+        predicate = args[0]
+        if not callable(predicate):
+            raise ExecutionError(
+                line=line,
+                statement="find",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="find() 的参数必须是函数"
+            )
+
+        for item in lst:
+            if predicate(item):
+                return item
+        return None
+
+    def _list_findIndex(self, lst: list, args: list, line: int) -> int:
+        """findIndex(predicate) - 查找第一个匹配元素的索引"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="findIndex",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="findIndex() 需要 1 个参数（predicate 函数）"
+            )
+
+        predicate = args[0]
+        if not callable(predicate):
+            raise ExecutionError(
+                line=line,
+                statement="findIndex",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="findIndex() 的参数必须是函数"
+            )
+
+        for index, item in enumerate(lst):
+            if predicate(item):
+                return index
+        return -1
+
+    def _list_some(self, lst: list, args: list, line: int) -> bool:
+        """some(predicate) - 是否存在满足条件的元素"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="some",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="some() 需要 1 个参数（predicate 函数）"
+            )
+
+        predicate = args[0]
+        if not callable(predicate):
+            raise ExecutionError(
+                line=line,
+                statement="some",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="some() 的参数必须是函数"
+            )
+
+        for item in lst:
+            if predicate(item):
+                return True
+        return False
+
+    def _list_every(self, lst: list, args: list, line: int) -> bool:
+        """every(predicate) - 是否所有元素都满足条件"""
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="every",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="every() 需要 1 个参数（predicate 函数）"
+            )
+
+        predicate = args[0]
+        if not callable(predicate):
+            raise ExecutionError(
+                line=line,
+                statement="every",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="every() 的参数必须是函数"
+            )
+
+        for item in lst:
+            if not predicate(item):
+                return False
+        return True
+
+    # ============================================================
+    # v6.5: 扩展集合操作方法
+    # ============================================================
+
+    def _list_sort(self, lst: list, args: list, line: int) -> list:
+        """sort(comparator?) - 排序列表
+
+        Args:
+            lst: 待排序列表
+            args: [comparator?] - 可选的比较函数
+            line: 行号
+
+        Returns:
+            排序后的新列表
+
+        Examples:
+            [3, 1, 4].sort() => [1, 3, 4]
+            [3, 1, 4].sort((a, b) => b - a) => [4, 3, 1]  # 降序
+        """
+        if len(args) > 1:
+            raise ExecutionError(
+                line=line,
+                statement="sort",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="sort() 最多接受 1 个参数（comparator 函数）"
+            )
+
+        # 创建副本以避免修改原列表
+        result = lst.copy()
+
+        if len(args) == 0:
+            # 默认排序
+            try:
+                result.sort()
+            except TypeError as e:
+                raise ExecutionError(
+                    line=line,
+                    statement="sort",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message=f"无法排序列表: {e}"
+                )
+        else:
+            # 使用自定义比较函数
+            comparator = args[0]
+            if not callable(comparator):
+                raise ExecutionError(
+                    line=line,
+                    statement="sort",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message="sort() 的参数必须是函数"
+                )
+
+            # Python 的 sort 使用 key 函数，而不是比较器
+            # 我们需要使用 functools.cmp_to_key 转换
+            from functools import cmp_to_key
+            try:
+                result.sort(key=cmp_to_key(lambda a, b: int(comparator(a, b))))
+            except Exception as e:
+                raise ExecutionError(
+                    line=line,
+                    statement="sort",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message=f"排序失败: {e}"
+                )
+
+        return result
+
+    def _list_reverse(self, lst: list, args: list, line: int) -> list:
+        """reverse() - 反转列表
+
+        Args:
+            lst: 待反转列表
+            args: 无参数
+            line: 行号
+
+        Returns:
+            反转后的新列表
+
+        Example:
+            [1, 2, 3].reverse() => [3, 2, 1]
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="reverse",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="reverse() 不接受参数"
+            )
+
+        # 创建副本并反转
+        result = lst.copy()
+        result.reverse()
+        return result
+
+    def _list_slice(self, lst: list, args: list, line: int) -> list:
+        """slice(start, end?) - 切片列表
+
+        Args:
+            lst: 待切片列表
+            args: [start, end?] - 起始索引和可选的结束索引
+            line: 行号
+
+        Returns:
+            切片后的新列表
+
+        Examples:
+            [1, 2, 3, 4, 5].slice(1, 4) => [2, 3, 4]
+            [1, 2, 3, 4, 5].slice(2) => [3, 4, 5]
+        """
+        if len(args) < 1 or len(args) > 2:
+            raise ExecutionError(
+                line=line,
+                statement="slice",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="slice() 需要 1-2 个参数 (start, end?)"
+            )
+
+        start = args[0]
+        if not isinstance(start, int):
+            raise ExecutionError(
+                line=line,
+                statement="slice",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"slice() 的 start 参数必须是整数，实际是 {type(start).__name__}"
+            )
+
+        if len(args) == 1:
+            # 仅 start，切片到末尾
+            return lst[start:]
+        else:
+            # start 和 end
+            end = args[1]
+            if not isinstance(end, int):
+                raise ExecutionError(
+                    line=line,
+                    statement="slice",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message=f"slice() 的 end 参数必须是整数，实际是 {type(end).__name__}"
+                )
+            return lst[start:end]
+
+    def _list_join(self, lst: list, args: list, line: int) -> str:
+        """join(separator) - 连接列表元素为字符串
+
+        Args:
+            lst: 待连接列表
+            args: [separator] - 分隔符
+            line: 行号
+
+        Returns:
+            连接后的字符串
+
+        Example:
+            ["Hello", "World"].join(" ") => "Hello World"
+            [1, 2, 3].join(", ") => "1, 2, 3"
+        """
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="join",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="join() 需要 1 个参数（separator 字符串）"
+            )
+
+        separator = args[0]
+        if not isinstance(separator, str):
+            raise ExecutionError(
+                line=line,
+                statement="join",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"join() 的参数必须是字符串，实际是 {type(separator).__name__}"
+            )
+
+        # 将所有元素转换为字符串并连接
+        try:
+            return separator.join(str(item) for item in lst)
+        except Exception as e:
+            raise ExecutionError(
+                line=line,
+                statement="join",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"连接失败: {e}"
+            )
+
+    def _list_unique(self, lst: list, args: list, line: int) -> list:
+        """unique() - 去除列表中的重复元素
+
+        Args:
+            lst: 待去重列表
+            args: 无参数
+            line: 行号
+
+        Returns:
+            去重后的新列表（保持原始顺序）
+
+        Example:
+            [1, 2, 2, 3, 3, 3].unique() => [1, 2, 3]
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="unique",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="unique() 不接受参数"
+            )
+
+        # 使用字典保持插入顺序（Python 3.7+）
+        seen = {}
+        result = []
+        for item in lst:
+            # 对于不可哈希的类型（如 list, dict），使用 id()
+            try:
+                key = item
+                if key not in seen:
+                    seen[key] = True
+                    result.append(item)
+            except TypeError:
+                # 不可哈希类型，使用 id() 作为 key
+                key = id(item)
+                if key not in seen:
+                    seen[key] = True
+                    result.append(item)
+
+        return result
+
+    def _list_length(self, lst: list, args: list, line: int) -> int:
+        """length() - 获取列表长度
+
+        Args:
+            lst: 列表
+            args: 无参数
+            line: 行号
+
+        Returns:
+            列表长度
+
+        Example:
+            [1, 2, 3].length() => 3
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="length",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="length() 不接受参数"
+            )
+
+        return len(lst)
+
+    # ============================================================
+    # v6.6: 数组工具方法
+    # ============================================================
+
+    def _list_flatten(self, lst: list, args: list, line: int) -> list:
+        """flatten() - 展平嵌套数组
+
+        Args:
+            lst: 列表
+            args: [depth] 可选深度参数，默认为 1
+            line: 行号
+
+        Returns:
+            展平后的列表
+
+        Example:
+            [[1, 2], [3, 4]].flatten() => [1, 2, 3, 4]
+            [1, [2, [3, [4]]]].flatten(2) => [1, 2, 3, [4]]
+        """
+        depth = 1
+        if len(args) > 0:
+            if not isinstance(args[0], (int, float)):
+                raise ExecutionError(
+                    line=line,
+                    statement="flatten",
+                    error_type=ExecutionError.RUNTIME_ERROR,
+                    message=f"flatten() 深度参数必须是数字，但得到 {type(args[0]).__name__}"
+                )
+            depth = int(args[0])
+
+        if len(args) > 1:
+            raise ExecutionError(
+                line=line,
+                statement="flatten",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"flatten() 最多接受 1 个参数，但得到 {len(args)} 个"
+            )
+
+        def flatten_recursive(items, d):
+            if d <= 0:
+                return items
+            result = []
+            for item in items:
+                if isinstance(item, list):
+                    result.extend(flatten_recursive(item, d - 1))
+                else:
+                    result.append(item)
+            return result
+
+        return flatten_recursive(lst, depth)
+
+    def _list_chunk(self, lst: list, args: list, line: int) -> list:
+        """chunk() - 将数组分成指定大小的块
+
+        Args:
+            lst: 列表
+            args: [size] 块大小
+            line: 行号
+
+        Returns:
+            分块后的二维数组
+
+        Example:
+            [1, 2, 3, 4, 5].chunk(2) => [[1, 2], [3, 4], [5]]
+        """
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="chunk",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"chunk() 需要 1 个参数（块大小），但得到 {len(args)} 个"
+            )
+
+        size = args[0]
+        if not isinstance(size, (int, float)):
+            raise ExecutionError(
+                line=line,
+                statement="chunk",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"chunk() 块大小必须是数字，但得到 {type(size).__name__}"
+            )
+
+        size = int(size)
+        if size <= 0:
+            raise ExecutionError(
+                line=line,
+                statement="chunk",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"chunk() 块大小必须大于 0，但得到 {size}"
+            )
+
+        result = []
+        for i in range(0, len(lst), size):
+            result.append(lst[i:i + size])
+        return result
+
+    # ============================================================
+    # v6.6: 字符串工具方法
+    # ============================================================
+
+    def _str_capitalize(self, s: str, args: list, line: int) -> str:
+        """capitalize() - 首字母大写
+
+        Args:
+            s: 字符串
+            args: 无参数
+            line: 行号
+
+        Returns:
+            首字母大写的字符串
+
+        Example:
+            "hello world".capitalize() => "Hello world"
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="capitalize",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="capitalize() 不接受参数"
+            )
+
+        return s.capitalize()
+
+    def _str_padStart(self, s: str, args: list, line: int) -> str:
+        """padStart() - 左填充字符串
+
+        Args:
+            s: 字符串
+            args: [length, fillStr] 目标长度和填充字符（默认空格）
+            line: 行号
+
+        Returns:
+            填充后的字符串
+
+        Example:
+            "5".padStart(3, "0") => "005"
+        """
+        if len(args) < 1 or len(args) > 2:
+            raise ExecutionError(
+                line=line,
+                statement="padStart",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padStart() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个"
+            )
+
+        target_length = args[0]
+        if not isinstance(target_length, (int, float)):
+            raise ExecutionError(
+                line=line,
+                statement="padStart",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padStart() 长度参数必须是数字，但得到 {type(target_length).__name__}"
+            )
+
+        target_length = int(target_length)
+        fill_str = args[1] if len(args) == 2 else " "
+
+        if not isinstance(fill_str, str):
+            raise ExecutionError(
+                line=line,
+                statement="padStart",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padStart() 填充字符必须是字符串，但得到 {type(fill_str).__name__}"
+            )
+
+        if len(fill_str) == 0:
+            raise ExecutionError(
+                line=line,
+                statement="padStart",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="padStart() 填充字符不能为空字符串"
+            )
+
+        if len(s) >= target_length:
+            return s
+
+        padding_length = target_length - len(s)
+        padding = (fill_str * ((padding_length // len(fill_str)) + 1))[:padding_length]
+        return padding + s
+
+    def _str_padEnd(self, s: str, args: list, line: int) -> str:
+        """padEnd() - 右填充字符串
+
+        Args:
+            s: 字符串
+            args: [length, fillStr] 目标长度和填充字符（默认空格）
+            line: 行号
+
+        Returns:
+            填充后的字符串
+
+        Example:
+            "5".padEnd(3, "0") => "500"
+        """
+        if len(args) < 1 or len(args) > 2:
+            raise ExecutionError(
+                line=line,
+                statement="padEnd",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padEnd() 需要 1-2 个参数（长度, [填充字符]），但得到 {len(args)} 个"
+            )
+
+        target_length = args[0]
+        if not isinstance(target_length, (int, float)):
+            raise ExecutionError(
+                line=line,
+                statement="padEnd",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padEnd() 长度参数必须是数字，但得到 {type(target_length).__name__}"
+            )
+
+        target_length = int(target_length)
+        fill_str = args[1] if len(args) == 2 else " "
+
+        if not isinstance(fill_str, str):
+            raise ExecutionError(
+                line=line,
+                statement="padEnd",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"padEnd() 填充字符必须是字符串，但得到 {type(fill_str).__name__}"
+            )
+
+        if len(fill_str) == 0:
+            raise ExecutionError(
+                line=line,
+                statement="padEnd",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="padEnd() 填充字符不能为空字符串"
+            )
+
+        if len(s) >= target_length:
+            return s
+
+        padding_length = target_length - len(s)
+        padding = (fill_str * ((padding_length // len(fill_str)) + 1))[:padding_length]
+        return s + padding
+
+    def _str_repeat(self, s: str, args: list, line: int) -> str:
+        """repeat() - 重复字符串
+
+        Args:
+            s: 字符串
+            args: [count] 重复次数
+            line: 行号
+
+        Returns:
+            重复后的字符串
+
+        Example:
+            "ha".repeat(3) => "hahaha"
+        """
+        if len(args) != 1:
+            raise ExecutionError(
+                line=line,
+                statement="repeat",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"repeat() 需要 1 个参数（重复次数），但得到 {len(args)} 个"
+            )
+
+        count = args[0]
+        if not isinstance(count, (int, float)):
+            raise ExecutionError(
+                line=line,
+                statement="repeat",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"repeat() 重复次数必须是数字，但得到 {type(count).__name__}"
+            )
+
+        count = int(count)
+        if count < 0:
+            raise ExecutionError(
+                line=line,
+                statement="repeat",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message=f"repeat() 重复次数不能为负数，但得到 {count}"
+            )
+
+        return s * count
+
+    # ============================================================
+    # v6.6: 字典工具方法
+    # ============================================================
+
+    def _dict_keys(self, d: dict, args: list, line: int) -> list:
+        """keys() - 获取字典的所有键
+
+        Args:
+            d: 字典
+            args: 无参数
+            line: 行号
+
+        Returns:
+            键列表
+
+        Example:
+            {a: 1, b: 2}.keys() => ["a", "b"]
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="keys",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="keys() 不接受参数"
+            )
+
+        return list(d.keys())
+
+    def _dict_values(self, d: dict, args: list, line: int) -> list:
+        """values() - 获取字典的所有值
+
+        Args:
+            d: 字典
+            args: 无参数
+            line: 行号
+
+        Returns:
+            值列表
+
+        Example:
+            {a: 1, b: 2}.values() => [1, 2]
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="values",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="values() 不接受参数"
+            )
+
+        return list(d.values())
+
+    def _dict_entries(self, d: dict, args: list, line: int) -> list:
+        """entries() - 获取字典的所有键值对
+
+        Args:
+            d: 字典
+            args: 无参数
+            line: 行号
+
+        Returns:
+            键值对列表 [[key, value], ...]
+
+        Example:
+            {a: 1, b: 2}.entries() => [["a", 1], ["b", 2]]
+        """
+        if len(args) != 0:
+            raise ExecutionError(
+                line=line,
+                statement="entries",
+                error_type=ExecutionError.RUNTIME_ERROR,
+                message="entries() 不接受参数"
+            )
+
+        return [[k, v] for k, v in d.items()]
 
     # ============================================================
     # v4.0: 类型感知的算术运算辅助方法

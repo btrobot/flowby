@@ -1,0 +1,238 @@
+# ============================================================
+# Flowby v6.4 - 集合操作方法示例 (Collection Operations Demo)
+# ============================================================
+#
+# 本示例展示 v6.4 新增的 Lambda 表达式和集合操作方法
+#
+# 新特性：
+# - Lambda 表达式：x => expr 和 (x, y) => expr
+# - filter()：过滤元素
+# - map()：映射变换
+# - reduce()：归约计算
+# - find() / findIndex()：查找元素
+# - some() / every()：布尔判断
+# ============================================================
+
+log info "=== Flowby v6.4 集合操作示例 ==="
+
+# ============================================================
+# 1. Lambda 表达式基础
+# ============================================================
+
+log info "\n--- 1. Lambda 表达式 ---"
+
+# 单参数 Lambda
+let double = x => x * 2
+let result1 = double(5)
+log success f"double(5) = {result1}"
+
+# 多参数 Lambda
+let add = (a, b) => a + b
+let result2 = add(10, 20)
+log success f"add(10, 20) = {result2}"
+
+# Lambda 闭包
+let multiplier = 3
+let triple = x => x * multiplier
+let result3 = triple(7)
+log success f"triple(7) = {result3}"
+
+
+# ============================================================
+# 2. filter() - 过滤元素
+# ============================================================
+
+log info "\n--- 2. filter() 方法 ---"
+
+# 过滤偶数
+let numbers1 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let evens = numbers1.filter(x => x % 2 == 0)
+log success f"偶数: {evens}"
+
+# 过滤大于 5 的数
+let greaterThan5 = numbers1.filter(x => x > 5)
+log success f"大于 5: {greaterThan5}"
+
+# 复杂条件：3 到 8 之间的数
+let between3And8 = numbers1.filter(x => x >= 3 and x <= 8)
+log success f"3 到 8 之间: {between3And8}"
+
+
+# ============================================================
+# 3. map() - 映射变换
+# ============================================================
+
+log info "\n--- 3. map() 方法 ---"
+
+# 数值翻倍
+let numbers2 = [1, 2, 3, 4, 5]
+let doubled = numbers2.map(x => x * 2)
+log success f"翻倍: {doubled}"
+
+# 平方
+let squared = numbers2.map(x => x * x)
+log success f"平方: {squared}"
+
+# 类型转换
+let toStrings = numbers2.map(x => f"Number: {x}")
+log success f"转字符串: {toStrings}"
+
+
+# ============================================================
+# 4. reduce() - 归约计算
+# ============================================================
+
+log info "\n--- 4. reduce() 方法 ---"
+
+# 求和
+let numbers3 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let sum = numbers3.reduce((acc, x) => acc + x, 0)
+log success f"求和 (1-10): {sum}"
+
+# 求积
+let numbers4 = [1, 2, 3, 4, 5]
+let product = numbers4.reduce((acc, x) => acc * x, 1)
+log success f"求积 (1-5): {product}"
+
+
+# ============================================================
+# 5. find() 和 findIndex() - 查找元素
+# ============================================================
+
+log info "\n--- 5. find() 和 findIndex() 方法 ---"
+
+let numbers6 = [10, 20, 30, 40, 50]
+
+# 查找第一个大于 25 的元素
+let found = numbers6.find(x => x > 25)
+log success f"第一个 > 25 的元素: {found}"
+
+# 查找索引
+let index = numbers6.findIndex(x => x > 25)
+log success f"第一个 > 25 的索引: {index}"
+
+# 查找不存在的元素
+let notFound = numbers6.find(x => x > 100)
+log success f"找不到的元素: {notFound}"
+
+
+# ============================================================
+# 6. some() 和 every() - 布尔判断
+# ============================================================
+
+log info "\n--- 6. some() 和 every() 方法 ---"
+
+let numbers7 = [2, 4, 6, 8, 10]
+let numbers8 = [1, 3, 5, 7, 9]
+let numbers9 = [2, 3, 4, 5, 6]
+
+# 是否有偶数
+let hasEven1 = numbers7.some(x => x % 2 == 0)
+log success f"[2,4,6,8,10] 有偶数: {hasEven1}"
+
+let hasEven2 = numbers8.some(x => x % 2 == 0)
+log success f"[1,3,5,7,9] 有偶数: {hasEven2}"
+
+# 是否全部是偶数
+let allEven1 = numbers7.every(x => x % 2 == 0)
+log success f"[2,4,6,8,10] 全是偶数: {allEven1}"
+
+let allEven2 = numbers9.every(x => x % 2 == 0)
+log success f"[2,3,4,5,6] 全是偶数: {allEven2}"
+
+
+# ============================================================
+# 7. 链式调用 - 组合多个操作
+# ============================================================
+
+log info "\n--- 7. 链式调用 ---"
+
+# 示例 1：过滤偶数 → 翻倍
+let numbers10 = [1, 2, 3, 4, 5, 6, 7, 8]
+let result10 = numbers10.filter(x => x % 2 == 0).map(x => x * 2)
+log success f"偶数翻倍: {result10}"
+
+# 示例 2：过滤 → 映射 → 求和
+let numbers11 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let result11 = numbers11.filter(x => x > 5).map(x => x * x).reduce((acc, x) => acc + x, 0)
+log success f"大于5的数的平方和: {result11}"
+
+
+# ============================================================
+# 8. 实际应用场景
+# ============================================================
+
+log info "\n--- 8. 实际应用场景 ---"
+
+# 场景 1：数据处理
+log info "场景 1: 处理用户数据"
+let ages = [15, 22, 18, 35, 42, 16, 28, 19]
+
+# 统计成年人数量
+let adultCount = ages.filter(age => age >= 18).reduce((acc, x) => acc + 1, 0)
+log success f"成年人数量: {adultCount}"
+
+# 计算平均年龄（仅成年人）
+let adultAges = ages.filter(age => age >= 18)
+let avgAge = adultAges.reduce((acc, x) => acc + x, 0)
+let avgAgeValue = avgAge / adultCount
+log success f"成年人平均年龄: {avgAgeValue}"
+
+
+# 场景 2：数据转换
+log info "\n场景 2: 价格计算"
+let prices = [100, 200, 150, 300, 250]
+
+# 应用 20% 折扣
+let discounted = prices.map(p => p * 0.8)
+log success f"折后价格: {discounted}"
+
+# 计算总价
+let total = discounted.reduce((acc, p) => acc + p, 0)
+log success f"折后总价: {total}"
+
+
+# 场景 3：条件筛选
+log info "\n场景 3: 产品筛选"
+let scores = [85, 92, 78, 95, 88, 73, 90, 82]
+
+# 找出优秀成绩（>= 90）
+let excellent = scores.filter(s => s >= 90)
+log success f"优秀成绩 (>=90): {excellent}"
+
+# 检查是否有不及格（< 60）
+let hasFailing = scores.some(s => s < 60)
+log success f"有不及格成绩: {hasFailing}"
+
+# 检查是否全部及格（>= 60）
+let allPassing = scores.every(s => s >= 60)
+log success f"全部及格: {allPassing}"
+
+
+# ============================================================
+# 9. 边界情况处理
+# ============================================================
+
+log info "\n--- 9. 边界情况 ---"
+
+# 空数组
+let empty = []
+let emptyFiltered = empty.filter(x => True)
+let emptyMapped = empty.map(x => x * 2)
+let emptyReduced = empty.reduce((acc, x) => acc + x, 0)
+let emptyFound = empty.find(x => True)
+let emptyIndex = empty.findIndex(x => True)
+let emptySome = empty.some(x => True)
+let emptyEvery = empty.every(x => True)
+
+log success f"空数组 filter: {emptyFiltered}"
+log success f"空数组 map: {emptyMapped}"
+log success f"空数组 reduce: {emptyReduced}"
+log success f"空数组 find: {emptyFound}"
+log success f"空数组 findIndex: {emptyIndex}"
+log success f"空数组 some: {emptySome}"
+log success f"空数组 every: {emptyEvery}"
+
+
+log info "\n=== 示例完成 ==="
+log success "所有集合操作方法都正常工作！"

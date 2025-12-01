@@ -1,8 +1,8 @@
 (* ============================================================================= *)
 (* Flowby DSL - EBNF Grammar Specification                                    *)
-(* Version: 5.1                                                                *)
-(* Generated: 2025-11-30                                                       *)
-(* Branch: fix/http-enhanced-tests                                            *)
+(* Version: 6.6                                                                *)
+(* Generated: 2025-12-01                                                       *)
+(* Branch: main                                                                *)
 (* ============================================================================= *)
 
 (* ============================================================================= *)
@@ -499,6 +499,7 @@ argument_list = expression { "," expression } ;
 
 (* Primary *)
 primary_expression = literal
+                   | lambda_expression
                    | input_expression
                    | function_call
                    | identifier
@@ -532,6 +533,220 @@ input_type = "text" | "password" | "integer" | "float" ;
      - float: converts to float, raises error if invalid
    - Returns the input value (or default) after type conversion
    - Non-interactive mode: always uses default value if provided
+*)
+
+(* ============================================================================= *)
+(* 13.5. Lambda Expressions (v6.4)                                             *)
+(* ============================================================================= *)
+
+(* Lambda Expression - v6.4 *)
+lambda_expression = lambda_parameters "=>" expression ;
+
+lambda_parameters = identifier                              (* Single parameter: x => expr *)
+                  | "(" ")"                                 (* No parameters: () => expr *)
+                  | "(" parameter_list ")"                  (* Multiple parameters: (x, y) => expr *)
+                  ;
+
+parameter_list = identifier { "," identifier } ;
+
+(* Semantics:
+   - Lambda expressions create anonymous functions (closures)
+   - Capture outer scope variables (full closure support)
+   - Can be stored in variables: let fn = x => x * 2
+   - Can be passed as arguments: array.map(x => x * 2)
+   - Can be returned from functions
+   - Expression body only (no statement blocks)
+   - Examples:
+     - x => x * 2                    # Single parameter
+     - (x, y) => x + y               # Multiple parameters
+     - () => 42                      # No parameters
+     - x => x.name                   # Member access
+     - x => x > 5                    # Boolean expression
+*)
+
+(* ============================================================================= *)
+(* 13.6. Collection Methods and Utility Functions (v6.4, v6.5, v6.6)          *)
+(* ============================================================================= *)
+
+(* Method calls on collections and strings *)
+collection_method = filter_method      (* v6.4 *)
+                  | map_method         (* v6.4 *)
+                  | reduce_method      (* v6.4 *)
+                  | find_method        (* v6.4 *)
+                  | findIndex_method   (* v6.4 *)
+                  | some_method        (* v6.4 *)
+                  | every_method       (* v6.4 *)
+                  | sort_method        (* v6.5 *)
+                  | reverse_method     (* v6.5 *)
+                  | slice_method       (* v6.5 *)
+                  | join_method        (* v6.5 *)
+                  | unique_method      (* v6.5 *)
+                  | length_method      (* v6.5 *)
+                  | flatten_method     (* v6.6 *)
+                  | chunk_method       (* v6.6 *)
+                  | capitalize_method  (* v6.6 *)
+                  | padStart_method    (* v6.6 *)
+                  | padEnd_method      (* v6.6 *)
+                  | repeat_method      (* v6.6 *)
+                  | keys_method        (* v6.6 *)
+                  | values_method      (* v6.6 *)
+                  | entries_method     (* v6.6 *)
+                  ;
+
+(* Core Collection Methods (v6.4) *)
+filter_method = expression "." "filter" "(" expression ")" ;
+(* Syntax: array.filter(predicate)
+   Returns: new array with elements matching predicate
+   Example: [1, 2, 3, 4].filter(x => x > 2)  # [3, 4]
+*)
+
+map_method = expression "." "map" "(" expression ")" ;
+(* Syntax: array.map(transform)
+   Returns: new array with transformed elements
+   Example: [1, 2, 3].map(x => x * 2)  # [2, 4, 6]
+*)
+
+reduce_method = expression "." "reduce" "(" expression "," expression ")" ;
+(* Syntax: array.reduce(reducer, initial)
+   Returns: accumulated value
+   Example: [1, 2, 3].reduce((acc, x) => acc + x, 0)  # 6
+*)
+
+find_method = expression "." "find" "(" expression ")" ;
+(* Syntax: array.find(predicate)
+   Returns: first element matching predicate, or None
+   Example: [1, 2, 3].find(x => x > 2)  # 3
+*)
+
+findIndex_method = expression "." "findIndex" "(" expression ")" ;
+(* Syntax: array.findIndex(predicate)
+   Returns: index of first match, or -1
+   Example: [1, 2, 3].findIndex(x => x > 2)  # 2
+*)
+
+some_method = expression "." "some" "(" expression ")" ;
+(* Syntax: array.some(predicate)
+   Returns: true if any element matches predicate
+   Example: [1, 2, 3].some(x => x > 2)  # True
+*)
+
+every_method = expression "." "every" "(" expression ")" ;
+(* Syntax: array.every(predicate)
+   Returns: true if all elements match predicate
+   Example: [1, 2, 3].every(x => x > 0)  # True
+*)
+
+(* Extended Collection Methods (v6.5) *)
+sort_method = expression "." "sort" "(" [ expression ] ")" ;
+(* Syntax: array.sort([comparator])
+   Returns: new sorted array (ascending by default)
+   Examples:
+     [3, 1, 2].sort()                    # [1, 2, 3]
+     users.sort((a, b) => a.age - b.age) # Sort by age
+*)
+
+reverse_method = expression "." "reverse" "(" ")" ;
+(* Syntax: array.reverse()
+   Returns: new reversed array
+   Example: [1, 2, 3].reverse()  # [3, 2, 1]
+*)
+
+slice_method = expression "." "slice" "(" expression [ "," expression ] ")" ;
+(* Syntax: array.slice(start[, end])
+   Returns: new array slice from start to end
+   Example: [1, 2, 3, 4, 5].slice(1, 3)  # [2, 3]
+*)
+
+join_method = expression "." "join" "(" expression ")" ;
+(* Syntax: array.join(separator)
+   Returns: string with elements joined by separator
+   Example: ["a", "b", "c"].join(", ")  # "a, b, c"
+*)
+
+unique_method = expression "." "unique" "(" ")" ;
+(* Syntax: array.unique()
+   Returns: new array with duplicates removed
+   Example: [1, 2, 2, 3, 1].unique()  # [1, 2, 3]
+*)
+
+length_method = expression "." "length" "(" ")" ;
+(* Syntax: array.length()
+   Returns: number of elements in array
+   Example: [1, 2, 3].length()  # 3
+*)
+
+(* String Utility Methods (v6.6) *)
+capitalize_method = expression "." "capitalize" "(" ")" ;
+(* Syntax: string.capitalize()
+   Returns: string with first letter capitalized
+   Example: "hello world".capitalize()  # "Hello world"
+*)
+
+padStart_method = expression "." "padStart" "(" expression "," expression ")" ;
+(* Syntax: string.padStart(length, fillStr)
+   Returns: left-padded string
+   Example: "5".padStart(3, "0")  # "005"
+*)
+
+padEnd_method = expression "." "padEnd" "(" expression "," expression ")" ;
+(* Syntax: string.padEnd(length, fillStr)
+   Returns: right-padded string
+   Example: "5".padEnd(3, "0")  # "500"
+*)
+
+repeat_method = expression "." "repeat" "(" expression ")" ;
+(* Syntax: string.repeat(count)
+   Returns: string repeated count times
+   Example: "ha".repeat(3)  # "hahaha"
+*)
+
+(* Array Utility Methods (v6.6) *)
+flatten_method = expression "." "flatten" "(" [ expression ] ")" ;
+(* Syntax: array.flatten([depth])
+   Returns: flattened array (default depth: 1)
+   Examples:
+     [[1, 2], [3, 4]].flatten()         # [1, 2, 3, 4]
+     [1, [2, [3]]].flatten(2)           # [1, 2, 3]
+*)
+
+chunk_method = expression "." "chunk" "(" expression ")" ;
+(* Syntax: array.chunk(size)
+   Returns: array split into chunks of size
+   Example: [1, 2, 3, 4, 5].chunk(2)  # [[1, 2], [3, 4], [5]]
+*)
+
+(* Dictionary Utility Methods (v6.6) *)
+keys_method = expression "." "keys" "(" ")" ;
+(* Syntax: dict.keys()
+   Returns: array of dictionary keys
+   Example: {a: 1, b: 2}.keys()  # ["a", "b"]
+*)
+
+values_method = expression "." "values" "(" ")" ;
+(* Syntax: dict.values()
+   Returns: array of dictionary values
+   Example: {a: 1, b: 2}.values()  # [1, 2]
+*)
+
+entries_method = expression "." "entries" "(" ")" ;
+(* Syntax: dict.entries()
+   Returns: array of [key, value] pairs
+   Example: {a: 1, b: 2}.entries()  # [["a", 1], ["b", 2]]
+*)
+
+(* Global Utility Functions (v6.6) *)
+(* These are built-in functions, not methods *)
+
+(* zip(*arrays) - Combine multiple arrays element-wise *)
+(* Syntax: zip(arr1, arr2, ...)
+   Returns: array of tuples combining elements at same index
+   Example: zip([1, 2], ["a", "b"])  # [[1, "a"], [2, "b"]]
+*)
+
+(* sleep(seconds) - Pause execution *)
+(* Syntax: sleep(seconds)
+   Returns: None (blocks execution for specified duration)
+   Example: sleep(2)  # Pause for 2 seconds
 *)
 
 (* ============================================================================= *)
@@ -1011,6 +1226,184 @@ for i in range(num_items):
     let item = input("Item {i + 1}: ")
     log "Added: {item}"
 end for
+*)
+
+(*
+Example 16: Lambda Expressions and Collection Methods (v6.4)
+===========================================================
+# Lambda expressions
+let double = x => x * 2
+let add = (x, y) => x + y
+
+log "double(5): {double(5)}"       # 10
+log "add(3, 7): {add(3, 7)}"       # 10
+
+# filter() - Filter elements matching predicate
+let numbers = [1, 2, 3, 4, 5, 6]
+let evens = numbers.filter(x => x % 2 == 0)
+log "Even numbers: {evens}"        # [2, 4, 6]
+
+# map() - Transform each element
+let doubled = numbers.map(x => x * 2)
+log "Doubled: {doubled}"           # [2, 4, 6, 8, 10, 12]
+
+# reduce() - Accumulate/aggregate values
+let sum = numbers.reduce((acc, x) => acc + x, 0)
+log "Sum: {sum}"                   # 21
+
+# find() - Find first matching element
+let found = numbers.find(x => x > 3)
+log "First > 3: {found}"           # 4
+
+# findIndex() - Find index of first match
+let index = numbers.findIndex(x => x > 3)
+log "Index of first > 3: {index}"  # 3
+
+# some() - Check if any element matches
+let hasLarge = numbers.some(x => x > 5)
+log "Has number > 5: {hasLarge}"   # True
+
+# every() - Check if all elements match
+let allPositive = numbers.every(x => x > 0)
+log "All positive: {allPositive}"  # True
+
+# Method chaining
+let result = numbers.filter(x => x > 2).map(x => x * 2).reduce((acc, x) => acc + x, 0)
+log "Chained result: {result}"     # 28
+*)
+
+(*
+Example 17: Extended Collection Methods (v6.5)
+==============================================
+# sort() - Sort array
+let unsorted = [3, 1, 4, 1, 5, 9, 2, 6]
+let sorted = unsorted.sort()
+log "Sorted: {sorted}"             # [1, 1, 2, 3, 4, 5, 6, 9]
+
+# sort with comparator
+let users = [{name: "Bob", age: 30}, {name: "Alice", age: 25}]
+let sortedByAge = users.sort((a, b) => a.age - b.age)
+log "Sorted by age: {sortedByAge}"
+
+# reverse() - Reverse array
+let reversed = [1, 2, 3, 4, 5].reverse()
+log "Reversed: {reversed}"         # [5, 4, 3, 2, 1]
+
+# slice() - Extract array portion
+let numbers = [1, 2, 3, 4, 5]
+let slice1 = numbers.slice(1, 3)
+log "Slice [1:3]: {slice1}"        # [2, 3]
+
+# join() - Join array elements into string
+let words = ["Hello", "Flowby", "DSL"]
+let sentence = words.join(" ")
+log "Joined: {sentence}"           # "Hello Flowby DSL"
+
+# unique() - Remove duplicates
+let duplicates = [1, 2, 2, 3, 1, 4, 3]
+let unique = duplicates.unique()
+log "Unique: {unique}"             # [1, 2, 3, 4]
+
+# length() - Get array length
+let count = [1, 2, 3, 4, 5].length()
+log "Length: {count}"              # 5
+*)
+
+(*
+Example 18: Utility Functions (v6.6)
+====================================
+# String methods
+let title = "hello world"
+let capitalized = title.capitalize()
+log "Capitalized: {capitalized}"   # "Hello world"
+
+let id = "5"
+let paddedId = id.padStart(3, "0")
+log "Padded ID: {paddedId}"        # "005"
+
+let code = "A"
+let paddedCode = code.padEnd(4, "0")
+log "Padded code: {paddedCode}"    # "A000"
+
+let pattern = "="
+let line = pattern.repeat(40)
+log line                           # "========================================"
+
+# Array utility methods
+let nested = [[1, 2], [3, 4], [5, 6]]
+let flat = nested.flatten()
+log "Flattened: {flat}"            # [1, 2, 3, 4, 5, 6]
+
+let deepNested = [1, [2, [3, [4]]]]
+let flat2 = deepNested.flatten(2)
+log "Flatten(2): {flat2}"          # [1, 2, 3, [4]]
+
+let numbers = [1, 2, 3, 4, 5, 6, 7]
+let chunks = numbers.chunk(3)
+log "Chunked: {chunks}"            # [[1, 2, 3], [4, 5, 6], [7]]
+
+# Dictionary methods
+let user = {name: "Alice", age: 30, city: "NYC"}
+let keys = user.keys()
+let values = user.values()
+let entries = user.entries()
+log "Keys: {keys}"                 # ["name", "age", "city"]
+log "Values: {values}"             # ["Alice", 30, "NYC"]
+log "Entries: {entries}"           # [["name", "Alice"], ["age", 30], ["city", "NYC"]]
+
+# Global utility functions
+let ids = [1, 2, 3]
+let names = ["Alice", "Bob", "Charlie"]
+let combined = zip(ids, names)
+log "Zipped: {combined}"           # [[1, "Alice"], [2, "Bob"], [3, "Charlie"]]
+
+log "Starting task..."
+sleep(2)
+log "Task completed after 2 seconds"
+*)
+
+(*
+Example 19: Practical Use Cases (v6.6)
+======================================
+# Use case 1: Data transformation pipeline
+let users = [{name: "alice", age: 25, active: True}, {name: "bob", age: 30, active: False}, {name: "charlie", age: 35, active: True}]
+
+let activeUserNames = users.filter(u => u.active).map(u => u.name.capitalize()).join(", ")
+
+log "Active users: {activeUserNames}"  # "Alice, Charlie"
+
+# Use case 2: Statistical analysis
+let scores = [85, 92, 78, 95, 88, 91]
+let average = scores.reduce((acc, x) => acc + x, 0) / scores.length()
+let passed = scores.filter(x => x >= 80).length()
+let allPassed = scores.every(x => x >= 60)
+
+log "Average: {average}"           # 88.17
+log "Passed: {passed}/{scores.length()}"  # 5/6
+log "All passed: {allPassed}"      # True
+
+# Use case 3: Batch processing
+let items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let batches = items.chunk(3)
+
+for batch in batches:
+    log "Processing batch: {batch}"
+    sleep(0.5)
+    log "Batch complete"
+end for
+
+# Use case 4: Data formatting
+let headers = ["ID", "Name", "Score"]
+let data = [[1, "Alice", 95], [2, "Bob", 88]]
+
+let formatted = data.map(row => zip(headers, row).map(pair => f"{pair[0]}: {pair[1]}").join(", "))
+
+for line in formatted:
+    log line
+end for
+# Output:
+# ID: 1, Name: Alice, Score: 95
+# ID: 2, Name: Bob, Score: 88
 *)
 
 (* ============================================================================= *)

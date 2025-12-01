@@ -1,8 +1,8 @@
 # DSL Grammar Master Control Document
 
-> **Version**: 5.1 ⭐ **Input Expression & Module System Support**
+> **Version**: 6.6 ⭐ **Collection Methods & Utility Functions Support**
 > **Status**: Active
-> **Last Updated**: 2025-11-30
+> **Last Updated**: 2025-12-01
 > **Purpose**: Single Source of Truth for DSL Grammar
 
 ---
@@ -2271,6 +2271,256 @@ let str = String(456)
 let bool = Boolean(1)
 let is_nan = isNaN("abc")
 let is_finite = isFinite(100)
+```
+
+---
+
+## 🚀 Collection Methods (v6.4 & v6.5)
+
+### Lambda Expressions (v6.4)
+
+**Syntax**:
+```dsl
+# Single parameter
+x => expression
+
+# Multiple parameters
+(x, y) => expression
+```
+
+**Features**:
+- ✅ Full closure support (captures outer scope variables)
+- ✅ Can be stored in variables
+- ✅ Can be passed as function arguments
+- ✅ Supports any expression as body
+
+**Examples**:
+```dsl
+# Define and use lambda
+let double = x => x * 2
+let result = double(5)  # 10
+
+# Inline lambda
+let numbers = [1, 2, 3, 4]
+let doubled = numbers.map(x => x * 2)  # [2, 4, 6, 8]
+
+# Multi-parameter lambda
+let add = (a, b) => a + b
+let sum = add(3, 5)  # 8
+```
+
+### Core Collection Methods (v6.4)
+
+| Method | Signature | Since | Status | Test |
+|--------|-----------|-------|--------|------|
+| `filter(predicate)` | Returns filtered array | v6.4 | ✅ | ✅ |
+| `map(transform)` | Returns transformed array | v6.4 | ✅ | ✅ |
+| `reduce(reducer, initial)` | Returns accumulated value | v6.4 | ✅ | ✅ |
+| `find(predicate)` | Returns first match or None | v6.4 | ✅ | ✅ |
+| `findIndex(predicate)` | Returns index or -1 | v6.4 | ✅ | ✅ |
+| `some(predicate)` | Returns boolean (any match) | v6.4 | ✅ | ✅ |
+| `every(predicate)` | Returns boolean (all match) | v6.4 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+let numbers = [1, 2, 3, 4, 5, 6]
+
+# filter() - Get even numbers
+let evens = numbers.filter(x => x % 2 == 0)  # [2, 4, 6]
+
+# map() - Double all numbers
+let doubled = numbers.map(x => x * 2)  # [2, 4, 6, 8, 10, 12]
+
+# reduce() - Sum all numbers
+let sum = numbers.reduce((acc, x) => acc + x, 0)  # 21
+
+# find() - Find first number > 3
+let found = numbers.find(x => x > 3)  # 4
+
+# findIndex() - Find index of first number > 3
+let index = numbers.findIndex(x => x > 3)  # 3
+
+# some() - Check if any number > 5
+let hasLarge = numbers.some(x => x > 5)  # True
+
+# every() - Check if all numbers > 0
+let allPositive = numbers.every(x => x > 0)  # True
+```
+
+### Extended Collection Methods (v6.5)
+
+| Method | Signature | Since | Status | Test |
+|--------|-----------|-------|--------|------|
+| `sort([comparator])` | Returns sorted array | v6.5 | ✅ | ✅ |
+| `reverse()` | Returns reversed array | v6.5 | ✅ | ✅ |
+| `slice(start, [end])` | Returns slice | v6.5 | ✅ | ✅ |
+| `join(separator)` | Returns joined string | v6.5 | ✅ | ✅ |
+| `unique()` | Returns deduplicated array | v6.5 | ✅ | ✅ |
+| `length()` | Returns array length | v6.5 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+let numbers = [3, 1, 4, 1, 5, 9, 2, 6]
+
+# sort() - Default ascending
+let sorted = numbers.sort()  # [1, 1, 2, 3, 4, 5, 6, 9]
+
+# sort() - Custom comparator (descending)
+let descending = numbers.sort((a, b) => b - a)  # [9, 6, 5, 4, 3, 2, 1, 1]
+
+# reverse() - Reverse array
+let reversed = [1, 2, 3, 4].reverse()  # [4, 3, 2, 1]
+
+# slice() - Extract portion
+let sliced = numbers.slice(2, 5)  # [4, 1, 5]
+let fromIndex = numbers.slice(3)  # [1, 5, 9, 2, 6]
+
+# join() - Join to string
+let joined = ["Hello", "World"].join(" ")  # "Hello World"
+
+# unique() - Remove duplicates
+let unique = [1, 2, 2, 3, 3, 3].unique()  # [1, 2, 3]
+
+# length() - Get array length
+let len = numbers.length()  # 8
+```
+
+### Method Chaining
+
+All collection methods return values that can be chained:
+
+```dsl
+let numbers = [5, 2, 8, 1, 9, 3, 7, 4, 6]
+
+# Complex chain: filter -> sort -> slice -> map
+let result = numbers
+    .filter(x => x > 3)    # [5, 8, 9, 7, 4, 6]
+    .sort()                # [4, 5, 6, 7, 8, 9]
+    .slice(0, 3)          # [4, 5, 6]
+    .map(x => x * 2)      # [8, 10, 12]
+
+# Practical example: top 5 scores
+let scores = [85, 92, 78, 95, 88, 73, 90, 82, 95, 88]
+let top5 = scores
+    .unique()                      # Remove duplicates
+    .sort((a, b) => b - a)        # Sort descending
+    .slice(0, 5)                  # Take top 5
+# Result: [95, 92, 90, 88, 85]
+```
+
+---
+
+## 🛠️ Utility Functions (v6.6)
+
+### String Methods (v6.6)
+
+| Method | Signature | Since | Status | Test |
+|--------|-----------|-------|--------|------|
+| `capitalize()` | Returns capitalized string | v6.6 | ✅ | ✅ |
+| `padStart(length, fillStr)` | Returns left-padded string | v6.6 | ✅ | ✅ |
+| `padEnd(length, fillStr)` | Returns right-padded string | v6.6 | ✅ | ✅ |
+| `repeat(count)` | Returns repeated string | v6.6 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+# capitalize() - Capitalize first letter
+"hello world".capitalize()  # "Hello world"
+
+# padStart() - Left padding
+"5".padStart(3, "0")  # "005"
+"9".padStart(2, "0")  # "09"
+
+# padEnd() - Right padding
+"A".padEnd(4, "0")  # "A000"
+
+# repeat() - Repeat string
+"ha".repeat(3)  # "hahaha"
+"=".repeat(40)  # "========================================"
+```
+
+### Array Utility Methods (v6.6)
+
+| Method | Signature | Since | Status | Test |
+|--------|-----------|-------|--------|------|
+| `flatten([depth])` | Returns flattened array | v6.6 | ✅ | ✅ |
+| `chunk(size)` | Returns chunked array | v6.6 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+# flatten() - Flatten nested arrays
+[[1, 2], [3, 4]].flatten()  # [1, 2, 3, 4]
+[1, [2, [3, [4]]]].flatten(2)  # [1, 2, 3, [4]]
+
+# chunk() - Split into chunks
+[1, 2, 3, 4, 5, 6, 7].chunk(3)  # [[1, 2, 3], [4, 5, 6], [7]]
+```
+
+### Dictionary Methods (v6.6)
+
+| Method | Signature | Since | Status | Test |
+|--------|-----------|-------|--------|------|
+| `keys()` | Returns array of keys | v6.6 | ✅ | ✅ |
+| `values()` | Returns array of values | v6.6 | ✅ | ✅ |
+| `entries()` | Returns array of [key, value] pairs | v6.6 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+let user = {name: "Alice", age: 30, city: "NYC"}
+
+# keys() - Get all keys
+let keys = user.keys()  # ["name", "age", "city"]
+
+# values() - Get all values
+let values = user.values()  # ["Alice", 30, "NYC"]
+
+# entries() - Get key-value pairs
+let entries = user.entries()  # [["name", "Alice"], ["age", 30], ["city", "NYC"]]
+```
+
+### Global Utility Functions (v6.6)
+
+| Function | Signature | Since | Status | Test |
+|----------|-----------|-------|--------|------|
+| `zip(*arrays)` | Combines arrays element-wise | v6.6 | ✅ | ✅ |
+| `sleep(seconds)` | Pauses execution | v6.6 | ✅ | ✅ |
+
+**Examples**:
+```dsl
+# zip() - Combine arrays
+let ids = [1, 2, 3]
+let names = ["Alice", "Bob", "Charlie"]
+let combined = zip(ids, names)  # [[1, "Alice"], [2, "Bob"], [3, "Charlie"]]
+
+# sleep() - Pause execution
+log "Start"
+sleep(1.5)  # Sleep for 1.5 seconds
+log "After 1.5 seconds"
+```
+
+### Practical Use Cases
+
+```dsl
+# Format table data
+let row = ["1".padStart(3), "Alice".padEnd(10), "95".padStart(5)]
+let separator = "-".repeat(25)
+log separator
+log row.join(" | ")
+
+# Batch processing
+let allData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+let batches = allData.chunk(4)  # [[1,2,3,4], [5,6,7,8], [9,10,11,12]]
+
+# Progress bar
+let progress = 3
+let total = 10
+let bar = "=".repeat(progress) + "·".repeat(total - progress)
+log f"Processing {bar} {progress}/{total}"
+
+# Data mapping
+let productIds = [101, 102, 103]
+let productNames = ["Laptop", "Mouse", "Keyboard"]
+let prices = [999, 29, 79]
+let products = zip(productIds, zip(productNames, prices))
 ```
 
 ---

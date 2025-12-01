@@ -1,0 +1,266 @@
+# ============================================================
+# Flowby v6.6 - 实用工具函数示例
+# ============================================================
+#
+# 本示例展示 v6.6 新增的实用工具函数
+#
+# 新增功能：
+# - 字符串方法: capitalize(), padStart(), padEnd(), repeat()
+# - 数组方法: flatten(), chunk()
+# - 字典方法: keys(), values(), entries()
+# - 实用函数: zip(), sleep()
+# ============================================================
+
+log info "=== Flowby v6.6 实用工具函数示例 ==="
+
+
+# ============================================================
+# 1. 字符串工具方法
+# ============================================================
+
+log info "\n--- 1. 字符串工具方法 ---"
+
+# capitalize() - 首字母大写
+log info "1.1 capitalize() - 首字母大写"
+let title1 = "hello world"
+let capitalized1 = title1.capitalize()
+log success f"'{title1}'.capitalize() => '{capitalized1}'"
+
+let title2 = "python programming"
+let capitalized2 = title2.capitalize()
+log success f"'{title2}'.capitalize() => '{capitalized2}'"
+
+# padStart() - 左填充
+log info "\n1.2 padStart() - 左填充"
+let num1 = "5"
+let padded1 = num1.padStart(3, "0")
+log success f"'{num1}'.padStart(3, '0') => '{padded1}'"
+
+let month = "3"
+let paddedMonth = month.padStart(2, "0")
+log success f"月份: '{month}' => '{paddedMonth}'"
+
+let time = "9"
+let paddedTime = time.padStart(2, "0")
+log success f"时间: '{time}:30' => '{paddedTime}:30'"
+
+# padEnd() - 右填充
+log info "\n1.3 padEnd() - 右填充"
+let code1 = "A"
+let padded2 = code1.padEnd(4, "0")
+log success f"'{code1}'.padEnd(4, '0') => '{padded2}'"
+
+let name1 = "Alice"
+let aligned = name1.padEnd(10, " ")
+log success f"对齐: '{aligned}|'"
+
+# repeat() - 重复字符串
+log info "\n1.4 repeat() - 重复字符串"
+let pattern1 = "="
+let line1 = pattern1.repeat(40)
+log success f"'{pattern1}'.repeat(40) => '{line1}'"
+
+let laugh = "ha"
+let laughSound = laugh.repeat(5)
+log success f"'{laugh}'.repeat(5) => '{laughSound}'"
+
+let dots = "."
+let ellipsis = dots.repeat(3)
+log success f"加载中{ellipsis}"
+
+
+# ============================================================
+# 2. 数组工具方法
+# ============================================================
+
+log info "\n--- 2. 数组工具方法 ---"
+
+# flatten() - 展平嵌套数组
+log info "2.1 flatten() - 展平嵌套数组"
+let nested1 = [[1, 2], [3, 4], [5, 6]]
+let flat1 = nested1.flatten()
+log success f"嵌套数组: {nested1}"
+log success f"展平后: {flat1}"
+
+let nested2 = [[["a", "b"], ["c"]], [["d", "e"]]]
+let flat2 = nested2.flatten(2)
+log success f"深度嵌套: {nested2}"
+log success f"展平(深度2): {flat2}"
+
+# chunk() - 分块
+log info "\n2.2 chunk() - 将数组分块"
+let numbers1 = [1, 2, 3, 4, 5, 6, 7, 8, 9]
+let chunks1 = numbers1.chunk(3)
+log success f"原数组: {numbers1}"
+log success f"分块(3): {chunks1}"
+
+let items = ["A", "B", "C", "D", "E", "F", "G"]
+let pages = items.chunk(2)
+log success f"分页: {pages}"
+
+
+# ============================================================
+# 3. 字典工具方法
+# ============================================================
+
+log info "\n--- 3. 字典工具方法 ---"
+
+# keys() - 获取键列表
+log info "3.1 keys() - 获取键列表"
+let user = {name: "Alice", age: 30, city: "NYC", role: "developer"}
+let userKeys = user.keys()
+log success f"用户对象键: {userKeys}"
+
+# values() - 获取值列表
+log info "\n3.2 values() - 获取值列表"
+let scores = {math: 95, english: 88, science: 92}
+let scoreValues = scores.values()
+log success f"成绩值: {scoreValues}"
+
+# entries() - 获取键值对
+log info "\n3.3 entries() - 获取键值对"
+let appConfig = {host: "localhost", port: 8080, debug: True}
+let configEntries = appConfig.entries()
+log success f"配置项:"
+log success f"  {configEntries}"
+
+
+# ============================================================
+# 4. 实用函数
+# ============================================================
+
+log info "\n--- 4. 实用函数 ---"
+
+# zip() - 合并数组
+log info "4.1 zip() - 合并数组"
+let ids = [1, 2, 3, 4]
+let names = ["Alice", "Bob", "Charlie", "David"]
+let users = zip(ids, names)
+log success f"ID: {ids}"
+log success f"名称: {names}"
+log success f"合并: {users}"
+
+let keys = ["name", "age", "city"]
+let values = ["Alice", 30, "NYC"]
+let pairs = zip(keys, values)
+log success f"键值对: {pairs}"
+
+# sleep() - 延迟执行
+log info "\n4.2 sleep() - 延迟执行"
+log success "开始..."
+sleep(0.5)
+log success "等待 0.5 秒"
+sleep(0.5)
+log success "完成！"
+
+
+# ============================================================
+# 5. 综合应用场景
+# ============================================================
+
+log info "\n--- 5. 综合应用场景 ---"
+
+# 场景 1: 格式化表格数据
+log info "场景 1: 格式化表格数据"
+let headers = ["ID", "Name", "Score"]
+let row1 = ["1".padStart(3), "Alice".padEnd(10), "95".padStart(5)]
+let row2 = ["2".padStart(3), "Bob".padEnd(10), "88".padStart(5)]
+let separator = "-".repeat(25)
+log success separator
+log success f"{row1.join(' | ')}"
+log success f"{row2.join(' | ')}"
+log success separator
+
+# 场景 2: 数据分组
+log info "\n场景 2: 数据分组处理"
+let allData = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+let batches = allData.chunk(4)
+log success f"数据: {allData}"
+log success f"分批(每批4个): {batches}"
+
+# 场景 3: 配置对象处理
+log info "\n场景 3: 配置对象处理"
+let settings = {theme: "dark", lang: "zh", fontSize: 14, autoSave: True}
+let settingKeys = settings.keys()
+let settingValues = settings.values()
+let settingPairs = settings.entries()
+log success f"配置键: {settingKeys}"
+log success f"配置值: {settingValues}"
+log success f"配置项数量: {settingKeys.length()}"
+
+# 场景 4: 数据映射
+log info "\n场景 4: 数据映射与格式化"
+let productIds = [101, 102, 103]
+let productNames = ["Laptop", "Mouse", "Keyboard"]
+let prices = [999, 29, 79]
+let products = zip(productIds, zip(productNames, prices))
+log success "产品列表:"
+log success f"  {products}"
+
+# 场景 5: 进度条
+log info "\n场景 5: 进度条效果"
+let progress = 0
+let total = 5
+log success f"处理中 {'='.repeat(progress)}{'·'.repeat(total - progress)} {progress}/{total}"
+sleep(0.3)
+let progress1 = 1
+log success f"处理中 {'='.repeat(progress1)}{'·'.repeat(total - progress1)} {progress1}/{total}"
+sleep(0.3)
+let progress2 = 3
+log success f"处理中 {'='.repeat(progress2)}{'·'.repeat(total - progress2)} {progress2}/{total}"
+sleep(0.3)
+let progress3 = 5
+log success f"完成！ {'='.repeat(progress3)}{'·'.repeat(total - progress3)} {progress3}/{total}"
+
+
+# ============================================================
+# 6. 链式调用组合
+# ============================================================
+
+log info "\n--- 6. 链式调用组合 ---"
+
+# 字符串 + 数组组合
+let words = ["hello", "flowby", "dsl"]
+let sentence = words.map(w => w.capitalize()).join(" ")
+log success f"标题化: {sentence}"
+
+# 数组操作组合
+let matrix = [[1, 2, 3], [4, 5, 6], [7, 8, 9]]
+let allNumbers = matrix.flatten().filter(n => n % 2 == 0)
+log success f"矩阵: {matrix}"
+log success f"展平并过滤偶数: {allNumbers}"
+
+# 字典 + 数组组合
+let data = {a: 10, b: 20, c: 30, d: 40}
+let sum = data.values().reduce((acc, v) => acc + v, 0)
+log success f"字典: {data}"
+log success f"值总和: {sum}"
+
+
+# ============================================================
+# 7. 边界情况测试
+# ============================================================
+
+log info "\n--- 7. 边界情况 ---"
+
+# 空数组
+let emptyArr = []
+let emptyFlat = emptyArr.flatten()
+let emptyChunk = emptyArr.chunk(2)
+log success f"空数组 flatten: {emptyFlat}"
+log success f"空数组 chunk: {emptyChunk}"
+
+# 空字典
+let emptyDict = {}
+let emptyKeys = emptyDict.keys()
+let emptyValues = emptyDict.values()
+log success f"空字典 keys: {emptyKeys}"
+log success f"空字典 values: {emptyValues}"
+
+# 字符串重复0次
+let zero = "x".repeat(0)
+log success f"repeat(0): '{zero}'"
+
+
+log info "\n=== 示例完成 ==="
+log success "所有实用工具函数都正常工作！"

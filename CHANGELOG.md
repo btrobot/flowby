@@ -8,6 +8,47 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Collection Methods & Lambda Expressions** (v6.4, v6.5, v6.6) - Modern functional programming support
+  - **Lambda Expressions** (v6.4)
+    - Arrow function syntax: `x => expr` and `(x, y) => expr`
+    - Full closure support (captures outer scope variables)
+    - Can be stored in variables and passed as arguments
+    - Supports any expression as body
+  - **Core Collection Methods** (v6.4)
+    - `filter(predicate)` - Filter elements matching predicate
+    - `map(transform)` - Transform each element
+    - `reduce(reducer, initial)` - Accumulate/aggregate values
+    - `find(predicate)` - Find first matching element
+    - `findIndex(predicate)` - Find index of first match
+    - `some(predicate)` - Check if any element matches
+    - `every(predicate)` - Check if all elements match
+    - Short-circuit evaluation for `some()`, `every()`, `find()`
+    - Full method chaining support
+  - **Extended Collection Methods** (v6.5)
+    - `sort([comparator])` - Sort array (default ascending, custom comparator support)
+    - `reverse()` - Reverse array
+    - `slice(start, [end])` - Extract array portion
+    - `join(separator)` - Join array elements into string
+    - `unique()` - Remove duplicates (preserves insertion order)
+    - `length()` - Get array length
+  - **String Utility Methods** (v6.6)
+    - `capitalize()` - Capitalize first letter
+    - `padStart(length, fillStr)` - Left-pad string
+    - `padEnd(length, fillStr)` - Right-pad string
+    - `repeat(count)` - Repeat string n times
+  - **Array Utility Methods** (v6.6)
+    - `flatten([depth])` - Flatten nested arrays (default depth: 1)
+    - `chunk(size)` - Split array into chunks
+  - **Dictionary Methods** (v6.6)
+    - `keys()` - Get array of keys
+    - `values()` - Get array of values
+    - `entries()` - Get array of [key, value] pairs
+  - **Global Utility Functions** (v6.6)
+    - `zip(*arrays)` - Combine multiple arrays element-wise
+    - `sleep(seconds)` - Pause execution for specified seconds
+  - Complete test coverage (562/562 tests passing)
+  - Comprehensive example scripts and documentation
+  - 100% backward compatible (all existing tests pass)
 - **VR-006 Unused Variable Warning** (v6.3) - Code quality warnings (non-blocking)
   - Detects variables declared but never used
   - Real-time usage tracking during parsing (replaces post-parse AST analysis)

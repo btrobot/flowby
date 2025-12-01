@@ -1,0 +1,265 @@
+# ============================================================
+# Flowby v6.5 - 扩展集合方法示例
+# ============================================================
+#
+# 本示例展示 v6.5 新增的扩展集合方法
+#
+# 新增方法：
+# - sort() - 排序
+# - reverse() - 反转
+# - slice() - 切片
+# - join() - 连接
+# - unique() - 去重
+# - length() - 长度
+# ============================================================
+
+log info "=== Flowby v6.5 扩展集合方法示例 ==="
+
+
+# ============================================================
+# 1. sort() - 排序
+# ============================================================
+
+log info "\n--- 1. sort() 排序 ---"
+
+# 默认排序（升序）
+let numbers1 = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]
+let sorted1 = numbers1.sort()
+log success f"默认升序: {sorted1}"
+
+# 字符串排序
+let words = ["banana", "apple", "cherry", "date"]
+let sortedWords = words.sort()
+log success f"字符串排序: {sortedWords}"
+
+# 自定义比较器（降序）
+let numbers2 = [5, 2, 8, 1, 9]
+let descending = numbers2.sort((a, b) => b - a)
+log success f"降序排序: {descending}"
+
+
+# ============================================================
+# 2. reverse() - 反转
+# ============================================================
+
+log info "\n--- 2. reverse() 反转 ---"
+
+let list1 = [1, 2, 3, 4, 5]
+let reversed1 = list1.reverse()
+log success f"反转数字: {reversed1}"
+
+let list2 = ["a", "b", "c", "d"]
+let reversed2 = list2.reverse()
+log success f"反转字符串: {reversed2}"
+
+# 组合：排序后反转
+let list3 = [3, 1, 4, 1, 5]
+let sortedReversed = list3.sort().reverse()
+log success f"排序后反转: {sortedReversed}"
+
+
+# ============================================================
+# 3. slice() - 切片
+# ============================================================
+
+log info "\n--- 3. slice() 切片 ---"
+
+let numbers4 = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+# slice(start, end)
+let slice1 = numbers4.slice(2, 5)
+log success f"slice(2, 5): {slice1}"
+
+# slice(start) - 到末尾
+let slice2 = numbers4.slice(5)
+log success f"slice(5): {slice2}"
+
+# 负索引也支持（Python 风格）
+let slice3 = numbers4.slice(0, 3)
+log success f"前3个元素: {slice3}"
+
+# 组合：排序后取前5
+let numbers5 = [9, 2, 7, 4, 1, 8, 3, 6, 5]
+let top5 = numbers5.sort().slice(0, 5)
+log success f"最小的5个: {top5}"
+
+
+# ============================================================
+# 4. join() - 连接
+# ============================================================
+
+log info "\n--- 4. join() 连接 ---"
+
+# 字符串列表
+let words1 = ["Hello", "Flowby", "DSL"]
+let sentence1 = words1.join(" ")
+log success f"空格连接: {sentence1}"
+
+# 数字列表
+let numbers6 = [1, 2, 3, 4, 5]
+let csv = numbers6.join(", ")
+log success f"CSV 格式: {csv}"
+
+# 路径连接
+let pathParts = ["home", "user", "documents", "file.txt"]
+let path = pathParts.join("/")
+log success f"路径: {path}"
+
+# HTML 标签
+let items = ["Apple", "Banana", "Cherry"]
+let html = items.join("</li><li>")
+let fullHtml = f"<ul><li>{html}</li></ul>"
+log success f"HTML: {fullHtml}"
+
+
+# ============================================================
+# 5. unique() - 去重
+# ============================================================
+
+log info "\n--- 5. unique() 去重 ---"
+
+# 数字去重
+let numbers7 = [1, 2, 2, 3, 3, 3, 4, 5, 5]
+let unique1 = numbers7.unique()
+log success f"数字去重: {unique1}"
+
+# 字符串去重
+let words2 = ["apple", "banana", "apple", "cherry", "banana"]
+let unique2 = words2.unique()
+log success f"字符串去重: {unique2}"
+
+# 保持原始顺序
+let mixed = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3]
+let uniqueMixed = mixed.unique()
+log success f"保持顺序: {uniqueMixed}"
+
+
+# ============================================================
+# 6. length() - 长度
+# ============================================================
+
+log info "\n--- 6. length() 长度 ---"
+
+let list4 = [1, 2, 3, 4, 5]
+let len1 = list4.length()
+log success f"列表长度: {len1}"
+
+let emptyList = []
+let len2 = emptyList.length()
+log success f"空列表长度: {len2}"
+
+# 在过滤后获取长度
+let numbers8 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+let evenCount = numbers8.filter(x => x % 2 == 0).length()
+log success f"偶数数量: {evenCount}"
+
+
+# ============================================================
+# 7. 综合示例：链式调用
+# ============================================================
+
+log info "\n--- 7. 综合示例 ---"
+
+# 示例 1：数据清洗和处理
+log info "示例 1: 数据清洗"
+let rawData = [5, 2, 8, 2, 1, 9, 3, 7, 4, 6, 5, 8]
+let processed = rawData.unique().sort().slice(2, 8)
+log success f"原始数据: [5, 2, 8, 2, 1, 9, 3, 7, 4, 6, 5, 8]"
+log success f"去重排序切片: {processed}"
+
+# 示例 2：统计分析
+log info "\n示例 2: 统计分析"
+let scores = [85, 92, 78, 95, 88, 73, 90, 82, 95, 88]
+let uniqueScores = scores.unique()
+let sortedScores = uniqueScores.sort()
+let top3 = sortedScores.reverse().slice(0, 3)
+let summary = top3.join(", ")
+log success f"成绩统计:"
+log success f"  原始: {scores}"
+log success f"  去重: {uniqueScores}"
+log success f"  前3名: {top3}"
+log success f"  摘要: {summary}"
+
+# 示例 3：文本处理
+log info "\n示例 3: 文本处理"
+let words3 = ["hello", "world", "hello", "flowby", "world", "dsl"]
+let uniqueWords = words3.unique()
+let sortedWords2 = uniqueWords.sort()
+let text = sortedWords2.join(" | ")
+log success f"单词: {words3}"
+log success f"去重排序: {sortedWords2}"
+log success f"格式化: {text}"
+
+# 示例 4：数组操作组合
+log info "\n示例 4: 复杂操作"
+let data = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7]
+# 去重 -> 过滤 -> 排序 -> 切片 -> 翻倍 -> 反转
+let result = data.unique().filter(x => x > 3).sort().slice(1, 5).map(x => x * 2).reverse()
+
+log success f"原始: [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5, 8, 9, 7]"
+log success f"结果: {result}"
+
+
+# ============================================================
+# 8. 实际应用场景
+# ============================================================
+
+log info "\n--- 8. 实际应用场景 ---"
+
+# 场景 1：排行榜
+log info "场景 1: 排行榜系统"
+let playerScores = [850, 920, 780, 950, 880, 920, 850, 900]
+let leaderboard = playerScores.unique().sort((a, b) => b - a).slice(0, 5)
+log success f"排行榜前5: {leaderboard}"
+
+# 场景 2：数据去重统计
+log info "\n场景 2: 访客统计"
+let visitorIds = [101, 102, 103, 101, 104, 102, 105, 103, 101]
+let uniqueVisitors = visitorIds.unique()
+let totalUnique = uniqueVisitors.length()
+log success f"总访客: {visitorIds.length()}"
+log success f"独立访客: {totalUnique}"
+
+# 场景 3：标签云
+log info "\n场景 3: 标签云"
+let tags = ["python", "dsl", "flowby", "python", "automation", "dsl"]
+let tagCloud = tags.unique().sort().join(" | ")
+log success f"标签云: {tagCloud}"
+
+# 场景 4：分页数据
+log info "\n场景 4: 分页显示"
+let allItems = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+let pageSize = 5
+let page2 = allItems.slice(5, 10)  # 第2页
+log success f"第2页 (5-10): {page2}"
+
+
+# ============================================================
+# 9. 性能和边界情况
+# ============================================================
+
+log info "\n--- 9. 边界情况 ---"
+
+# 空数组
+let empty = []
+let emptySort = empty.sort()
+let emptyReverse = empty.reverse()
+let emptyUnique = empty.unique()
+let emptyLength = empty.length()
+let emptyJoin = empty.join(", ")
+log success f"空数组 sort: {emptySort}"
+log success f"空数组 reverse: {emptyReverse}"
+log success f"空数组 unique: {emptyUnique}"
+log success f"空数组 length: {emptyLength}"
+log success f"空数组 join: '{emptyJoin}'"
+
+# 单元素
+let single = [42]
+let singleSort = single.sort()
+let singleReverse = single.reverse()
+log success f"单元素 sort: {singleSort}"
+log success f"单元素 reverse: {singleReverse}"
+
+
+log info "\n=== 示例完成 ==="
+log success "所有扩展集合方法都正常工作！"

@@ -1,6 +1,6 @@
 # DSL Syntax Cheatsheet
 
-> **Version**: 5.1 | **Generated**: 2025-11-30
+> **Version**: 6.6 | **Generated**: 2025-12-01
 
 快速查找 DSL 语法的参考表。
 
@@ -22,6 +22,9 @@
 - [系统变量](#系统变量)
 - [内置函数](#内置函数)
 - [用户自定义函数](#用户自定义函数)
+- [Lambda 表达式](#lambda-表达式) ⭐ v6.4
+- [集合方法](#集合方法) ⭐ v6.4/v6.5
+- [实用工具函数](#实用工具函数) ⭐ v6.6
 
 ---
 
@@ -772,6 +775,144 @@ let retries = input("Retries: ", default="3", type=integer)
 - `password`: 无回显输入，返回字符串
 - `integer`: 转换为整数，无效输入抛出 ValueError
 - `float`: 转换为浮点数，无效输入抛出 ValueError
+
+---
+
+## Lambda 表达式
+
+**v6.4 新增**：匿名函数（闭包）支持
+
+### 基本语法
+
+| 语法 | 说明 | 示例 |
+|------|------|------|
+| `x => expr` | 单参数 Lambda | `let double = x => x * 2` |
+| `(x, y) => expr` | 多参数 Lambda | `let add = (x, y) => x + y` |
+| `() => expr` | 无参数 Lambda | `let getAnswer = () => 42` |
+
+### 使用场景
+
+```flow
+# 作为变量存储
+let is_positive = x => x > 0
+log is_positive(5)  # True
+
+# 作为参数传递（与集合方法配合）
+let numbers = [1, 2, 3, 4, 5]
+let evens = numbers.filter(x => x % 2 == 0)       # [2, 4]
+let doubled = numbers.map(x => x * 2)             # [2, 4, 6, 8, 10]
+let sum = numbers.reduce((acc, x) => acc + x, 0)  # 15
+
+# 闭包：捕获外层变量
+let multiplier = 3
+let multiply = x => x * multiplier
+log multiply(5)  # 15
+```
+
+---
+
+## 集合方法
+
+**v6.4/v6.5 新增**：现代函数式编程支持
+
+### 核心集合方法 (v6.4)
+
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `filter(predicate)` | 过滤元素 | `[1,2,3,4].filter(x => x > 2)` → `[3,4]` |
+| `map(transform)` | 转换元素 | `[1,2,3].map(x => x * 2)` → `[2,4,6]` |
+| `reduce(fn, init)` | 累积/归约 | `[1,2,3].reduce((a,x) => a+x, 0)` → `6` |
+| `find(predicate)` | 查找元素 | `[1,2,3].find(x => x > 2)` → `3` |
+| `findIndex(predicate)` | 查找索引 | `[1,2,3].findIndex(x => x > 2)` → `2` |
+| `some(predicate)` | 任意匹配 | `[1,2,3].some(x => x > 2)` → `True` |
+| `every(predicate)` | 全部匹配 | `[1,2,3].every(x => x > 0)` → `True` |
+
+### 扩展集合方法 (v6.5)
+
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `sort([comparator])` | 排序（可自定义） | `[3,1,2].sort()` → `[1,2,3]` |
+| `reverse()` | 反转 | `[1,2,3].reverse()` → `[3,2,1]` |
+| `slice(start[, end])` | 切片 | `[1,2,3,4,5].slice(1,3)` → `[2,3]` |
+| `join(separator)` | 连接为字符串 | `["a","b"].join(",")` → `"a,b"` |
+| `unique()` | 去重 | `[1,2,2,3].unique()` → `[1,2,3]` |
+| `length()` | 获取长度 | `[1,2,3].length()` → `3` |
+
+### 链式调用
+
+```flow
+# 复杂数据处理管道
+let result = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    .filter(x => x > 5)           # [6, 7, 8, 9, 10]
+    .map(x => x * 2)              # [12, 14, 16, 18, 20]
+    .reduce((acc, x) => acc + x, 0)  # 80
+
+# 数据统计
+let stats = [85, 92, 78, 95, 88, 91]
+    .filter(x => x >= 80)         # [85, 92, 95, 88, 91]
+    .sort()                       # [85, 88, 91, 92, 95]
+    .slice(0, 3)                  # [85, 88, 91]
+```
+
+---
+
+## 实用工具函数
+
+**v6.6 新增**：字符串、数组、字典工具方法
+
+### 字符串方法
+
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `capitalize()` | 首字母大写 | `"hello".capitalize()` → `"Hello"` |
+| `padStart(len, fill)` | 左填充 | `"5".padStart(3, "0")` → `"005"` |
+| `padEnd(len, fill)` | 右填充 | `"A".padEnd(4, "0")` → `"A000"` |
+| `repeat(count)` | 重复字符串 | `"ha".repeat(3)` → `"hahaha"` |
+
+### 数组工具方法
+
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `flatten([depth])` | 展平嵌套数组 | `[[1,2],[3,4]].flatten()` → `[1,2,3,4]` |
+| `chunk(size)` | 分块 | `[1,2,3,4,5].chunk(2)` → `[[1,2],[3,4],[5]]` |
+
+### 字典方法
+
+| 方法 | 说明 | 示例 |
+|------|------|------|
+| `keys()` | 获取键列表 | `{a:1, b:2}.keys()` → `["a","b"]` |
+| `values()` | 获取值列表 | `{a:1, b:2}.values()` → `[1,2]` |
+| `entries()` | 获取键值对 | `{a:1}.entries()` → `[["a",1]]` |
+
+### 全局工具函数
+
+| 函数 | 说明 | 示例 |
+|------|------|------|
+| `zip(*arrays)` | 合并数组 | `zip([1,2], ["a","b"])` → `[[1,"a"],[2,"b"]]` |
+| `sleep(seconds)` | 暂停执行 | `sleep(2)` # 暂停 2 秒 |
+
+### 实战示例
+
+```flow
+# 数据转换管道
+let users = [{name: "alice", age: 25, active: True}, {name: "bob", age: 30, active: False}]
+let activeNames = users.filter(u => u.active).map(u => u.name.capitalize()).join(", ")
+# 结果: "Alice"
+
+# 格式化表格
+let id = "5"
+let name = "Alice"
+let score = "95"
+log "{id.padStart(3, '0')} | {name.padEnd(10, ' ')} | {score.padStart(3, ' ')}"
+# 输出: "005 | Alice      |  95"
+
+# 批量处理
+let items = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+for batch in items.chunk(3):
+    log "Processing: {batch}"
+    sleep(0.5)
+end for
+```
 
 ---
 
