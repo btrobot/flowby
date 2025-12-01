@@ -1542,6 +1542,15 @@ class Parser:
             path_token = self._consume(TokenType.STRING, "期望模块路径字符串")
             module_path = path_token.value
 
+            # v6.3: Register module alias in symbol table
+            from .symbol_table import SymbolType
+            self.symbol_table_stack.define(
+                name=module_alias,
+                value=None,  # Module object created at runtime
+                symbol_type=SymbolType.MODULE,
+                line_number=line
+            )
+
             return ImportStatement(
                 module_path=module_path,
                 module_alias=module_alias,
@@ -1602,6 +1611,16 @@ class Parser:
                         "期望成员名称（标识符或关键字）",
                         "IDENTIFIER | VALUE | TEXT | TYPE | URL"
                     )
+
+            # v6.3: Register imported members in symbol table
+            from .symbol_table import SymbolType
+            for member_name in members:
+                self.symbol_table_stack.define(
+                    name=member_name,
+                    value=None,  # Imported value bound at runtime
+                    symbol_type=SymbolType.IMPORTED,
+                    line_number=line
+                )
 
             return ImportStatement(
                 module_path=module_path,
