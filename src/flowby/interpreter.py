@@ -225,13 +225,12 @@ class WhileLoopGuard:
 class Interpreter:
     """DSL 解释器"""
 
-    def __init__(self, context: 'ExecutionContext', introspection_callback: Optional[Dict[str, Any]] = None):
+    def __init__(self, context: 'ExecutionContext'):
         """
         初始化解释器
 
         Args:
             context: 执行上下文（包含变量、page、日志等）
-            introspection_callback: 自省回调字典，用于记录运行时信息
         """
         self.context = context
         self._stopped = False
@@ -253,10 +252,6 @@ class Interpreter:
         # v4.3: 设置延迟绑定,让 evaluator 可以调用函数
         self.expression_evaluator.interpreter = self
 
-        # v2.0 新增：自省回调（用于测试框架）
-        self._introspection_callback = introspection_callback or {}
-        self._scope_history = self._introspection_callback.get('scope_history', [])
-        self._assertions = self._introspection_callback.get('assertions', [])
         self._current_line = 0
 
         # v4.3 新增：函数调用栈和 return 控制
@@ -269,116 +264,6 @@ class Interpreter:
         self.is_library_file = False  # 是否是库文件
         self.library_exports = {}  # 库的导出成员（如果是库文件）
         self.library_name = None  # 库名称（如果是库文件）
-
-    def _record_scope_change(self, action: str, scope_type: str, scope_name: str, line: int):
-        """
-        记录作用域变化（用于自省）
-
-        Args:
-            action: 'enter' 或 'exit'
-            scope_type: 作用域类型（'step', 'if', 'elif', 'else', 'each', 'block'）
-            scope_name: 作用域名称
-            line: 行号
-        """
-        import time
-
-        record = {
-            'timestamp': time.time(),
-            'action': action,
-            'scope_type': scope_type,
-            'scope_name': scope_name,
-            'line': line,
-            'current_depth': self.symbol_table.scope_depth()
-        }
-
-        self._scope_history.append(record)
-
-        # 如果配置了回调，也存储到回调字典中
-        if 'scope_history' in self._introspection_callback:
-            self._introspection_callback['scope_history'].append(record)
-
-    def _record_assertion(self, condition: str, passed: bool, line: int, message: Optional[str] = None):
-        """
-        记录断言信息（用于自省）
-
-        Args:
-            condition: 条件表达式字符串
-            passed: 是否通过
-            line: 行号
-            message: 断言消息（可选）
-        """
-        import time
-
-        record = {
-            'timestamp': time.time(),
-            'line': line,
-            'condition': condition,
-            'passed': passed,
-            'message': message,
-            'scope_depth': self.symbol_table.scope_depth(),
-            'current_scope': self.symbol_table.current_scope().scope_name if self.symbol_table.current_scope() else 'global'
-        }
-
-        self._assertions.append(record)
-
-        # 如果配置了回调，也存储到回调字典中
-        if 'assertions' in self._introspection_callback:
-            self._introspection_callback['assertions'].append(record)
-
-    def _record_scope_change(self, action: str, scope_type: str, scope_name: str, line: int):
-        """
-        记录作用域变化（用于自省）
-
-        Args:
-            action: 'enter' 或 'exit'
-            scope_type: 作用域类型（'step', 'if', 'elif', 'else', 'each', 'block'）
-            scope_name: 作用域名称
-            line: 行号
-        """
-        import time
-
-        record = {
-            'timestamp': time.time(),
-            'action': action,
-            'scope_type': scope_type,
-            'scope_name': scope_name,
-            'line': line,
-            'current_depth': self.symbol_table.scope_depth()
-        }
-
-        self._scope_history.append(record)
-
-        # 如果配置了回调，也存储到回调字典中
-        if 'scope_history' in self._introspection_callback:
-            self._introspection_callback['scope_history'].append(record)
-
-    def _record_assertion(self, condition: str, passed: bool, line: int, message: Optional[str] = None):
-        """
-        记录断言信息（用于自省）
-
-        Args:
-            condition: 条件表达式字符串
-            passed: 是否通过
-            line: 行号
-            message: 断言消息（可选）
-        """
-        import time
-
-        record = {
-            'timestamp': time.time(),
-            'line': line,
-            'condition': condition,
-            'passed': passed,
-            'message': message,
-            'scope_depth': self.symbol_table.scope_depth(),
-            'current_scope': self.symbol_table.current_scope().scope_name if self.symbol_table.current_scope() else 'global'
-        }
-
-        self._assertions.append(record)
-
-        # 如果配置了回调，也存储到回调字典中
-        if 'assertions' in self._introspection_callback:
-            self._introspection_callback['assertions'].append(record)
 
     def execute(self, program: Program) -> None:
         """
@@ -885,15 +770,6 @@ class Interpreter:
                 msg_value = self.expression_evaluator.evaluate(statement.message)
                 error_message_str = str(msg_value) if msg_value is not None else ""
 
-        # v2.0: 记录断言信息（用于自省）
-        condition_str = str(statement.condition) if hasattr(statement.condition, '__str__') else "unknown"
-        self._record_assertion(
-            condition=condition_str,
-            passed=passed,
-            line=statement.line,
-            message=error_message_str
-        )
-
         # 如果断言失败，抛出错误
         if not passed:
             # 构建错误消息
@@ -954,9 +830,6 @@ class Interpreter:
         # v2.0: 进入步骤作用域
         self.symbol_table.enter_scope(f"step_{step_name}")
 
-        # 记录作用域进入
-        self._record_scope_change('enter', 'step', f"step_{step_name}", statement.line)
-
         # 记录步骤开始
         start_time = time.time()
         self.context.add_execution_record(
@@ -995,9 +868,6 @@ class Interpreter:
 
             # v2.0: 退出步骤作用域
             self.symbol_table.exit_scope()
-
-            # 记录作用域退出
-            self._record_scope_change('exit', 'step', f"step_{step_name}", statement.line)
 
     def _execute_if(self, statement: IfBlock) -> None:
         """
@@ -1707,11 +1577,9 @@ class Interpreter:
                     f"function:{func_name}",
                     parent=func_symbol.closure_scope
                 )
-                self._record_scope_change('enter', 'function', func_name, line)
             else:
                 # 后向兼容：没有闭包的函数使用当前作用域作为父
                 self.symbol_table.enter_scope(f"function:{func_name}")
-                self._record_scope_change('enter', 'function', func_name, line)
 
             try:
                 # 6. 绑定参数到局部作用域
@@ -1764,7 +1632,6 @@ class Interpreter:
             finally:
                 # 9. 清理作用域
                 self.symbol_table.exit_scope()
-                self._record_scope_change('exit', 'function', func_name, line)
 
                 # 重置 return 标志
                 self._return_flag = False

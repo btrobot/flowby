@@ -39,18 +39,13 @@ class Parser:
     语法分析器
 
     将 Token 流转换为 AST
-
-    自省接口:
-        - symbol_table_stack: 符号表栈（用于测试框架自省）
-        - get_symbol_table(): 获取符号表
-        - get_symbol_table_dict(): 获取序列化符号表
     """
 
     def __init__(self):
         """初始化解析器"""
         self.tokens: List[Token] = []
         self.current = 0
-        self.symbol_table_stack = SymbolTableStack()  # 添加符号表栈用于语义分析和自省
+        self.symbol_table_stack = SymbolTableStack()  # 符号表栈用于语义分析
         self._loop_depth = 0  # v3.0: 跟踪循环嵌套深度 (用于 break/continue 验证)
 
     def parse(self, tokens: List[Token]) -> Program:
@@ -3187,23 +3182,3 @@ class Parser:
                 message,
                 "IDENTIFIER"
             )
-
-    # ==================== 自省接口（用于测试框架） ====================
-
-    def get_symbol_table(self):
-        """
-        获取符号表栈（用于测试框架自省）
-
-        Returns:
-            SymbolTableStack 对象，包含所有作用域的符号信息
-        """
-        return self.symbol_table_stack
-
-    def get_symbol_table_dict(self):
-        """
-        获取符号表的序列化表示（用于测试断言）
-
-        Returns:
-            dict: 符号表栈的字典格式
-        """
-        return self.symbol_table_stack.to_dict()

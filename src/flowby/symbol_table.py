@@ -83,21 +83,6 @@ class Symbol:
             SymbolType.PARAMETER       # v6.3: 函数参数可修改
         )
 
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        将符号序列化为字典格式（用于测试框架自省）
-
-        Returns:
-            符号的字典表示
-        """
-        return {
-            "name": self.name,
-            "type": self.symbol_type.value,  # 使用字符串值（variable/constant/system）
-            "line_number": self.line_number,
-            "value": self.value,
-            "is_mutable": self.is_mutable()
-        }
-
     def __repr__(self) -> str:
         return (
             f"Symbol(name={self.name!r}, "
@@ -139,18 +124,6 @@ class FunctionSymbol(Symbol):
     def is_mutable(self) -> bool:
         """函数符号不可修改"""
         return False
-
-    def to_dict(self) -> Dict[str, Any]:
-        """将函数符号序列化为字典格式"""
-        return {
-            "name": self.name,
-            "type": self.symbol_type.value,
-            "line_number": self.line_number,
-            "params": self.params,
-            "body_length": len(self.body),
-            "has_closure": self.closure_scope is not None,  # v5.1: 是否有闭包
-            "is_mutable": False
-        }
 
     def __repr__(self) -> str:
         closure_info = f", closure={self.closure_scope.scope_name}" if self.closure_scope else ""
@@ -404,19 +377,6 @@ class SymbolTable:
         """
         return self.symbols.copy()
 
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        将符号表率化为字典格式（用于测试框架自省）
-
-        Returns:
-            符号表的字典表示，包含作用域信息和所有符号
-        """
-        return {
-            "scope_name": self.scope_name,
-            "parent": self.parent.scope_name if self.parent else None,
-            "symbols": {name: symbol.to_dict() for name, symbol in self.symbols.items()}
-        }
-
     def __repr__(self) -> str:
         parent_name = self.parent.scope_name if self.parent else None
         return (
@@ -578,28 +538,6 @@ class SymbolTableStack:
             作用域深度（全局作用域为 0）
         """
         return len(self.stack) - 1
-
-    def to_dict(self) -> Dict[str, Any]:
-        """
-        将符号表栈序列化为字典格式（用于测试框架自省）
-
-        Returns:
-            符号表栈的字典表示，包含所有作用域的详细信息
-        """
-        return {
-            "current_depth": self.scope_depth(),
-            "scopes": [
-                {
-                    "scope_name": table.scope_name,
-                    "scope_level": i,  # 0=global, 1=step, 2=block, etc.
-                    "symbols": {
-                        name: {**symbol.to_dict(), "scope_level": i}
-                        for name, symbol in table.symbols.items()
-                    }
-                }
-                for i, table in enumerate(self.stack)
-            ]
-        }
 
     def __repr__(self) -> str:
         scope_names = [table.scope_name for table in self.stack]

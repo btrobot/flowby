@@ -74,6 +74,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Removed `_print_dry_run_summary()` and related methods
   - Deleted `DRY_RUN_FEATURE.md` documentation
   - Rationale: Feature was incomplete and incompatible with ParserError mode
+- **Introspection System** (v6.3) - Removed unused dead code
+  - Removed `to_dict()` methods from ASTNode, Symbol, FunctionSymbol, SymbolTable, SymbolTableStack
+  - Removed `_record_scope_change()` and `_record_assertion()` from Interpreter
+  - Removed `get_ast()`, `get_ast_dict()`, `get_introspection_data()`, `get_symbol_table()`, `get_execution_history()` from DSLRunner
+  - Removed `get_symbol_table()`, `get_symbol_table_dict()` from Parser
+  - Removed introspection_callback parameter and related infrastructure
+  - Total reduction: 354 lines of dead code (0% usage in 1171 tests)
+  - Rationale: YAGNI principle - implemented but never used, simplified codebase
 - **BREAKING**: `resource` statement syntax (v6.0) - Use `Resource()` function instead
   - Removed `resource <name> from <file>` syntax
   - Removed `resource <name>:` block syntax

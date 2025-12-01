@@ -57,14 +57,7 @@ class DSLRunner:
         self.parser = Parser()
         self.interpreter = None
         self.context = None  # Will be initialized when running
-        self.program = None  # AST 根节点（用于自省测试）
 
-        # 自省数据（用于测试框架）
-        self._introspection_data = {
-            'symbol_table': None,
-            'scope_history': [],
-            'assertions': []
-        }
 
     def run_file(self, file_path: str) -> bool:
         """
@@ -143,11 +136,7 @@ class DSLRunner:
             # 语法分析
             print(f"[{self.task_id}] 语法分析中...")
             program = self.parser.parse(tokens)
-            self.program = program  # 保存 AST 根节点，用于自省测试
             print(f"[{self.task_id}] 解析完成: {len(program.statements)} 条语句")
-
-            # 保存自省数据
-            self._introspection_data['symbol_table'] = self.parser.get_symbol_table_dict()
 
             # 初始化浏览器
             if self.browser_type in ("playwright", "chromium", "firefox", "webkit"):
@@ -160,13 +149,7 @@ class DSLRunner:
             # 执行
             print(f"[{self.task_id}] 开始执行...")
 
-            # 创建自省回调字典，传递给解释器
-            introspection_callback = {
-                'scope_history': self._introspection_data['scope_history'],
-                'assertions': self._introspection_data['assertions']
-            }
-
-            self.interpreter = Interpreter(self.context, introspection_callback)
+            self.interpreter = Interpreter(self.context)
             self.interpreter.execute(program)
 
             # 成功
@@ -314,71 +297,6 @@ class DSLRunner:
             print("操作统计:")
             for t, count in sorted(type_counts.items()):
                 print(f"  - {t}: {count}")
-
-    # ============================================================
-    # 自省接口（用于测试框架）
-    # ============================================================
-
-    def get_ast(self) -> Optional[Any]:
-        """
-        获取 AST 根节点
-
-        返回:
-            Program 根节点，如果尚未解析返回 None
-        """
-        return getattr(self, 'program', None)
-
-    def get_ast_dict(self) -> Optional[Dict[str, Any]]:
-        """
-        获取序列化的 AST
-
-        返回:
-            字典格式的 AST，如果尚未解析返回 None
-        """
-        program = self.get_ast()
-        if not program:
-            return None
-        # 检查 to_dict 方法是否存在（defensive coding）
-        if not hasattr(program, 'to_dict'):
-            print(f"Warning: Program object {type(program)} has no to_dict method")
-            return None
-        return program.to_dict()
-
-    def get_introspection_data(self) -> Dict[str, Any]:
-        """
-        获取完整的自省数据
-
-        返回:
-            包含符号表、运行时数据等的字典
-        """
-        # 合并所有自省数据
-        data = {
-            'symbol_table': self._introspection_data['symbol_table'],
-            'scope_history': self._introspection_data['scope_history'],
-            'assertions': self._introspection_data['assertions'],
-            'execution_summary': self.context.get_summary() if self.context else None,
-            'ast': self.get_ast_dict()  # 添加 AST 数据
-        }
-
-        return data
-
-    def get_symbol_table(self) -> Optional[Dict[str, Any]]:
-        """
-        获取编译时的符号表
-
-        返回:
-            编译阶段构建的符号表字典，或None
-        """
-        return self._introspection_data['symbol_table']
-
-    def get_execution_history(self) -> List[Any]:
-        """
-        获取执行历史
-
-        返回:
-            执行历史记录列表
-        """
-        return self.context.execution_history if self.context else []
 
 
 def main():

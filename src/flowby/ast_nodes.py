@@ -59,55 +59,6 @@ class ASTNode:
     """
     line: int
 
-    def to_dict(self) -> dict:
-        """
-        序列化为字典格式，用于自省测试
-
-        递归处理所有字段，将 AST 节点转换为嵌套字典结构
-
-        Returns:
-            字典格式的节点表示
-        """
-        from dataclasses import fields
-        from typing import List
-
-        result = {'type': self.__class__.__name__, 'line': self.line}
-
-        for field in fields(self):
-            value = getattr(self, field.name)
-
-            # 跳过 None 值，使输出更简洁
-            if value is None:
-                continue
-
-            # 如果是 AST 节点，递归序列化
-            if isinstance(value, ASTNode):
-                result[field.name] = value.to_dict()
-            # 如果是 AST 节点列表，递归序列化每个元素
-            elif isinstance(value, list):
-                result[field.name] = [
-                    item.to_dict() if isinstance(item, ASTNode) else item
-                    for item in value
-                ]
-            # 如果是元组列表（如 elif_clauses），特殊处理
-            elif isinstance(value, tuple):
-                # 用于 elif_clauses: (condition, statements)
-                serialized = []
-                for item in value:
-                    if isinstance(item, list):
-                        # statements list
-                        serialized.append([i.to_dict() if isinstance(i, ASTNode) else i for i in item])
-                    elif isinstance(item, ASTNode):
-                        serialized.append(item.to_dict())
-                    else:
-                        serialized.append(item)
-                result[field.name] = serialized
-            else:
-                # 普通值直接添加
-                result[field.name] = value
-
-        return result
-
 
 # ============================================================
 # 程序根节点
