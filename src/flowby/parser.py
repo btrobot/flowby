@@ -87,9 +87,6 @@ class Parser:
         # 创建 AST
         program = Program(statements=statements, line=1)
 
-        # v6.3: VR-006 - AST 静态分析：标记使用的变量
-        self._mark_used_in_ast(program)
-
         # v6.3: VR-006 - 检查未使用变量
         self._check_unused_variables()
 
@@ -2556,6 +2553,14 @@ class Parser:
                         f"未定义的变量 '{var_name}'（VR-001 违规）",
                         f"在使用前先用 'let' 或 'const' 声明变量"
                     )
+                else:
+                    # v6.3: VR-006 - 标记符号为已使用
+                    try:
+                        symbol = self.symbol_table_stack.current_scope()._lookup(var_name)
+                        if symbol:
+                            symbol.mark_used()
+                    except:
+                        pass
 
         return expr
 
@@ -3254,148 +3259,3 @@ class Parser:
         """
         return self.warnings
 
-    def _mark_used_in_ast(self, node):
-        """
-        递归遍历 AST 并标记使用的变量（v6.3 - VR-006）
-        
-        在 Parser 阶段对 AST 进行静态分析，标记所有被引用的变量。
-        这样在后续检查未使用变量时，可以准确识别哪些变量真正未被使用。
-        
-        Args:
-            node: AST 节点
-        """
-        if node is None:
-            return
-        
-        # 处理 Identifier 节点（变量引用）
-        if isinstance(node, Identifier):
-            # 尝试查找符号并标记为已使用
-            try:
-                symbol = self.symbol_table_stack.current_scope()._lookup(node.name)
-                if symbol:
-                    symbol.mark_used()
-            except:
-                pass  # 忽略未定义的变量（VR-001 会处理）
-        
-        # 处理 Program
-        elif isinstance(node, Program):
-            for stmt in node.statements:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理赋值语句（标记右侧表达式中的变量）
-        elif isinstance(node, Assignment):
-            self._mark_used_in_ast(node.value)
-        
-        # 处理 let/const 声明（标记初始化表达式中的变量）
-        elif isinstance(node, (LetStatement, ConstStatement)):
-            if node.value:
-                self._mark_used_in_ast(node.value)
-        
-        # 处理 if 语句
-        elif isinstance(node, IfBlock):
-            self._mark_used_in_ast(node.condition)
-            for stmt in node.then_block:
-                self._mark_used_in_ast(stmt)
-            for stmt in node.else_block:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理 when 语句
-        elif isinstance(node, WhenBlock):
-            for case in node.cases:
-                self._mark_used_in_ast(case.condition)
-                for stmt in case.block:
-                    self._mark_used_in_ast(stmt)
-            for stmt in node.otherwise_block:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理 for 循环
-        elif isinstance(node, EachLoop):
-            self._mark_used_in_ast(node.iterable)
-            for stmt in node.statements:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理 while 循环
-        elif isinstance(node, WhileLoop):
-            self._mark_used_in_ast(node.condition)
-            for stmt in node.statements:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理函数定义（标记函数体中的变量）
-        elif isinstance(node, FunctionDefNode):
-            for stmt in node.statements:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理 return 语句
-        elif isinstance(node, ReturnNode):
-            if node.value:
-                self._mark_used_in_ast(node.value)
-        
-        # 处理 log 语句
-        elif isinstance(node, LogStatement):
-            if node.message:
-                self._mark_used_in_ast(node.message)
-
-        # 处理 step 块
-        elif isinstance(node, StepBlock):
-            for stmt in node.statements:
-                self._mark_used_in_ast(stmt)
-        
-        # 处理断言
-        elif isinstance(node, AssertStatement):
-            if hasattr(node, 'condition') and node.condition:
-                self._mark_used_in_ast(node.condition)
-        
-        # 处理二元操作
-        elif isinstance(node, BinaryOp):
-            self._mark_used_in_ast(node.left)
-            self._mark_used_in_ast(node.right)
-        
-        # 处理一元操作
-        elif isinstance(node, UnaryOp):
-            self._mark_used_in_ast(node.operand)
-        
-        # 处理函数调用
-        elif isinstance(node, FunctionCall):
-            # FunctionCall 的 function_name 是字符串，不是表达式，无需遍历
-            # self._mark_used_in_ast(node.function_name)  # 字符串不需要遍历
-            for arg in node.arguments:
-                self._mark_used_in_ast(arg)
-        
-        # 处理成员访问
-        elif isinstance(node, MemberAccess):
-            self._mark_used_in_ast(node.object)
-        
-        # 处理索引访问
-        elif isinstance(node, ArrayAccess):
-            self._mark_used_in_ast(node.object)
-            self._mark_used_in_ast(node.index)
-        
-        # 处理数组字面量
-        elif isinstance(node, ArrayLiteral):
-            for element in node.elements:
-                self._mark_used_in_ast(element)
-        
-        # 处理对象字面量
-        elif isinstance(node, ObjectLiteral):
-            for value in node.properties.values():
-                self._mark_used_in_ast(value)
-        
-        # 处理字符串插值
-        elif isinstance(node, StringInterpolation):
-            for part in node.parts:
-                if isinstance(part, dict) and 'expr' in part:
-                    self._mark_used_in_ast(part['expr'])
-        
-        # 处理浏览器操作语句（可能包含表达式）
-        elif isinstance(node, (NavigateToStatement, TypeAction, ClickAction, 
-                               HoverAction, ScrollAction, SelectOptionAction,
-                               CheckAction, UploadAction)):
-            # 遍历节点的所有属性，查找表达式
-            for attr_name in dir(node):
-                if not attr_name.startswith('_'):
-                    attr_value = getattr(node, attr_name, None)
-                    if isinstance(attr_value, (Identifier, BinaryOp, FunctionCall, 
-                                               MemberAccess, ArrayAccess)):
-                        self._mark_used_in_ast(attr_value)
-        
-        # 其他节点类型可以按需添加

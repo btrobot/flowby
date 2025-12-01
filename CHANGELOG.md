@@ -10,13 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **VR-006 Unused Variable Warning** (v6.3) - Code quality warnings (non-blocking)
   - Detects variables declared but never used
-  - Parser-stage AST static analysis for accurate tracking
+  - Real-time usage tracking during parsing (replaces post-parse AST analysis)
   - Warning system with color-coded output
   - Intelligent filtering: skips system variables, functions, underscore-prefixed variables
   - Symbol usage tracking with `is_used` flag
   - Context-aware suggestions (parameters, imports, regular variables)
   - Non-blocking warnings (script execution continues)
-  - Status: Core functionality complete, 1157/1171 tests passing (14 edge cases pending)
+  - Status: All tests passing (1171/1171), function scope handling fixed
 - **VR-003 Duplicate Declaration Prevention** (v6.3) - Same-scope duplication check
   - Prevents redeclaration of variables/constants in same scope
   - Allows variable shadowing in nested scopes (functions, loops)
@@ -108,6 +108,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Migration: `resource api from "spec.yml"` → `let api = Resource("spec.yml")`
 
 ### Fixed
+- **VR-006 Function Scope Handling** - Fixed variable usage tracking in function scopes
+  - Switched from post-parse AST analysis to real-time tracking during parsing
+  - Correctly handles function parameters and local variables
+  - Fixed 14 test failures related to function scope variable usage
 - Module import errors in CLI
 - Indentation validation (4-space multiples)
 - Pytest marker warnings (361 → 0)
