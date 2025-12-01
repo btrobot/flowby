@@ -212,6 +212,7 @@ class TestV3_Builtin_Integration:
     def test_functions_in_workflow(self, parse_v3):
         """✅ 正确：工作流中使用内置函数（v3.0 Python 风格）"""
         source = """
+let score_string = "95.5"
 step "数据处理":
     let score = Number(score_string)
     let rounded = Math.round(score)
@@ -227,10 +228,12 @@ step "数据处理":
     def test_functions_in_conditionals(self, parse_v3):
         """✅ 正确：条件中使用函数（True/False Python 风格）"""
         source = """
+let user_input = "42"
+let num = 0
 if isNaN(user_input):
     log "输入不是数字"
 else if isFinite(Number(user_input)):
-    let num = Number(user_input)
+    num = Number(user_input)
     if num >= 0:
         log f"有效数字: {num}"
 """
@@ -267,6 +270,7 @@ assert isFinite(result)
     def test_type_conversion_workflow(self, parse_v3):
         """✅ 正确：类型转换工作流"""
         source = """
+let age_string = "25"
 let user_age = Number(age_string)
 if isFinite(user_age) and user_age >= 18:
     log f"成年用户: {user_age}岁"

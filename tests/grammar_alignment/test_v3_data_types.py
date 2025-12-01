@@ -52,7 +52,7 @@ class TestV3_DataTypes_Boolean:
     @pytest.mark.python_aligned
     def test_true_in_expression(self, parse_v3):
         """✅ 正确：表达式中的 True"""
-        source = "let result = active == True"
+        source = "let active = True\nlet result = active == True"
         result = parse_v3(source)
         assert result.success == True, "表达式中的 True 应该正确解析"
 
@@ -62,6 +62,7 @@ class TestV3_DataTypes_Boolean:
     def test_false_in_condition(self, parse_v3):
         """✅ 正确：条件中的 False"""
         source = """
+let verified = False
 if verified == False:
     log "未验证"
 """
@@ -139,7 +140,7 @@ class TestV3_DataTypes_None:
     @pytest.mark.python_aligned
     def test_none_in_comparison(self, parse_v3):
         """✅ 正确：None 比较"""
-        source = "let is_empty = data == None"
+        source = "let data = None\nlet is_empty = data == None"
         result = parse_v3(source)
         assert result.success == True, "None 比较应该正确解析"
 
@@ -149,6 +150,7 @@ class TestV3_DataTypes_None:
     def test_none_in_condition(self, parse_v3):
         """✅ 正确：条件中的 None"""
         source = """
+let value = None
 if value == None:
     log "值为空"
 """
@@ -160,7 +162,7 @@ if value == None:
     @pytest.mark.python_aligned
     def test_none_not_equal(self, parse_v3):
         """✅ 正确：None 不等于"""
-        source = "let has_value = data != None"
+        source = "let data = 1\nlet has_value = data != None"
         result = parse_v3(source)
         assert result.success == True, "None 不等于应该正确解析"
 
@@ -297,7 +299,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_interpolation(self, parse_v3):
         """✅ 正确：f-string 插值（Python 风格）"""
-        source = 'log f"Count: {count}"'
+        source = 'let count = 10\nlog f"Count: {count}"'
         result = parse_v3(source)
         assert result.success == True, "f-string 应该正确解析"
 
@@ -306,7 +308,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_multiple_interpolations(self, parse_v3):
         """✅ 正确：f-string 多个插值"""
-        source = 'log f"User {name} has {count} items"'
+        source = 'let name = "Alice"\nlet count = 5\nlog f"User {name} has {count} items"'
         result = parse_v3(source)
         assert result.success == True, "f-string 多个插值应该正确解析"
 
@@ -315,7 +317,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_fstring_with_expression(self, parse_v3):
         """✅ 正确：f-string 内表达式"""
-        source = 'log f"Total: {count + 1}"'
+        source = 'let count = 5\nlog f"Total: {count + 1}"'
         result = parse_v3(source)
         assert result.success == True, "f-string 内表达式应该正确解析"
 
@@ -324,7 +326,7 @@ class TestV3_DataTypes_String:
     @pytest.mark.python_aligned
     def test_plain_string_no_interpolation(self, parse_v3):
         """✅ 正确：普通字符串不插值（无 f 前缀）"""
-        source = 'log "Count: {count}"'  # 无 f 前缀
+        source = 'let count = 5\nlog "Count: {count}"'  # 无 f 前缀，{count}是字面量
         result = parse_v3(source)
         assert result.success == True, "普通字符串（无f前缀）应该正确解析为字面量"
 

@@ -46,6 +46,7 @@ class MockContext:
         self.current_step = "test_step"
         self.step_index = 0
         self.page = MockPage()
+        self.script_path = "test_script.flow"
 
 
 class MockPage:

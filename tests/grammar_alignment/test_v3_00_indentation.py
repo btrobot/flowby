@@ -46,6 +46,7 @@ step "test":
     def test_two_level_indent(self, parse_v3):
         """✅ 正确：两层缩进"""
         source = """
+let x = 1
 step "outer":
     if x > 0:
         let y = 1
@@ -59,6 +60,8 @@ step "outer":
     def test_three_level_indent(self, parse_v3):
         """✅ 正确：三层缩进"""
         source = """
+let x = 1
+let status = "active"
 step "level1":
     if x > 0:
         when status:
@@ -88,6 +91,8 @@ step "two":
     def test_dedent_multiple_levels(self, parse_v3):
         """✅ 正确：一次回退多级缩进"""
         source = """
+let x = 1
+let y = 1
 step "outer":
     if x > 0:
         if y > 0:
@@ -118,13 +123,16 @@ step "test":
     def test_nested_if_blocks(self, parse_v3):
         """✅ 正确：嵌套 if 块"""
         source = """
+let x = 1
+let y = 1
+let z = 0
 if x > 0:
     if y > 0:
-        let z = 1
+        z = 1
     else:
-        let z = 2
+        z = 2
 else:
-    let z = 3
+    z = 3
 """
         result = parse_v3(source)
         assert result.success == True, "嵌套 if 块应该正确解析"
@@ -149,6 +157,7 @@ step "outer":
     def test_for_loop_indent(self, parse_v3):
         """✅ 正确：for 循环缩进"""
         source = """
+let items = [1, 2, 3]
 for item in items:
     let x = item
     let y = x + 1
@@ -162,11 +171,13 @@ for item in items:
     def test_when_block_indent(self, parse_v3):
         """✅ 正确：when 块缩进"""
         source = """
+let status = "active"
+let x = 0
 when status:
     "active":
-        let x = 1
+        x = 1
     "inactive":
-        let x = 2
+        x = 2
 """
         result = parse_v3(source)
         assert result.success == True, "when 块缩进应该正确解析"
@@ -194,7 +205,7 @@ class TestV3_Indentation_Boundaries:
     @pytest.mark.syntax
     def test_8_space_nested(self, parse_v3):
         """✅ 正确：8 空格二级缩进"""
-        source = 'step "test":\n    if x:\n        let y = 1'  # 4 + 4
+        source = 'let x = True\nstep "test":\n    if x:\n        let y = 1'  # 4 + 4
         result = parse_v3(source)
         assert result.success == True, "8 空格二级缩进应该正确解析"
 
@@ -203,7 +214,7 @@ class TestV3_Indentation_Boundaries:
     @pytest.mark.syntax
     def test_12_space_triple_nested(self, parse_v3):
         """✅ 正确：12 空格三级缩进"""
-        source = 'step "test":\n    if x:\n        if y:\n            let z = 1'
+        source = 'let x = True\nlet y = True\nstep "test":\n    if x:\n        if y:\n            let z = 1'
         result = parse_v3(source)
         assert result.success == True, "12 空格三级缩进应该正确解析"
 
@@ -331,7 +342,7 @@ class TestV3_Indentation_Tabs:
     @pytest.mark.syntax
     def test_two_tabs_nested(self, parse_v3):
         """✅ 正确：两个 Tab 嵌套"""
-        source = 'step "test":\n\tif x:\n\t\tlet y = 1'  # Tab + Tab
+        source = 'let x = True\nstep "test":\n\tif x:\n\t\tlet y = 1'  # Tab + Tab
         result = parse_v3(source)
         assert result.success == True, "两个 Tab 嵌套应该正确解析"
 
@@ -624,6 +635,9 @@ class TestV3_Indentation_Complex:
     def test_5_level_deep_nesting(self, parse_v3):
         """✅ 正确：5 层深度嵌套"""
         source = """
+let a = True
+let b = "case1"
+let items = [1, 2, 3]
 step "level1":
     if a:
         when b:
@@ -640,6 +654,9 @@ step "level1":
     def test_multiple_dedents_in_sequence(self, parse_v3):
         """✅ 正确：连续多次回退"""
         source = """
+let x = True
+let y = True
+let z = True
 step "outer":
     if x:
         if y:
@@ -656,14 +673,16 @@ let b = 2
     def test_else_if_chain_indentation(self, parse_v3):
         """✅ 正确：else if 链的缩进"""
         source = """
+let x = 85
+let grade = ""
 if x > 90:
-    let grade = "A"
+    grade = "A"
 else if x > 80:
-    let grade = "B"
+    grade = "B"
 else if x > 70:
-    let grade = "C"
+    grade = "C"
 else:
-    let grade = "F"
+    grade = "F"
 """
         result = parse_v3(source)
         assert result.success == True, "else if 链应该正确解析"
@@ -674,15 +693,17 @@ else:
     def test_when_cases_same_indent(self, parse_v3):
         """✅ 正确：when 分支同级缩进"""
         source = """
+let status = "pending"
+let x = 0
 when status:
     "pending":
-        let x = 1
+        x = 1
     "processing":
-        let x = 2
+        x = 2
     "completed":
-        let x = 3
+        x = 3
     otherwise:
-        let x = 4
+        x = 4
 """
         result = parse_v3(source)
         assert result.success == True, "when 分支同级缩进应该正确解析"
@@ -693,6 +714,7 @@ when status:
     def test_for_loop_with_nested_if(self, parse_v3):
         """✅ 正确：for 循环内嵌套 if"""
         source = """
+let users = [{"active": True, "name": "Alice"}]
 for user in users:
     if user.active:
         log f"Active: {user.name}"
@@ -738,10 +760,12 @@ class TestV3_Indentation_PythonAlignment:
     def test_looks_like_python_if(self, parse_v3):
         """✅ 验证：看起来像 Python 的 if 语句"""
         dsl_code = """
+let x = 1
+let y = 0
 if x > 0:
-    let y = 1
+    y = 1
 else:
-    let y = 0
+    y = 0
 """
         python_equiv = """
 if x > 0:
@@ -760,6 +784,7 @@ else:
     def test_looks_like_python_for(self, parse_v3):
         """✅ 验证：看起来像 Python 的 for 循环"""
         dsl_code = """
+let items = [1, 2, 3]
 for item in items:
     if item > 0:
         log f"Positive: {item}"

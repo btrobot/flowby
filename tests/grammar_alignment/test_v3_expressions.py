@@ -16,7 +16,7 @@ class TestV3_Expr_LogicalOr:
     @pytest.mark.expressions
     def test_logical_or(self, parse_v3):
         """✅ 正确：逻辑 OR"""
-        source = "assert a or b"
+        source = "let a = True\nlet b = False\nassert a or b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -37,7 +37,7 @@ class TestV3_Expr_LogicalAnd:
     @pytest.mark.expressions
     def test_logical_and(self, parse_v3):
         """✅ 正确：逻辑 AND"""
-        source = "assert a and b"
+        source = "let a = True\nlet b = True\nassert a and b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -58,7 +58,7 @@ class TestV3_Expr_LogicalNot:
     @pytest.mark.expressions
     def test_logical_not(self, parse_v3):
         """✅ 正确：逻辑 NOT"""
-        source = "assert not a"
+        source = "let a = False\nassert not a"
         result = parse_v3(source)
         assert result.success == True
 
@@ -79,7 +79,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_equal(self, parse_v3):
         """✅ 正确：相等比较"""
-        source = "assert a == b"
+        source = "let a = 1\nlet b = 1\nassert a == b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -87,7 +87,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_not_equal(self, parse_v3):
         """✅ 正确：不等比较"""
-        source = "assert a != b"
+        source = "let a = 1\nlet b = 2\nassert a != b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -95,7 +95,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_greater_than(self, parse_v3):
         """✅ 正确：大于"""
-        source = "assert score > 60"
+        source = "let score = 80\nassert score > 60"
         result = parse_v3(source)
         assert result.success == True
 
@@ -103,7 +103,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_less_than(self, parse_v3):
         """✅ 正确：小于"""
-        source = "assert age < 18"
+        source = "let age = 15\nassert age < 18"
         result = parse_v3(source)
         assert result.success == True
 
@@ -111,7 +111,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_greater_equal(self, parse_v3):
         """✅ 正确：大于等于"""
-        source = "assert score >= 90"
+        source = "let score = 95\nassert score >= 90"
         result = parse_v3(source)
         assert result.success == True
 
@@ -119,7 +119,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.expressions
     def test_less_equal(self, parse_v3):
         """✅ 正确：小于等于"""
-        source = "assert age <= 65"
+        source = "let age = 50\nassert age <= 65"
         result = parse_v3(source)
         assert result.success == True
 
@@ -128,7 +128,7 @@ class TestV3_Expr_Comparison:
     @pytest.mark.python_aligned
     def test_none_comparison(self, parse_v3):
         """✅ 正确：None 比较（Python风格）"""
-        source = "assert data == None"
+        source = "let data = None\nassert data == None"
         result = parse_v3(source)
         assert result.success == True
 
@@ -140,7 +140,7 @@ class TestV3_Expr_Additive:
     @pytest.mark.expressions
     def test_addition(self, parse_v3):
         """✅ 正确：加法"""
-        source = "let result = a + b"
+        source = "let a = 1\nlet b = 2\nlet result = a + b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -148,7 +148,7 @@ class TestV3_Expr_Additive:
     @pytest.mark.expressions
     def test_subtraction(self, parse_v3):
         """✅ 正确：减法"""
-        source = "let result = a - b"
+        source = "let a = 5\nlet b = 3\nlet result = a - b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -156,7 +156,7 @@ class TestV3_Expr_Additive:
     @pytest.mark.expressions
     def test_multiple_additions(self, parse_v3):
         """✅ 正确：多个加法"""
-        source = "let result = a + b + c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a + b + c"
         result = parse_v3(source)
         assert result.success == True
 
@@ -168,7 +168,7 @@ class TestV3_Expr_Multiplicative:
     @pytest.mark.expressions
     def test_multiplication(self, parse_v3):
         """✅ 正确：乘法"""
-        source = "let result = a * b"
+        source = "let a = 2\nlet b = 3\nlet result = a * b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -176,7 +176,7 @@ class TestV3_Expr_Multiplicative:
     @pytest.mark.expressions
     def test_division(self, parse_v3):
         """✅ 正确：除法"""
-        source = "let result = a / b"
+        source = "let a = 10\nlet b = 2\nlet result = a / b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -184,7 +184,7 @@ class TestV3_Expr_Multiplicative:
     @pytest.mark.expressions
     def test_modulo(self, parse_v3):
         """✅ 正确：取模"""
-        source = "let result = a % b"
+        source = "let a = 10\nlet b = 3\nlet result = a % b"
         result = parse_v3(source)
         assert result.success == True
 
@@ -274,7 +274,7 @@ let flag2 = False
     @pytest.mark.expressions
     def test_parentheses(self, parse_v3):
         """✅ 正确：括号表达式"""
-        source = "let result = (a + b) * c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = (a + b) * c"
         result = parse_v3(source)
         assert result.success == True
 
@@ -286,7 +286,7 @@ class TestV3_Expr_Complex:
     @pytest.mark.expressions
     def test_precedence_arithmetic(self, parse_v3):
         """✅ 正确：算术优先级"""
-        source = "let result = a + b * c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a + b * c"
         result = parse_v3(source)
         assert result.success == True
 
@@ -294,7 +294,7 @@ class TestV3_Expr_Complex:
     @pytest.mark.expressions
     def test_precedence_comparison_logical(self, parse_v3):
         """✅ 正确：比较+逻辑优先级"""
-        source = "assert a > 0 and b < 10"
+        source = "let a = 5\nlet b = 8\nassert a > 0 and b < 10"
         result = parse_v3(source)
         assert result.success == True
 
@@ -303,7 +303,7 @@ class TestV3_Expr_Complex:
     @pytest.mark.python_aligned
     def test_complex_python_style(self, parse_v3):
         """✅ 正确：复杂Python风格表达式"""
-        source = "assert (score >= 90 and attendance > 80) or extra_credit == True"
+        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit == True"
         result = parse_v3(source)
         assert result.success == True
 
@@ -312,7 +312,7 @@ class TestV3_Expr_Complex:
     @pytest.mark.python_aligned
     def test_fstring_with_expressions(self, parse_v3):
         """✅ 正确：f-string中的表达式"""
-        source = 'log f"Result: {x + y * 2}"'
+        source = 'let x = 5\nlet y = 3\nlog f"Result: {x + y * 2}"'
         result = parse_v3(source)
         assert result.success == True
 
@@ -322,6 +322,8 @@ class TestV3_Expr_Complex:
     def test_expressions_in_control_flow(self, parse_v3):
         """✅ 正确：控制流中的表达式（无end）"""
         source = """
+let score = 95
+let attendance = 85
 if score >= 90 and attendance > 80:
     log "Excellent"
 """

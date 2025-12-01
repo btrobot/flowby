@@ -287,7 +287,7 @@ class TestV3_1_3_Assignment:
     @pytest.mark.feature("1.3")
     def test_assignment_expression(self, parse_v3):
         """✅ 正确：赋值表达式"""
-        source = "count = count + 1"
+        source = "let count = 0\ncount = count + 1"
         result = parse_v3(source)
         assert result.success == True, "赋值表达式应该正确解析"
 

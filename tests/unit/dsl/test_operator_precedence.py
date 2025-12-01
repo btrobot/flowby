@@ -40,14 +40,14 @@ class TestArithmeticPrecedence:
     def test_multiplication_before_addition(self, lexer, parser):
         """测试乘法优先于加法: a + b * c -> a + (b * c)"""
         # Arrange
-        source = "let result = a + b * c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a + b * c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
-        # Assert
-        let_stmt = program.statements[0]
+        # Assert - get the last statement (result = a + b * c)
+        let_stmt = program.statements[-1]
         assert isinstance(let_stmt, LetStatement)
 
         # result = BinaryOp(a, '+', BinaryOp(b, '*', c))
@@ -68,14 +68,14 @@ class TestArithmeticPrecedence:
     def test_division_before_subtraction(self, lexer, parser):
         """测试除法优先于减法: a - b / c -> a - (b / c)"""
         # Arrange
-        source = "let result = a - b / c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a - b / c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(a, '-', BinaryOp(b, '/', c))
@@ -87,14 +87,14 @@ class TestArithmeticPrecedence:
     def test_modulo_before_addition(self, lexer, parser):
         """测试取模优先于加法: a + b % c -> a + (b % c)"""
         # Arrange
-        source = "let result = a + b % c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a + b % c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(a, '+', BinaryOp(b, '%', c))
@@ -106,14 +106,14 @@ class TestArithmeticPrecedence:
     def test_left_associativity_addition(self, lexer, parser):
         """测试加法左结合: a + b + c -> (a + b) + c"""
         # Arrange
-        source = "let result = a + b + c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a + b + c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '+', b), '+', c)
@@ -127,14 +127,14 @@ class TestArithmeticPrecedence:
     def test_left_associativity_multiplication(self, lexer, parser):
         """测试乘法左结合: a * b * c -> (a * b) * c"""
         # Arrange
-        source = "let result = a * b * c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = a * b * c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '*', b), '*', c)
@@ -146,14 +146,14 @@ class TestArithmeticPrecedence:
     def test_mixed_operators(self, lexer, parser):
         """测试混合运算: a + b * c - d / e -> (a + (b * c)) - (d / e)"""
         # Arrange
-        source = "let result = a + b * c - d / e"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet e = 5\nlet result = a + b * c - d / e"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # 最外层应该是减法: (a + b * c) - (d / e)
@@ -185,14 +185,14 @@ class TestLogicalPrecedence:
     def test_and_before_or(self, lexer, parser):
         """测试 AND 优先于 OR: a AND b OR c -> (a AND b) OR c"""
         # Arrange
-        source = "let result = a AND b OR c"
+        source = "let a = True\nlet b = True\nlet c = True\nlet result = a and b or c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, 'AND', b), 'OR', c)
@@ -210,14 +210,14 @@ class TestLogicalPrecedence:
     def test_and_left_associative(self, lexer, parser):
         """测试 AND 左结合: a AND b AND c -> (a AND b) AND c"""
         # Arrange
-        source = "let result = a AND b AND c"
+        source = "let a = True\nlet b = True\nlet c = True\nlet result = a and b and c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, 'AND', b), 'AND', c)
@@ -229,14 +229,14 @@ class TestLogicalPrecedence:
     def test_or_left_associative(self, lexer, parser):
         """测试 OR 左结合: a OR b OR c -> (a OR b) OR c"""
         # Arrange
-        source = "let result = a OR b OR c"
+        source = "let a = True\nlet b = True\nlet c = True\nlet result = a or b or c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, 'OR', b), 'OR', c)
@@ -248,14 +248,14 @@ class TestLogicalPrecedence:
     def test_complex_logical_expression(self, lexer, parser):
         """测试复杂逻辑表达式: a OR b AND c OR d -> (a OR (b AND c)) OR d"""
         # Arrange
-        source = "let result = a OR b AND c OR d"
+        source = "let a = True\nlet b = True\nlet c = True\nlet d = True\nlet result = a or b and c or d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # 最外层: (a OR (b AND c)) OR d
@@ -285,14 +285,14 @@ class TestUnaryPrecedence:
     def test_not_before_and(self, lexer, parser):
         """测试 NOT 优先于 AND: NOT a AND b -> (NOT a) AND b"""
         # Arrange
-        source = "let result = NOT a AND b"
+        source = "let a = True\nlet b = True\nlet result = not a and b"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(UnaryOp('NOT', a), 'AND', b)
@@ -308,14 +308,14 @@ class TestUnaryPrecedence:
     def test_not_before_or(self, lexer, parser):
         """测试 NOT 优先于 OR: NOT a OR b -> (NOT a) OR b"""
         # Arrange
-        source = "let result = NOT a OR b"
+        source = "let a = True\nlet b = True\nlet result = not a or b"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(UnaryOp('NOT', a), 'OR', b)
@@ -327,14 +327,14 @@ class TestUnaryPrecedence:
     def test_unary_minus(self, lexer, parser):
         """测试一元负号: -a + b -> (-a) + b"""
         # Arrange
-        source = "let result = -a + b"
+        source = "let a = 1\nlet b = 2\nlet result = -a + b"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(UnaryOp('-', a), '+', b)
@@ -358,14 +358,14 @@ class TestComparisonPrecedence:
     def test_arithmetic_before_comparison(self, lexer, parser):
         """测试算术优先于比较: a + b > c - d -> (a + b) > (c - d)"""
         # Arrange
-        source = "let result = a + b > c - d"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet result = a + b > c - d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '+', b), '>', BinaryOp(c, '-', d))
@@ -379,14 +379,14 @@ class TestComparisonPrecedence:
     def test_comparison_before_logical(self, lexer, parser):
         """测试比较优先于逻辑: a > b AND c < d -> (a > b) AND (c < d)"""
         # Arrange
-        source = "let result = a > b AND c < d"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet result = a > b and c < d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '>', b), 'AND', BinaryOp(c, '<', d))
@@ -400,14 +400,14 @@ class TestComparisonPrecedence:
     def test_equality_before_logical(self, lexer, parser):
         """测试相等优先于逻辑: a == b OR c != d -> (a == b) OR (c != d)"""
         # Arrange
-        source = "let result = a == b OR c != d"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet result = a == b or c != d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '==', b), 'OR', BinaryOp(c, '!=', d))
@@ -433,14 +433,14 @@ class TestParenthesesPrecedence:
     def test_parentheses_override_multiplication(self, lexer, parser):
         """测试括号优先于乘法: (a + b) * c -> (a + b) * c"""
         # Arrange
-        source = "let result = (a + b) * c"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet result = (a + b) * c"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '+', b), '*', c)
@@ -455,14 +455,14 @@ class TestParenthesesPrecedence:
     def test_parentheses_override_and(self, lexer, parser):
         """测试括号优先于 AND: a AND (b OR c) -> a AND (b OR c)"""
         # Arrange
-        source = "let result = a AND (b OR c)"
+        source = "let a = True\nlet b = True\nlet c = True\nlet result = a and (b or c)"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(a, 'AND', BinaryOp(b, 'OR', c))
@@ -477,14 +477,14 @@ class TestParenthesesPrecedence:
     def test_nested_parentheses(self, lexer, parser):
         """测试嵌套括号: (a + (b * c)) - d"""
         # Arrange
-        source = "let result = (a + (b * c)) - d"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet result = (a + (b * c)) - d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # result = BinaryOp(BinaryOp(a, '+', BinaryOp(b, '*', c)), '-', d)
@@ -510,14 +510,14 @@ class TestComplexPrecedence:
     def test_full_precedence_chain(self, lexer, parser):
         """测试完整优先级链: a OR b AND c > d + e * f"""
         # Arrange
-        source = "let result = a OR b AND c > d + e * f"
+        source = "let a = True\nlet b = True\nlet c = 1\nlet d = 2\nlet e = 3\nlet f = 4\nlet result = a or b and c > d + e * f"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # 最外层: OR
@@ -543,14 +543,14 @@ class TestComplexPrecedence:
     def test_unary_with_comparison_and_logical(self, lexer, parser):
         """测试一元、比较和逻辑混合: NOT a > b AND c < d -> (NOT (a > b)) AND (c < d)"""
         # Arrange
-        source = "let result = NOT a > b AND c < d"
+        source = "let a = 1\nlet b = 2\nlet c = 3\nlet d = 4\nlet result = not a > b and c < d"
 
         # Act
         tokens = lexer.tokenize(source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         # 最外层: AND
@@ -567,9 +567,9 @@ class TestComplexPrecedence:
         "source,expected_outer_op,expected_description",
         [
             ("a + b * c", "+", "乘法优先于加法"),
-            ("a AND b OR c", "OR", "AND 优先于 OR"),
-            ("NOT a AND b", "AND", "NOT 优先于 AND"),
-            ("a > b AND c", "AND", "比较优先于逻辑"),
+            ("a and b or c", "OR", "and 优先于 or"),
+            ("not a and b", "AND", "not 优先于 and"),
+            ("a > b and c", "AND", "比较优先于逻辑"),
             ("(a + b) * c", "*", "括号改变优先级"),
         ],
     )
@@ -577,15 +577,15 @@ class TestComplexPrecedence:
         self, lexer, parser, source, expected_outer_op, expected_description
     ):
         """参数化测试各种优先级场景"""
-        # Arrange
-        full_source = f"let result = {source}"
+        # Arrange - add variable declarations
+        full_source = f"let a = 1\nlet b = 2\nlet c = 3\nlet result = {source}"
 
         # Act
         tokens = lexer.tokenize(full_source)
         program = parser.parse(tokens)
 
         # Assert
-        let_stmt = program.statements[0]
+        let_stmt = program.statements[-1]
         expr = let_stmt.value
 
         assert isinstance(expr, BinaryOp) or isinstance(

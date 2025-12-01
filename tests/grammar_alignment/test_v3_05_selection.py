@@ -144,6 +144,7 @@ step "元素选择":
     def test_select_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let has_filter = True
 if has_filter:
     select "div" where class equals "filtered"
 """
@@ -219,6 +220,7 @@ step "下拉选择":
     def test_select_option_in_if(self, parse_v3):
         """✅ 正确：在 if 块内使用（v3.0：无 end if）"""
         source = """
+let needs_selection = True
 if needs_selection:
     select option "Premium" from "#plan-selector"
 """
@@ -270,6 +272,7 @@ step "表单填写":
     def test_conditional_selection(self, parse_v3):
         """✅ 正确：条件选择（v3.0：纯缩进）"""
         source = """
+let user_type = "admin"
 if user_type == "admin":
     select option "Administrator" from "#role-selector"
 else:
@@ -284,6 +287,8 @@ else:
     def test_nested_selection(self, parse_v3):
         """✅ 正确：嵌套块中的选择（v3.0）"""
         source = """
+let has_options = True
+let needs_filter = True
 step "复杂选择":
     if has_options:
         select "div" where class equals "active"

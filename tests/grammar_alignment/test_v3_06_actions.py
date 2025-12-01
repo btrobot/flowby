@@ -103,6 +103,7 @@ class TestV3_6_3_DoubleClick:
     def test_double_click_in_if(self, parse_v3):
         """✅ 正确：if 块内（无 end if）"""
         source = """
+let editable = True
 if editable:
     double click ".editable-field"
 """
@@ -300,6 +301,8 @@ step "表单提交":
     def test_nested_actions(self, parse_v3):
         """✅ 正确：嵌套块中的动作（v3.0：纯缩进）"""
         source = """
+let is_logged_in = True
+let editable = True
 step "复杂操作":
     if is_logged_in:
         click "#profile"

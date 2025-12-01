@@ -37,7 +37,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_comparison(self, parse_v3):
         """✅ 正确：比较表达式断言"""
-        source = "assert score >= 60"
+        source = "let score = 80\nassert score >= 60"
         result = parse_v3(source)
         assert result.success == True
 
@@ -46,7 +46,7 @@ assert False == False
     @pytest.mark.python_aligned
     def test_assert_none(self, parse_v3):
         """✅ 正确：None 断言（Python 风格）"""
-        source = "assert data != None"
+        source = "let data = 1\nassert data != None"
         result = parse_v3(source)
         assert result.success == True
 
@@ -63,7 +63,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_with_message(self, parse_v3):
         """✅ 正确：带消息的断言"""
-        source = 'assert score >= 60, "分数不及格"'
+        source = 'let score = 80\nassert score >= 60, "分数不及格"'
         result = parse_v3(source)
         assert result.success == True
 
@@ -71,7 +71,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_logical_and(self, parse_v3):
         """✅ 正确：逻辑 AND 断言"""
-        source = "assert score >= 90 and attendance > 80"
+        source = "let score = 95\nlet attendance = 85\nassert score >= 90 and attendance > 80"
         result = parse_v3(source)
         assert result.success == True
 
@@ -79,7 +79,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_logical_or(self, parse_v3):
         """✅ 正确：逻辑 OR 断言"""
-        source = "assert is_admin or is_moderator"
+        source = "let is_admin = True\nlet is_moderator = False\nassert is_admin or is_moderator"
         result = parse_v3(source)
         assert result.success == True
 
@@ -87,7 +87,7 @@ assert False == False
     @pytest.mark.feature("7.x")
     def test_assert_complex_expression(self, parse_v3):
         """✅ 正确：复杂表达式断言"""
-        source = "assert (score >= 90 and attendance > 80) or extra_credit == True"
+        source = "let score = 95\nlet attendance = 85\nlet extra_credit = True\nassert (score >= 90 and attendance > 80) or extra_credit == True"
         result = parse_v3(source)
         assert result.success == True
 
@@ -97,6 +97,7 @@ assert False == False
     def test_assert_in_step(self, parse_v3):
         """✅ 正确：step 块内（无 end step）"""
         source = """
+let element_count = 5
 step "验证结果":
     assert page.url contains "/success"
     assert element_count > 0
@@ -110,6 +111,8 @@ step "验证结果":
     def test_assert_in_if(self, parse_v3):
         """✅ 正确：if 块内（无 end if）"""
         source = """
+let needs_verification = True
+let verification_code = "12345"
 if needs_verification:
     assert verification_code != None
 """

@@ -158,7 +158,7 @@ class TestV3_PythonAlignment_FString:
     @pytest.mark.syntax
     def test_fstring_interpolation_correct(self, parse_v3):
         """✅ 正确：f-string 插值"""
-        source = 'log f"Count: {count}"'
+        source = 'let count = 10\nlog f"Count: {count}"'
         result = parse_v3(source)
         assert result.success == True, "f-string 应该被正确解析"
 
@@ -168,7 +168,7 @@ class TestV3_PythonAlignment_FString:
     def test_plain_string_no_interpolation_correct(self, parse_v3):
         """✅ 正确：普通字符串不插值"""
         # 这应该被解析为字面量字符串 "Count: {count}"
-        source = 'log "Count: {count}"'
+        source = 'let count = 10\nlog "Count: {count}"'
         result = parse_v3(source)
         assert result.success == True, "普通字符串应该被正确解析（作为字面量）"
 
@@ -178,7 +178,7 @@ class TestV3_PythonAlignment_FString:
     def test_auto_interpolation_disabled(self, parse_v3):
         """✅ 验证：自动插值已禁用"""
         # v2.0 会自动插值，v3.0 不会
-        source = 'log "Value: {x}"'
+        source = 'let x = 5\nlog "Value: {x}"'
         result = parse_v3(source)
         # 应该成功解析，但 {x} 是字面量而非插值
         assert result.success == True
@@ -200,6 +200,7 @@ class TestV3_PythonAlignment_NoEndKeyword:
     def test_if_without_end_correct(self, parse_v3):
         """✅ 正确：if 块无 end if"""
         source = """
+let x = 1
 if x > 0:
     let y = 1
 """
@@ -224,6 +225,7 @@ step "test":
     def test_end_if_keyword_error(self, parse_v3):
         """❌ 错误：end if 关键字应报错"""
         source = """
+let x = 1
 if x > 0:
     let y = 1
 end if
@@ -302,14 +304,14 @@ class TestV3_PythonAlignment_Comprehensive:
             # ✅ 正确的 Python 风格代码
             ("let active = True", True),
             ("let data = None", True),
-            ('log f"User: {user.name}"', True),
+            ('let user = {name: "Alice"}\nlog f"User: {user.name}"', True),
             ('assert page.url == "test"', True),
-            ("if x > 0:\n    let y = 1", True),
+            ("let x = 1\nif x > 0:\n    let y = 1", True),
             # ❌ v2.0 风格（应报错）
             ("let active = true", False),  # 小写布尔值
             ("let data = null", False),  # null 而非 None
             ("log $page.url", False),  # $ 前缀
-            ("if x > 0:\n    let y = 1\nend if", False),  # end 关键字
+            ("let x = 1\nif x > 0:\n    let y = 1\nend if", False),  # end 关键字
         ],
     )
     def test_python_alignment_consistency(self, parse_v3, source, should_pass):
@@ -335,11 +337,11 @@ step "用户登录":
 
     if email == None:
         log "邮箱为空"
-        let success = False
+        success = False
     else:
         navigate to page.url
         type email into "#email"
-        let success = True
+        success = True
 
     assert success == True
 '''
@@ -363,7 +365,7 @@ class TestV3_ErrorConsistency:
             ("let x = true", "True"),  # 应提示使用 True
             ("let x = null", "None"),  # 应提示使用 None
             ("log $page.url", "$"),  # 应提示 $ 前缀错误
-            ("if x:\n    y = 1\nend if", "end"),  # 应提示 end 关键字错误（使用4空格缩进）
+            ("let x = 1\nif x:\n    let y = 1\nend if", "end"),  # 应提示 end 关键字错误
         ],
     )
     def test_error_messages_contain_hint(self, parse_v3, source, error_keyword):
