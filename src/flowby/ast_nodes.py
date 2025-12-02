@@ -39,7 +39,7 @@ AST (Abstract Syntax Tree) 节点定义
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Any
+from typing import List, Tuple, Optional, Any
 from enum import Enum
 
 
@@ -242,7 +242,7 @@ class SelectStatement(ASTNode):
     """
 
     element_type: str
-    conditions: List[tuple[str, str, str]] = field(default_factory=list)
+    conditions: List[Tuple[str, str, str]] = field(default_factory=list)
 
 
 # ============================================================
@@ -590,7 +590,7 @@ class IfBlock(ASTNode):
 
     condition: Any  # Condition 或 Expression
     then_statements: List[ASTNode] = field(default_factory=list)
-    elif_clauses: List[tuple[Any, List[ASTNode]]] = field(default_factory=list)
+    elif_clauses: List[Tuple[Any, List[ASTNode]]] = field(default_factory=list)
     else_statements: List[ASTNode] = field(default_factory=list)
 
 
@@ -1268,7 +1268,7 @@ class ObjectLiteral(Expression):
                key 是字符串，value_expr 是表达式节点
     """
 
-    pairs: List[tuple[str, Expression]] = field(default_factory=list)
+    pairs: List[Tuple[str, Expression]] = field(default_factory=list)
 
 
 @dataclass

@@ -13,7 +13,7 @@
 """
 
 from enum import Enum
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, List
 from dataclasses import dataclass
 
 
@@ -435,7 +435,7 @@ class SymbolTableStack:
     def __init__(self):
         """初始化符号表栈，创建全局作用域"""
         global_table = SymbolTable("global", parent=None)
-        self.stack: list[SymbolTable] = [global_table]
+        self.stack: List[SymbolTable] = [global_table]
 
     def current_scope(self) -> SymbolTable:
         """

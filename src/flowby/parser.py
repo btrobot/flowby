@@ -16,7 +16,7 @@ v3.0 核心变更:
     输出: StepBlock(name="登录", ...)
 """
 
-from typing import List, Optional
+from typing import List, Tuple, Optional
 from .lexer import Token, TokenType
 from .ast_nodes import *
 from .errors import ParserError
@@ -599,7 +599,7 @@ class Parser:
 
         return SelectOptionAction(option_value=option_value, selector=selector, line=line)
 
-    def _parse_where_clause(self) -> List[tuple[str, str, str]]:
+    def _parse_where_clause(self) -> List[Tuple[str, str, str]]:
         """解析 where 子句 - v3.0 支持运算符"""
         conditions = []
 
@@ -2879,7 +2879,7 @@ class Parser:
 
         return ObjectLiteral(pairs=pairs, line=line)
 
-    def _parse_object_pair(self) -> tuple[str, Expression]:
+    def _parse_object_pair(self) -> Tuple[str, Expression]:
         """
         解析对象键值对
 
